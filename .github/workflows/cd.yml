@@ -22,7 +22,7 @@ jobs:
 
       # 3. 환경 변수 적용 후 의존성 설치 및 빌드
       - name: Install dependencies and build with environment variables
-        env:
+        # env:
           # 환경변수 설정
           # 예시
           # VITE_KAKAO_REST_API_KEY: ${{ secrets.VITE_KAKAO_REST_API_KEY }}
