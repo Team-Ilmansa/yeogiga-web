@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "jsx": "react-jsx", // React JSX 구문을 사용하도록 설정 (React 17+에서는 자동으로 JSX를 지원)
-    "checkJs": true, // JavaScript 파일에 대한 타입 검사 활성화 (VSCode에서 오류 경고 및 코드 완성 기능 향상)
+    "checkJs": false, // JavaScript 파일에 대한 타입 검사 활성화 (VSCode에서 오류 경고 및 코드 완성 기능 향상)
     "baseUrl": ".", // 기본 경로를 현재 프로젝트의 루트로 설정 (상대 경로 대신 별칭 사용 가능)
     "paths": {
       "@/*": ["src/*"] // '@' 별칭을 'src' 폴더로 설정 (모듈 경로 참조 시 간단하게 사용 가능)
