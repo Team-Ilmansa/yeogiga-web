@@ -8,4 +8,7 @@ export default defineConfig({
   resolve: {
     alias: [{ find: '@/', replacement: '/src/' }],
   },
+  server: {
+    open: true,
+  },
 })
