@@ -1,1 +1,11 @@
 @import 'tailwindcss';
+
+@layer base {
+  /* 태그별 기본 스타일 적용 */
+  button {
+    @apply cursor-pointer rounded-2xl border p-2;
+  }
+  input {
+    @apply rounded-2xl border p-2;
+  }
+}
