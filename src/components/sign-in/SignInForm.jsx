@@ -1,4 +1,4 @@
-const LoginForm = () => {
+const SignInForm = () => {
   return (
     <fieldset className='border p-5'>
       <legend className='p-2'>로그인</legend>
@@ -22,4 +22,4 @@ const LoginForm = () => {
   )
 }
 
-export default LoginForm
+export default SignInForm
