@@ -47,8 +47,8 @@ const SignInForm = () => {
           일반 로그인
         </button>
       </form>
-      {/**로그인 버튼 컴포넌트 내에 카카오로그인 컴포넌트 호출 */}
       <SignInButton.KakaoLogin />
+      <SignInButton.NaverLogin />
     </fieldset>
   )
 }
