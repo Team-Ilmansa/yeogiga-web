@@ -3,7 +3,7 @@ import api from '@/apis/api'
 /** 회원가입 API */
 const signUpApi = async (body) => {
   try {
-    const response = await api.post('api/v1/auth/sign-up', body)
+    const response = await api.post('auth/sign-up', body)
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {
