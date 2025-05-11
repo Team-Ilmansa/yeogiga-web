@@ -22,10 +22,12 @@ jobs:
 
       # 3. 환경 변수 적용 후 의존성 설치 및 빌드
       - name: Install dependencies and build with environment variables
-        # env:
-        # 환경변수 설정
-        # 예시
-        # VITE_KAKAO_REST_API_KEY: ${{ secrets.VITE_KAKAO_REST_API_KEY }}
+        env:
+          VITE_KAKAO_REST_API_KEY: ${{ secrets.VITE_KAKAO_REST_API_KEY }}
+          VITE_KAKAO_REDIRECT_URI: ${{ secrets.VITE_KAKAO_REDIRECT_URI }}
+          VITE_NAVER_REST_API_KEY: ${{ secrets.VITE_NAVER_REST_API_KEY }}
+          VITE_NAVER_REDIRECT_URI: ${{ secrets.VITE_NAVER_REDIRECT_URI }}
+          VITE_SERVER_BASE_URL: ${{ secrets.VITE_SERVER_BASE_URL }}
 
         run: |
           npm install
