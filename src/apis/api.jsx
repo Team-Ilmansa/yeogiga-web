@@ -9,4 +9,19 @@ const api = axios.create({
   withCredentials: true,
 })
 
+export const setUpInterceptors = () => {
+  api.interceptors.request.use(
+    (config) => {
+      const accessToken = sessionStorage.getItem('accessToken')
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`
+      }
+      return config
+    },
+    (error) => {
+      return Promise.reject(error)
+    },
+  )
+}
+
 export default api

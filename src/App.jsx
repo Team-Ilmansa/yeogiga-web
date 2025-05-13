@@ -4,8 +4,14 @@ import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
 import KakaoRedirect from './components/sign-in/KakaoRedirect'
 import NaverRedirect from './components/sign-in/NaverRedirect'
+import { useEffect } from 'react'
+import { setUpInterceptors } from './apis/api'
 
 const App = () => {
+  useEffect(() => {
+    setUpInterceptors()
+  })
+
   return (
     <Router>
       <Routes>
