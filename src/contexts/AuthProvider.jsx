@@ -7,6 +7,7 @@ import {
   saveAuthToStorage,
 } from './AuthUtil'
 
+/**React Context API를 이용한 전역 관리 컴포넌트 */
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [accessToken, setAccessToken] = useState(null)
@@ -41,6 +42,7 @@ const AuthProvider = ({ children }) => {
     window.location.href = '/'
   }, [])
 
+  /**웹 전체에 전역으로 공급 */
   const value = useMemo(
     () => ({ user, accessToken, login, logout }),
     [user, accessToken, login, logout],
