@@ -1,8 +1,11 @@
 import regularSignInApi from '@/apis/authentication/regularSignInApi'
 import { useForm } from 'react-hook-form'
 import SignInButton from './SignInButton'
+import useAuth from '@/hooks/useAuth'
 
 const SignInForm = () => {
+  const { login } = useAuth()
+
   const {
     register,
     handleSubmit,
@@ -23,6 +26,7 @@ const SignInForm = () => {
     try {
       const result = await regularSignInApi(body)
       alert('로그인에 성공했습니다!')
+      login({ token: result.data.accessToken })
       console.log('로그인 성공: ', result)
     } catch (err) {
       alert(`로그인 실패: ${err.message}`)
