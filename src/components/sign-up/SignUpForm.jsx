@@ -1,4 +1,6 @@
+import nicknameDupCheck from '@/apis/authentication/nicknameDupCheck'
 import signUpApi from '@/apis/authentication/signUpApi'
+import usernameDupCheck from '@/apis/authentication/usernameDupCheck'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -37,6 +39,30 @@ const SignUpForm = () => {
   }
 
   const selectedDomain = watch('domain')
+  const username = watch('username')
+  const nickname = watch('nickname')
+
+  const handleDupCheckUsername = async (usernane) => {
+    try {
+      const result = await usernameDupCheck(username)
+      alert(result.message)
+      console.log(result)
+    } catch (err) {
+      alert(err.message)
+      console.error('아이디 중복 확인 실패:', err)
+    }
+  }
+
+  const handleDupCheckNickname = async (nickname) => {
+    try {
+      const result = await nicknameDupCheck(nickname)
+      alert(result.message)
+      console.log(result)
+    } catch (err) {
+      alert(err.message)
+      console.error(`닉네임 중복 확인 에러:`, err)
+    }
+  }
 
   return (
     <fieldset className='border p-5'>
@@ -45,7 +71,20 @@ const SignUpForm = () => {
         onSubmit={handleSubmit(onSubmit)}
         className='flex flex-col gap-2 p-5'
       >
-        <input {...register('username', { required: true })} placeholder='ID' />
+        <div className='flex items-center gap-2'>
+          <input
+            {...register('username', { required: true })}
+            placeholder='ID'
+            className='flex-1'
+          />
+          <button
+            onClick={() => {
+              handleDupCheckUsername(username)
+            }}
+          >
+            중복 확인
+          </button>
+        </div>
         <input
           {...register('password', { required: true })}
           placeholder='Password'
@@ -73,13 +112,20 @@ const SignUpForm = () => {
             <option value='daum.net'>daum.net</option>
           </select>
         </div>
-        <input
-          {...register('nickname', { required: true })}
-          placeholder='닉네임'
-        />
-        <button type='submit' className='rounded-2xl border p-2'>
-          회원가입
-        </button>
+        <div className='flex items-center gap-2'>
+          <input
+            {...register('nickname', { required: true })}
+            placeholder='닉네임'
+            className='flex-1'
+          />
+          <button
+            onClick={() => {
+              handleDupCheckNickname(nickname)
+            }}
+          >
+            중복 확인
+          </button>
+        </div>
       </form>
     </fieldset>
   )
