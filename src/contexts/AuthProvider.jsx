@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import AuthContext from './AuthContext'
 import {
+  clearStorage,
   loadTokenFromStorage,
   loadUserFromStorage,
   parseNicknameFromToken,
