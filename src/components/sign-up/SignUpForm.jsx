@@ -42,7 +42,8 @@ const SignUpForm = () => {
   const username = watch('username')
   const nickname = watch('nickname')
 
-  const handleDupCheckUsername = async (usernane) => {
+  /**버튼 클릭 시 아이디 중복 확인 API 호출 */
+  const handleDupCheckUsername = async () => {
     try {
       const result = await usernameDupCheck(username)
       alert(result.message)
@@ -53,7 +54,8 @@ const SignUpForm = () => {
     }
   }
 
-  const handleDupCheckNickname = async (nickname) => {
+  /**버튼 클릭 시 닉네임 중복 확인 API 호출 */
+  const handleDupCheckNickname = async () => {
     try {
       const result = await nicknameDupCheck(nickname)
       alert(result.message)
@@ -77,13 +79,7 @@ const SignUpForm = () => {
             placeholder='ID'
             className='flex-1'
           />
-          <button
-            onClick={() => {
-              handleDupCheckUsername(username)
-            }}
-          >
-            중복 확인
-          </button>
+          <button onClick={handleDupCheckUsername}>중복 확인</button>
         </div>
         <input
           {...register('password', { required: true })}
@@ -118,13 +114,7 @@ const SignUpForm = () => {
             placeholder='닉네임'
             className='flex-1'
           />
-          <button
-            onClick={() => {
-              handleDupCheckNickname(nickname)
-            }}
-          >
-            중복 확인
-          </button>
+          <button onClick={handleDupCheckNickname}>중복 확인</button>
         </div>
       </form>
     </fieldset>
