@@ -6,12 +6,9 @@ import KakaoRedirect from './components/sign-in/KakaoRedirect'
 import NaverRedirect from './components/sign-in/NaverRedirect'
 import { useEffect } from 'react'
 import { setUpInterceptors } from './apis/api'
+import MyPage from './pages/MyPage'
 
 const App = () => {
-  useEffect(() => {
-    setUpInterceptors()
-  })
-
   return (
     <Router>
       <Routes>
@@ -20,6 +17,7 @@ const App = () => {
         <Route path='signup' element={<SignUp />} />
         <Route path='oauth/kakao/callback' element={<KakaoRedirect />} />
         <Route path='oauth/naver/callback' element={<NaverRedirect />} />
+        <Route path='mypage' element={<MyPage />} />
       </Routes>
     </Router>
   )
