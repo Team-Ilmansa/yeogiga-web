@@ -27,4 +27,6 @@ export const setUpInterceptors = () => {
   )
 }
 
+setUpInterceptors()
+
 export default api

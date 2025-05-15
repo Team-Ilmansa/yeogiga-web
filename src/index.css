@@ -8,4 +8,7 @@
   input {
     @apply rounded-2xl border p-2;
   }
+  .link {
+    @apply rounded-2xl border p-2 text-center;
+  }
 }

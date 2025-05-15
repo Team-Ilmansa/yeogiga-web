@@ -1,5 +1,6 @@
 import signOutApi from '@/apis/authentication/signOutApi'
 import useAuth from '@/hooks/useAuth'
+import { Link } from 'react-router-dom'
 
 const Home = () => {
   const { user, logout } = useAuth()
@@ -21,14 +22,25 @@ const Home = () => {
       <h1 className='text-3xl'>
         {user ? `안녕하세요! ${user.nickname}님!` : '로그인해 주세요'}
       </h1>
-      {user && <button onClick={handleSignOut}>로그아웃</button>}
-      <nav className='mt-5 flex gap-2'>
-        <button>
-          <a href='/signup'>회원가입</a>
-        </button>
-        <button>
-          <a href='/signin'>로그인</a>
-        </button>
+
+      <nav className='mt-5 flex flex-col gap-2'>
+        {user ? (
+          <>
+            <button onClick={handleSignOut}>로그아웃</button>
+            <Link to='/mypage' className='link'>
+              마이 페이지
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link to='/signin' className='link'>
+              로그인
+            </Link>
+            <Link to='/signup' className='link'>
+              회원가입
+            </Link>
+          </>
+        )}
       </nav>
     </div>
   )
