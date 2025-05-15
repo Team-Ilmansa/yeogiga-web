@@ -2,9 +2,11 @@ import regularSignInApi from '@/apis/authentication/regularSignInApi'
 import { useForm } from 'react-hook-form'
 import SignInButton from './SignInButton'
 import useAuth from '@/hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 
 const SignInForm = () => {
   const { login } = useAuth()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -28,6 +30,7 @@ const SignInForm = () => {
       alert('로그인에 성공했습니다!')
       login({ token: result.data.accessToken })
       console.log('로그인 성공: ', result)
+      navigate('/')
     } catch (err) {
       alert(`로그인 실패: ${err.message}`)
       console.error('로그인 에러: ', err)
