@@ -7,6 +7,7 @@ import {
   parseNicknameFromToken,
   saveAuthToStorage,
 } from './AuthUtil'
+import { setLogoutCallback } from '@/apis/authentication/logoutHandler'
 
 /**React Context API를 이용한 전역 관리 컴포넌트 */
 const AuthProvider = ({ children }) => {
@@ -42,6 +43,11 @@ const AuthProvider = ({ children }) => {
     clearStorage()
     window.location.href = '/'
   }, [])
+
+  /**AuthProvier가 로드되면서 logout 함수를 logoutCallback 변수로 삽입 */
+  useEffect(() => {
+    setLogoutCallback(logout)
+  }, [logout])
 
   /**웹 전체에 전역으로 공급 */
   const value = useMemo(
