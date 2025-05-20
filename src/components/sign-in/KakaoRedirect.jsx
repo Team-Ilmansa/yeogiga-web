@@ -16,6 +16,7 @@ const KakaoRedirect = () => {
     }
   }, [location])
 
+  /**카카오 소셜 로그인 호출 */
   const fetchKakaoAccessToken = async (code) => {
     try {
       const response = await oauthSignInApi('KAKAO', code)

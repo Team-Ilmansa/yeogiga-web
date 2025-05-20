@@ -12,6 +12,7 @@ SignInButton.KakaoLogin = () => {
     </a>
   )
 }
+
 SignInButton.NaverLogin = () => {
   return (
     <a href={naverLoginUrl}>

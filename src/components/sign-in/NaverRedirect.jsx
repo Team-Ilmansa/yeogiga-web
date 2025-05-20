@@ -16,6 +16,7 @@ const NaverRedirect = () => {
     }
   }, [location])
 
+  /**네이버 소셜 로그인 호출 */
   const fetchNaverAccessToken = async (code) => {
     try {
       const response = await oauthSignInApi('NAVER', code)
