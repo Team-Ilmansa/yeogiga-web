@@ -1,7 +1,7 @@
 import api from '../api'
 
 /**Access Token 재발급 API */
-const reissueAccessToken = async () => {
+const reissueAccessTokenApi = async () => {
   try {
     const response = await api.get('/auth/reissue', {
       headers: { device: 'WEB' },
@@ -20,4 +20,4 @@ const reissueAccessToken = async () => {
   }
 }
 
-export default reissueAccessToken
+export default reissueAccessTokenApi
