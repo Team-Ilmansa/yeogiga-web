@@ -1,4 +1,4 @@
-import api from '../api'
+import api from '@/apis/api'
 
 /**Access Token 재발급 API */
 const reissueAccessTokenApi = async () => {

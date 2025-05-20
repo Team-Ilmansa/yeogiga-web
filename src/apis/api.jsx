@@ -1,7 +1,7 @@
 import { baseUrl } from '@/config/Env'
 import axios from 'axios'
-import reissueAccessTokenApi from './authentication/reissueAccessTokenApi'
-import { callLogout } from './authentication/logoutHandler'
+import reissueAccessTokenApi from '@/apis/authentication/reissueAccessTokenApi'
+import { callLogout } from '@/apis/authentication/logoutHandler'
 
 /**axios 공통 API 인스턴스 */
 const api = axios.create({

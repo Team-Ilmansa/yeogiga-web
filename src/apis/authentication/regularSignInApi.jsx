@@ -1,4 +1,3 @@
-import React from 'react'
 import api from '@/apis/api'
 
 /** 일반 로그인 API */
