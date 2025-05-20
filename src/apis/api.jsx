@@ -1,7 +1,7 @@
 import { baseUrl } from '@/config/Env'
 import axios from 'axios'
-import reissueAccessToken from './authentication/reissueAccessToken'
-import { callLogout } from './authentication/logoutHandler'
+import reissueAccessTokenApi from '@/apis/authentication/reissueAccessTokenApi'
+import { callLogout } from '@/apis/authentication/logoutHandler'
 
 /**axios 공통 API 인스턴스 */
 const api = axios.create({
@@ -36,7 +36,7 @@ export const setUpInterceptors = () => {
       if (error.response?.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true
         try {
-          const result = await reissueAccessToken()
+          const result = await reissueAccessTokenApi()
           const newAccessToken = result.data.accessToken
           sessionStorage.setItem('accessToken', newAccessToken)
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`

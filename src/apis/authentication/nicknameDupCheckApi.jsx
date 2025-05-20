@@ -1,7 +1,7 @@
 import api from '@/apis/api'
 
 /**닉네임 중복 체크 API */
-const nicknameDupCheck = async (nickname) => {
+const nicknameDupCheckApi = async (nickname) => {
   try {
     const response = await api.get('auth/dup-check/nickname', {
       params: { value: nickname },
@@ -20,4 +20,4 @@ const nicknameDupCheck = async (nickname) => {
   }
 }
 
-export default nicknameDupCheck
+export default nicknameDupCheckApi

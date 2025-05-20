@@ -15,7 +15,6 @@ const Home = () => {
   const handleSignOut = async () => {
     try {
       const result = await signOutApi()
-      console.log('로그아웃 성공:', result)
       logout()
     } catch (error) {
       console.error('로그아웃 중 오류 발생: ', error.message)
@@ -27,11 +26,9 @@ const Home = () => {
     e.preventDefault()
     try {
       const result = await createTripApi({ title: tripTitle, city: tripCity })
-      console.log('여행 생성 성공: ', result)
       alert('여행이 성공적으로 생성되었습니다!')
       setIsCreateTripInputOpen(false)
     } catch (err) {
-      console.log('여행 생성 실패: ', err)
       alert(err.message)
     }
   }

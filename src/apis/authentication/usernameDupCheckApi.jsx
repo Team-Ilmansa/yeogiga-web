@@ -1,7 +1,7 @@
 import api from '@/apis/api'
 
 /**아이디 중복 체크 API */
-const usernameDupCheck = async (username) => {
+const usernameDupCheckApi = async (username) => {
   try {
     const response = await api.get('auth/dup-check/username', {
       params: { value: username },
@@ -20,4 +20,4 @@ const usernameDupCheck = async (username) => {
   }
 }
 
-export default usernameDupCheck
+export default usernameDupCheckApi

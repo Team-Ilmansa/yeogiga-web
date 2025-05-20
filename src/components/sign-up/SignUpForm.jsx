@@ -1,6 +1,6 @@
-import nicknameDupCheck from '@/apis/authentication/nicknameDupCheck'
+import nicknameDupCheckApi from '@/apis/authentication/nicknameDupCheckApi'
 import signUpApi from '@/apis/authentication/signUpApi'
-import usernameDupCheck from '@/apis/authentication/usernameDupCheck'
+import usernameDupCheckApi from '@/apis/authentication/usernameDupCheckApi'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -31,7 +31,6 @@ const SignUpForm = () => {
     try {
       const result = await signUpApi(body)
       alert('회원가입이 완료되었습니다!')
-      console.log('회원가입 성공:', result)
     } catch (err) {
       alert(`회원가입 실패: ${err.message}`)
       console.error('회원가입 에러:', err)
@@ -45,9 +44,8 @@ const SignUpForm = () => {
   /**버튼 클릭 시 아이디 중복 확인 API 호출 */
   const handleDupCheckUsername = async () => {
     try {
-      const result = await usernameDupCheck(username)
+      const result = await usernameDupCheckApi(username)
       alert(result.message)
-      console.log(result)
     } catch (err) {
       alert(err.message)
       console.error('아이디 중복 확인 실패:', err)
@@ -57,9 +55,8 @@ const SignUpForm = () => {
   /**버튼 클릭 시 닉네임 중복 확인 API 호출 */
   const handleDupCheckNickname = async () => {
     try {
-      const result = await nicknameDupCheck(nickname)
+      const result = await nicknameDupCheckApi(nickname)
       alert(result.message)
-      console.log(result)
     } catch (err) {
       alert(err.message)
       console.error(`닉네임 중복 확인 에러:`, err)

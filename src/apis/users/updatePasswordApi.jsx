@@ -1,12 +1,9 @@
 import api from '@/apis/api'
 
 /**비밀번호 변경 API */
-const patchUsersPasswordApi = async (data) => {
+const updatePasswordApi = async (body) => {
   try {
-    const response = await api.patch('users/password', {
-      originalPassword: data.originalPassword,
-      newPassword: data.newPassword,
-    })
+    const response = await api.patch('users/password', body)
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {
@@ -21,4 +18,4 @@ const patchUsersPasswordApi = async (data) => {
   }
 }
 
-export default patchUsersPasswordApi
+export default updatePasswordApi
