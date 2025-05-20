@@ -1,6 +1,6 @@
 import updateNicknameApi from '@/apis/users/updateNicknameApi'
 import userInfoApi from '@/apis/users/userInfoApi'
-import patchUsersPasswordApi from '@/apis/users/patchUsersPasswordApi'
+import updatePasswordApi from '@/apis/users/updatePasswordApi'
 import { useEffect, useState } from 'react'
 import useAuth from '@/hooks/useAuth'
 
@@ -43,9 +43,9 @@ const MyPage = () => {
   const updatePassword = async (e) => {
     e.preventDefault()
     try {
-      const result = await patchUsersPasswordApi({
-        originalPassword,
-        newPassword,
+      const result = await updatePasswordApi({
+        originalPassword: originalPassword,
+        newPassword: newPassword,
       })
       console.log('비밀번호 변경 성공: ', result)
       alert('비밀번호가 성공적으로 변경되었습니다!')
