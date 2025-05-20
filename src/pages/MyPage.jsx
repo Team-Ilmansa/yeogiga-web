@@ -17,7 +17,6 @@ const MyPage = () => {
   const fetchUserInfo = async () => {
     try {
       const result = await userInfoApi()
-      console.log('회원 정보 조회 성공: ', result)
 
       setUserInfo(result.data)
     } catch (err) {
@@ -30,7 +29,6 @@ const MyPage = () => {
     e.preventDefault()
     try {
       const result = await updateNicknameApi({ nickname: newNickname })
-      console.log('닉네임 변경 성공: ', result)
       alert('닉네임이 성공적으로 변경되었습니다!')
       fetchUserInfo()
       setIsNicknameInputOpen(false)
@@ -47,13 +45,11 @@ const MyPage = () => {
         originalPassword: originalPassword,
         newPassword: newPassword,
       })
-      console.log('비밀번호 변경 성공: ', result)
       alert('비밀번호가 성공적으로 변경되었습니다!')
       fetchUserInfo()
       setIsPasswordInputOpen(false)
       logout()
     } catch (err) {
-      console.log('비밀번호 변경 실패:', err)
       alert(err.message)
     }
   }

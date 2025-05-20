@@ -22,7 +22,6 @@ const KakaoRedirect = () => {
     try {
       const response = await oauthSignInApi('KAKAO', code)
       login({ token: response.data.token.accessToken })
-      console.log('카카오 로그인 성공', response)
       navigate('/')
     } catch (error) {
       console.error('카카오 로그인 중 오류 발생:', error.message)

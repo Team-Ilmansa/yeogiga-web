@@ -22,7 +22,6 @@ const NaverRedirect = () => {
     try {
       const response = await oauthSignInApi('NAVER', code)
       login({ token: response.data.token.accessToken })
-      console.log('네이버 로그인 성공', response)
       navigate('/')
     } catch (error) {
       console.error('네이버 로그인 중 오류 발생:', error.message)

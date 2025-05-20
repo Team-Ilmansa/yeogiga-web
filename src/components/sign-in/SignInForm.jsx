@@ -27,9 +27,7 @@ const SignInForm = () => {
 
     try {
       const result = await regularSignInApi(body)
-      alert('로그인에 성공했습니다!')
       login({ token: result.data.accessToken })
-      console.log('로그인 성공: ', result)
       navigate('/')
     } catch (err) {
       alert(`로그인 실패: ${err.message}`)

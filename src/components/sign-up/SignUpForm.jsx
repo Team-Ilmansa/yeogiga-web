@@ -31,7 +31,6 @@ const SignUpForm = () => {
     try {
       const result = await signUpApi(body)
       alert('회원가입이 완료되었습니다!')
-      console.log('회원가입 성공:', result)
     } catch (err) {
       alert(`회원가입 실패: ${err.message}`)
       console.error('회원가입 에러:', err)
@@ -47,7 +46,6 @@ const SignUpForm = () => {
     try {
       const result = await usernameDupCheckApi(username)
       alert(result.message)
-      console.log(result)
     } catch (err) {
       alert(err.message)
       console.error('아이디 중복 확인 실패:', err)
@@ -59,7 +57,6 @@ const SignUpForm = () => {
     try {
       const result = await nicknameDupCheckApi(nickname)
       alert(result.message)
-      console.log(result)
     } catch (err) {
       alert(err.message)
       console.error(`닉네임 중복 확인 에러:`, err)
