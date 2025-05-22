@@ -15,6 +15,7 @@ const Home = () => {
   const handleSignOut = async () => {
     try {
       const result = await signOutApi()
+      sessionStorage.removeItem('fromOAuth')
       logout()
     } catch (error) {
       console.error('로그아웃 중 오류 발생: ', error.message)
