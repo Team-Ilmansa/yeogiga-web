@@ -76,7 +76,9 @@ const MyPage = () => {
   return (
     <div className='flex h-screen w-screen flex-col items-center justify-center gap-2'>
       <p>닉네임: {userInfo.nickname}</p>
-
+      {isFromOAuth && (
+        <button onClick={() => navigate('/')}>홈으로 이동</button>
+      )}
       {!isFromOAuth && (
         <>
           <button onClick={toggleNicknameInput}>닉네임 변경</button>
