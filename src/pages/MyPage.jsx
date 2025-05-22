@@ -3,6 +3,7 @@ import userInfoApi from '@/apis/users/userInfoApi'
 import updatePasswordApi from '@/apis/users/updatePasswordApi'
 import { useEffect, useState } from 'react'
 import useAuth from '@/hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 
 const MyPage = () => {
   const [userInfo, setUserInfo] = useState([])
@@ -12,12 +13,13 @@ const MyPage = () => {
   const [isNicknameInputOpen, setIsNicknameInputOpen] = useState(false)
   const [isPasswordInputOpen, setIsPasswordInputOpen] = useState(false)
   const { logout } = useAuth()
+  const navigate = useNavigate()
+  const isFromOAuth = sessionStorage.getItem('fromOAuth') === 'true'
 
   /**회원 정보 조회 API 호출 */
   const fetchUserInfo = async () => {
     try {
       const result = await userInfoApi()
-
       setUserInfo(result.data)
     } catch (err) {
       console.error('회원 정보 조회 에러: ', err)
@@ -74,43 +76,48 @@ const MyPage = () => {
   return (
     <div className='flex h-screen w-screen flex-col items-center justify-center gap-2'>
       <p>닉네임: {userInfo.nickname}</p>
-      <button onClick={toggleNicknameInput}>닉네임 변경</button>
-      {isNicknameInputOpen && (
-        <form onSubmit={updateNickname} className='flex gap-2'>
-          <input
-            placeholder='새로운 닉네임을 입력해주세요'
-            value={newNickname}
-            onChange={(e) => setNewNickname(e.target.value)}
-            className='w-75'
-          />
-          <button type='submit'>확인</button>
-        </form>
-      )}
 
-      <p>이메일: {userInfo.email}</p>
+      {!isFromOAuth && (
+        <>
+          <button onClick={toggleNicknameInput}>닉네임 변경</button>
+          {isNicknameInputOpen && (
+            <form onSubmit={updateNickname} className='flex gap-2'>
+              <input
+                placeholder='새로운 닉네임을 입력해주세요'
+                value={newNickname}
+                onChange={(e) => setNewNickname(e.target.value)}
+                className='w-75'
+              />
+              <button type='submit'>확인</button>
+            </form>
+          )}
 
-      <button onClick={togglePasswordInput}>비밀번호 변경</button>
-      {isPasswordInputOpen && (
-        <form
-          onSubmit={updatePassword}
-          className='flex flex-col items-center justify-center gap-2'
-        >
-          <input
-            placeholder='기존 비밀번호를 입력해주세요'
-            value={originalPassword}
-            onChange={(e) => setOriginalPassword(e.target.value)}
-            className='w-75'
-            type='password'
-          />
-          <input
-            placeholder='새로운 비밀번호를 입력해주세요'
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className='w-75'
-            type='password'
-          />
-          <button type='submit'>변경하기</button>
-        </form>
+          <p>이메일: {userInfo.email}</p>
+
+          <button onClick={togglePasswordInput}>비밀번호 변경</button>
+          {isPasswordInputOpen && (
+            <form
+              onSubmit={updatePassword}
+              className='flex flex-col items-center justify-center gap-2'
+            >
+              <input
+                placeholder='기존 비밀번호를 입력해주세요'
+                value={originalPassword}
+                onChange={(e) => setOriginalPassword(e.target.value)}
+                className='w-75'
+                type='password'
+              />
+              <input
+                placeholder='새로운 비밀번호를 입력해주세요'
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className='w-75'
+                type='password'
+              />
+              <button type='submit'>변경하기</button>
+            </form>
+          )}
+        </>
       )}
     </div>
   )
