@@ -3,6 +3,7 @@ import userInfoApi from '@/apis/users/userInfoApi'
 import updatePasswordApi from '@/apis/users/updatePasswordApi'
 import { useEffect, useState } from 'react'
 import useAuth from '@/hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 
 const MyPage = () => {
   const [userInfo, setUserInfo] = useState([])
@@ -13,6 +14,7 @@ const MyPage = () => {
   const [isPasswordInputOpen, setIsPasswordInputOpen] = useState(false)
   const { logout, user } = useAuth()
   const loginType = user?.loginType
+  const navigate = useNavigate()
 
   /**회원 정보 조회 API 호출 */
   const fetchUserInfo = async () => {
@@ -75,20 +77,24 @@ const MyPage = () => {
   return (
     <div className='flex h-screen w-screen flex-col items-center justify-center gap-2'>
       <p>닉네임: {userInfo.nickname}</p>
+      {loginType == 'SOCIAL' && (
+        <button onClick={() => navigate('/')}>홈으로 이동</button>
+      )}
+      <button onClick={toggleNicknameInput}>닉네임 변경</button>
+
+      {isNicknameInputOpen && (
+        <form onSubmit={updateNickname} className='flex gap-2'>
+          <input
+            placeholder='새로운 닉네임을 입력해주세요'
+            value={newNickname}
+            onChange={(e) => setNewNickname(e.target.value)}
+            className='w-75'
+          />
+          <button type='submit'>확인</button>
+        </form>
+      )}
       {loginType !== 'SOCIAL' && (
         <>
-          <button onClick={toggleNicknameInput}>닉네임 변경</button>
-          {isNicknameInputOpen && (
-            <form onSubmit={updateNickname} className='flex gap-2'>
-              <input
-                placeholder='새로운 닉네임을 입력해주세요'
-                value={newNickname}
-                onChange={(e) => setNewNickname(e.target.value)}
-                className='w-75'
-              />
-              <button type='submit'>확인</button>
-            </form>
-          )}
           <p>이메일: {userInfo.email}</p>
           <button onClick={togglePasswordInput}>비밀번호 변경</button>
           {isPasswordInputOpen && (
