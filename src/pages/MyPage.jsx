@@ -35,6 +35,7 @@ const MyPage = () => {
       alert('닉네임이 성공적으로 변경되었습니다!')
       fetchUserInfo()
       setIsNicknameInputOpen(false)
+      logout()
     } catch (err) {
       console.error('닉네임 변경 에러: ', err)
       alert(err.message)
