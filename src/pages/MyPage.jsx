@@ -77,11 +77,7 @@ const MyPage = () => {
   return (
     <div className='flex h-screen w-screen flex-col items-center justify-center gap-2'>
       <p>닉네임: {userInfo.nickname}</p>
-      {loginType == 'SOCIAL' && (
-        <button onClick={() => navigate('/')}>홈으로 이동</button>
-      )}
       <button onClick={toggleNicknameInput}>닉네임 변경</button>
-
       {isNicknameInputOpen && (
         <form onSubmit={updateNickname} className='flex gap-2'>
           <input
@@ -121,6 +117,7 @@ const MyPage = () => {
           )}
         </>
       )}
+      <button onClick={() => navigate('/')}>홈으로 이동</button>
     </div>
   )
 }
