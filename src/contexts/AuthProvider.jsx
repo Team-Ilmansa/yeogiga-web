@@ -4,7 +4,7 @@ import {
   clearStorage,
   loadTokenFromStorage,
   loadUserFromStorage,
-  parseNicknameFromToken,
+  parsingFromToken,
   saveAuthToStorage,
 } from './AuthUtil'
 import { setLogoutCallback } from '@/apis/authentication/logoutHandler'
@@ -21,19 +21,20 @@ const AuthProvider = ({ children }) => {
     if (storedUser) setUser(storedUser)
     if (storedToken) {
       setAccessToken(storedToken)
-      const nickname = parseNicknameFromToken(storedToken)
-      if (nickname) {
-        setUser((prev) => ({ ...prev, nickname }))
+      const { nickname, loginType } = parsingFromToken(storedToken)
+      if (nickname || loginType) {
+        setUser((prev) => ({ ...prev, nickname, loginType }))
       }
     }
   }, [])
 
   /**로그인 시 세션 스토리지에 사용자 정보 및 Access Token 저장 */
   const login = useCallback(({ user, token }) => {
-    const nickname = parseNicknameFromToken(token)
-    setUser({ ...user, nickname })
+    const { nickname, loginType } = parsingFromToken(token)
+    const userWithTokenInfo = { ...user, nickname, loginType }
+    setUser(userWithTokenInfo)
     setAccessToken(token)
-    saveAuthToStorage({ ...user, nickname }, token)
+    saveAuthToStorage(userWithTokenInfo, token)
   }, [])
 
   /**로그아웃 시 세션 스토리지 및 user, accessToken 초기화 */

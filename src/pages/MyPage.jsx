@@ -3,6 +3,7 @@ import userInfoApi from '@/apis/users/userInfoApi'
 import updatePasswordApi from '@/apis/users/updatePasswordApi'
 import { useEffect, useState } from 'react'
 import useAuth from '@/hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
 
 const MyPage = () => {
   const [userInfo, setUserInfo] = useState([])
@@ -11,7 +12,9 @@ const MyPage = () => {
   const [newPassword, setNewPassword] = useState('')
   const [isNicknameInputOpen, setIsNicknameInputOpen] = useState(false)
   const [isPasswordInputOpen, setIsPasswordInputOpen] = useState(false)
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
+  const loginType = user?.loginType
+  const navigate = useNavigate()
 
   /**회원 정보 조회 API 호출 */
   const fetchUserInfo = async () => {
@@ -86,32 +89,35 @@ const MyPage = () => {
           <button type='submit'>확인</button>
         </form>
       )}
-
-      <p>이메일: {userInfo.email}</p>
-
-      <button onClick={togglePasswordInput}>비밀번호 변경</button>
-      {isPasswordInputOpen && (
-        <form
-          onSubmit={updatePassword}
-          className='flex flex-col items-center justify-center gap-2'
-        >
-          <input
-            placeholder='기존 비밀번호를 입력해주세요'
-            value={originalPassword}
-            onChange={(e) => setOriginalPassword(e.target.value)}
-            className='w-75'
-            type='password'
-          />
-          <input
-            placeholder='새로운 비밀번호를 입력해주세요'
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className='w-75'
-            type='password'
-          />
-          <button type='submit'>변경하기</button>
-        </form>
+      {loginType !== 'SOCIAL' && (
+        <>
+          <p>이메일: {userInfo.email}</p>
+          <button onClick={togglePasswordInput}>비밀번호 변경</button>
+          {isPasswordInputOpen && (
+            <form
+              onSubmit={updatePassword}
+              className='flex flex-col items-center justify-center gap-2'
+            >
+              <input
+                placeholder='기존 비밀번호를 입력해주세요'
+                value={originalPassword}
+                onChange={(e) => setOriginalPassword(e.target.value)}
+                className='w-75'
+                type='password'
+              />
+              <input
+                placeholder='새로운 비밀번호를 입력해주세요'
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className='w-75'
+                type='password'
+              />
+              <button type='submit'>변경하기</button>
+            </form>
+          )}
+        </>
       )}
+      <button onClick={() => navigate('/')}>홈으로 이동</button>
     </div>
   )
 }
