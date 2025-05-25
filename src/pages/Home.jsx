@@ -44,23 +44,22 @@ const Home = () => {
   }
 
   /**메인 화면 내 여행 조회 API 호출 */
-  const readMainTrip = async () => {
-    try {
-      const result = await readMainTripApi()
-      setMainTrip(result)
-      console.log(result)
-    } catch (err) {
-      alert(err.message)
+  useEffect(() => {
+    const fetchMainTrip = async () => {
+      try {
+        const result = await readMainTripApi()
+        setMainTrip(result)
+        console.log(result)
+      } catch (err) {
+        alert(err.message)
+      }
     }
-  }
+    fetchMainTrip()
+  }, [])
 
   /**메인 화면 내 여행 출력 상태 토글 */
-  const toggleReadMAinTripList = () => {
-    setIsReadMainTripListOpen((prev) => {
-      const toggled = !prev
-      if (toggled) readMainTrip()
-      return toggled
-    })
+  const toggleReadMainTripList = () => {
+    setIsReadMainTripListOpen((prev) => !prev)
   }
 
   return (
@@ -77,7 +76,7 @@ const Home = () => {
               마이 페이지
             </Link>
             <button onClick={toggleCreateTripInput}>여행 생성하기</button>
-            <button onClick={toggleReadMAinTripList}>여행 읽기</button>
+            <button onClick={toggleReadMainTripList}>여행 읽기</button>
           </>
         ) : (
           <>
