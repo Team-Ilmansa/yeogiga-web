@@ -54,7 +54,7 @@ const Home = () => {
         alert(err.message)
       }
     }
-    fetchMainTrip()
+    if (user) fetchMainTrip()
   }, [])
 
   /**메인 화면 내 여행 출력 상태 토글 */
