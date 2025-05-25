@@ -1,14 +1,17 @@
 import signOutApi from '@/apis/authentication/signOutApi'
 import createTripApi from '@/apis/trip/createTripApi'
+import readMainTripApi from '@/apis/trip/readMainApi'
 import useAuth from '@/hooks/useAuth'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const Home = () => {
   const { user, logout } = useAuth()
   const [isCreateTripInputOpen, setIsCreateTripInputOpen] = useState(false)
+  const [isReadMainTripListOpen, setIsReadMainTripListOpen] = useState(false)
   const [tripTitle, setTripTitle] = useState('')
   const [tripCity, setTripCity] = useState('')
+  const [mainTrip, setMainTrip] = useState(null)
 
   /**버튼 클릭 시 로그아웃 로직
    * TODO: 상단 NavBar로 옮기기 */
@@ -40,6 +43,25 @@ const Home = () => {
     setTripCity('')
   }
 
+  /**메인 화면 내 여행 조회 API 호출 */
+  useEffect(() => {
+    const fetchMainTrip = async () => {
+      try {
+        const result = await readMainTripApi()
+        setMainTrip(result)
+        console.log(result)
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+    fetchMainTrip()
+  }, [])
+
+  /**메인 화면 내 여행 출력 상태 토글 */
+  const toggleReadMainTripList = () => {
+    setIsReadMainTripListOpen((prev) => !prev)
+  }
+
   return (
     <div className='flex h-screen w-screen flex-col items-center justify-center'>
       <h1 className='text-3xl'>
@@ -54,6 +76,7 @@ const Home = () => {
               마이 페이지
             </Link>
             <button onClick={toggleCreateTripInput}>여행 생성하기</button>
+            <button onClick={toggleReadMainTripList}>여행 읽기</button>
           </>
         ) : (
           <>
@@ -89,6 +112,36 @@ const Home = () => {
             />
             <button type='submit'>생성하기</button>
           </form>
+        </fieldset>
+      )}
+      {isReadMainTripListOpen && (
+        <fieldset className='rounded-2xl border p-4'>
+          <legend className='p-2'>여행 목록</legend>
+          {mainTrip ? (
+            <ul>
+              <li key={mainTrip.tripId}>
+                <h3>{mainTrip.title}</h3>
+                <p>시작일: {mainTrip.staredAt}</p>
+                <p>상태: {mainTrip.travelStatus}</p>
+                <p>일차: {mainTrip.day}</p>
+                <ul>
+                  {Array.isArray(mainTrip.places) &&
+                  mainTrip.places.length > 0 ? (
+                    mainTrip.places.map((place) => (
+                      <li key={place.id}>
+                        - {place.name} ({place.placeType}) / 방문여부:{' '}
+                        {place.isVisited ? 'O' : 'X'}
+                      </li>
+                    ))
+                  ) : (
+                    <li>장소 정보가 없습니다.</li>
+                  )}
+                </ul>
+              </li>
+            </ul>
+          ) : (
+            <p>여행 정보가 없습니다.</p>
+          )}
         </fieldset>
       )}
     </div>
