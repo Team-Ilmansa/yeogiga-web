@@ -172,23 +172,23 @@ const Home = () => {
         <fieldset className='rounded-2xl border p-4'>
           <legend className='p-2'>내가 속한 여행 목록</legend>
           {Array.isArray(trips) && trips.length > 0 ? (
-            trips.map((t) => (
-              <div key={t.tripId} className='mb-4 border-b pb-2'>
-                <h3 className='text-xl font-bold'>{t.title}</h3>
-                <p>도시: {t.city}</p>
-                <p>여행 상태: {t.status}</p>
+            trips.map((trip) => (
+              <div key={trip.tripId} className='mb-4 border-b pb-2'>
+                <h3 className='text-xl font-bold'>{trip.title}</h3>
+                <p>도시: {trip.city}</p>
+                <p>여행 상태: {trip.status}</p>
                 <p>
-                  기간: {new Date(t.startedAt).toLocaleDateString()} ~{' '}
-                  {new Date(t.endedAt).toLocaleDateString()}
+                  기간: {new Date(trip.startedAt).toLocaleDateString()} ~{' '}
+                  {new Date(trip.endedAt).toLocaleDateString()}
                 </p>
                 <p>
                   여행장:{' '}
-                  {t.leaderId === user.id ? '나' : `User #${t.leaderId}`}
+                  {trip.leaderId === user.id ? '나' : `User #${trip.leaderId}`}
                 </p>
                 <div className='mt-2'>
                   <p className='font-semibold'>참여 멤버:</p>
                   <ul className='list-inside list-disc'>
-                    {t.members.map((m) => (
+                    {trip.members.map((m) => (
                       <li key={m.userId}>
                         {m.nickname} {m.userId === user.id && '(나)'}
                       </li>
