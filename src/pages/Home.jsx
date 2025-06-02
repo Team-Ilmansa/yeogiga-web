@@ -1,6 +1,7 @@
 import signOutApi from '@/apis/authentication/signOutApi'
 import createTripApi from '@/apis/trip/createTripApi'
 import readMainTripApi from '@/apis/trip/readMainApi'
+import readTripApi from '@/apis/trip/readTripApi'
 import useAuth from '@/hooks/useAuth'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -9,9 +10,11 @@ const Home = () => {
   const { user, logout } = useAuth()
   const [isCreateTripInputOpen, setIsCreateTripInputOpen] = useState(false)
   const [isReadMainTripListOpen, setIsReadMainTripListOpen] = useState(false)
+  const [isReadTripListOpen, setIsReadTripListOpen] = useState(false)
   const [tripTitle, setTripTitle] = useState('')
   const [tripCity, setTripCity] = useState('')
   const [mainTrip, setMainTrip] = useState(null)
+  const [trips, setTrips] = useState(null)
 
   /**버튼 클릭 시 로그아웃 로직
    * TODO: 상단 NavBar로 옮기기 */
@@ -62,6 +65,24 @@ const Home = () => {
     setIsReadMainTripListOpen((prev) => !prev)
   }
 
+  /**사용자가 속한 여행 조회 APU 호출 */
+  useEffect(() => {
+    const fetchTrip = async () => {
+      try {
+        const result = await readTripApi()
+        setTrips(result)
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+    if (user) fetchTrip()
+  }, [])
+
+  /**사용자가 속한 여행 출력 상태 토글 */
+  const toggleReadTripList = () => {
+    setIsReadTripListOpen((prev) => !prev)
+  }
+
   return (
     <div className='flex h-screen w-screen flex-col items-center justify-center'>
       <h1 className='text-3xl'>
@@ -77,6 +98,9 @@ const Home = () => {
             </Link>
             <button onClick={toggleCreateTripInput}>여행 생성하기</button>
             <button onClick={toggleReadMainTripList}>여행 읽기</button>
+            <button onClick={toggleReadTripList}>
+              사용자가 속한 여행 읽기
+            </button>
           </>
         ) : (
           <>
@@ -141,6 +165,40 @@ const Home = () => {
             </ul>
           ) : (
             <p>여행 정보가 없습니다.</p>
+          )}
+        </fieldset>
+      )}
+      {isReadTripListOpen && (
+        <fieldset className='rounded-2xl border p-4'>
+          <legend className='p-2'>내가 속한 여행 목록</legend>
+          {Array.isArray(trips) && trips.length > 0 ? (
+            trips.map((trip) => (
+              <div key={trip.tripId} className='mb-4 border-b pb-2'>
+                <h3 className='text-xl font-bold'>{trip.title}</h3>
+                <p>도시: {trip.city}</p>
+                <p>여행 상태: {trip.status}</p>
+                <p>
+                  기간: {new Date(trip.startedAt).toLocaleDateString()} ~{' '}
+                  {new Date(trip.endedAt).toLocaleDateString()}
+                </p>
+                <p>
+                  여행장:{' '}
+                  {trip.leaderId === user.id ? '나' : `User #${trip.leaderId}`}
+                </p>
+                <div className='mt-2'>
+                  <p className='font-semibold'>참여 멤버:</p>
+                  <ul className='list-inside list-disc'>
+                    {trip.members.map((m) => (
+                      <li key={m.userId}>
+                        {m.nickname} {m.userId === user.id && '(나)'}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>속한 여행이 없습니다.</p>
           )}
         </fieldset>
       )}
