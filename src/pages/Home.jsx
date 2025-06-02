@@ -188,9 +188,9 @@ const Home = () => {
                 <div className='mt-2'>
                   <p className='font-semibold'>참여 멤버:</p>
                   <ul className='list-inside list-disc'>
-                    {trip.members.map((m) => (
-                      <li key={m.userId}>
-                        {m.nickname} {m.userId === user.id && '(나)'}
+                    {trip.members.map((member) => (
+                      <li key={member.userId}>
+                        {member.nickname} {member.userId === user.id && '(나0'}
                       </li>
                     ))}
                   </ul>
