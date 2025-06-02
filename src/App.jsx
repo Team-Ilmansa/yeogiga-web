@@ -7,6 +7,7 @@ import NaverRedirect from './components/sign-in/NaverRedirect'
 import { useEffect } from 'react'
 import { setUpInterceptors } from './apis/api'
 import MyPage from './pages/MyPage'
+import Trip from './pages/Trip'
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
         <Route path='oauth/kakao/callback' element={<KakaoRedirect />} />
         <Route path='oauth/naver/callback' element={<NaverRedirect />} />
         <Route path='mypage' element={<MyPage />} />
+        <Route path='trip/:tripId' element={<Trip />} />
       </Routes>
     </Router>
   )
