@@ -218,7 +218,6 @@ const Home = () => {
           )}
         </fieldset>
       )}
-
       {settingTrips && (
         <fieldset className='rounded-2xl border p-4'>
           <legend className='p-2'>준비 중인 여행</legend>
