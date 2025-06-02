@@ -1,6 +1,7 @@
 import signOutApi from '@/apis/authentication/signOutApi'
 import createTripApi from '@/apis/trip/createTripApi'
 import readMainTripApi from '@/apis/trip/readMainApi'
+import readSettingTripApi from '@/apis/trip/readSettingTripApi'
 import readTripApi from '@/apis/trip/readTripApi'
 import useAuth from '@/hooks/useAuth'
 import { useEffect, useState } from 'react'
@@ -14,6 +15,7 @@ const Home = () => {
   const [tripTitle, setTripTitle] = useState('')
   const [tripCity, setTripCity] = useState('')
   const [mainTrip, setMainTrip] = useState(null)
+  const [settingTrips, setSettingTrips] = useState(null)
   const [trips, setTrips] = useState(null)
 
   /**버튼 클릭 시 로그아웃 로직
@@ -46,8 +48,8 @@ const Home = () => {
     setTripCity('')
   }
 
-  /**메인 화면 내 여행 조회 API 호출 */
   useEffect(() => {
+    /**메인 화면 내 여행 조회 API 호출 */
     const fetchMainTrip = async () => {
       try {
         const result = await readMainTripApi()
@@ -57,7 +59,21 @@ const Home = () => {
         alert(err.message)
       }
     }
-    if (user) fetchMainTrip()
+
+    /**준비 중 여행 조회 API 호출 */
+    const fetchSettingTrip = async () => {
+      try {
+        const result = await readSettingTripApi()
+        setSettingTrips(result.data)
+        console.log(result)
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+    if (user) {
+      fetchMainTrip()
+      fetchSettingTrip()
+    }
   }, [])
 
   /**메인 화면 내 여행 출력 상태 토글 */
@@ -200,6 +216,16 @@ const Home = () => {
           ) : (
             <p>속한 여행이 없습니다.</p>
           )}
+        </fieldset>
+      )}
+      {settingTrips && (
+        <fieldset className='rounded-2xl border p-4'>
+          <legend className='p-2'>준비 중인 여행</legend>
+          {settingTrips.map((settingTrip) => (
+            <Link key={settingTrip.tripId} to={`trip/${settingTrip.tripId}`}>
+              {settingTrip.title}
+            </Link>
+          ))}
         </fieldset>
       )}
     </div>
