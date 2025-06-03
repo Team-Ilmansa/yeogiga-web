@@ -1,9 +1,13 @@
+import deleteTripApi from '@/apis/trip/deleteTripApi'
 import updateTripTitleApi from '@/apis/trip/updateTripTitleApi'
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const TripInfo = ({ tripInfo }) => {
   const [newTitle, setNewTitle] = useState('')
   const [isUpdateTitleInputOpen, setIsUpdateTitleInputOpen] = useState(false)
+
+  const navigate = useNavigate()
 
   /**여행 이름 변경 창 출력 상태 토글 */
   const toggleUpdateTitleInput = () => {
@@ -26,12 +30,30 @@ const TripInfo = ({ tripInfo }) => {
     }
   }
 
+  /**여행 삭제 API 호출 */
+  const deleteTrip = async () => {
+    if (window.confirm('정말로 삭제하시겠습니까?')) {
+      try {
+        const result = await deleteTripApi(tripInfo.tripId)
+        alert('정상적으로 삭제되었습니다')
+        navigate('/')
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+  }
+
   return (
     <div>
       {tripInfo ? (
         <div>
           <fieldset className='rounded-2xl border p-4'>
-            <legend className='p-2'>여행 정보</legend>
+            <legend className='p-2'>
+              여행 정보
+              <button className='ml-2 px-2 py-0' onClick={deleteTrip}>
+                삭제
+              </button>
+            </legend>
             <div className='flex justify-between'>
               <h3>제목: {tripInfo.title}</h3>
               <button className='px-2 py-0' onClick={toggleUpdateTitleInput}>
