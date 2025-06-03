@@ -1,4 +1,5 @@
 import readTripInfoApi from '@/apis/trip/readTripInfo'
+import TripCalendar from '@/components/trip/TripCalendar'
 import TripInfo from '@/components/trip/TripInfo'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -24,6 +25,7 @@ const Trip = () => {
   return (
     <div className='flex h-screen w-screen flex-col items-center justify-center'>
       <TripInfo tripInfo={tripInfo} />
+      {tripInfo?.status === 'SETTING' && <TripCalendar tripInfo={tripInfo} />}
     </div>
   )
 }
