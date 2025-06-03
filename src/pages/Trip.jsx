@@ -1,9 +1,31 @@
+import readTripInfoApi from '@/apis/trip/readTripInfo'
+import TripInfo from '@/components/trip/TripInfo'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 const Trip = () => {
   const { tripId } = useParams()
+  const [tripInfo, setTripInfo] = useState()
 
-  return <div>{tripId}번 여행</div>
+  useEffect(() => {
+    /**여행 정보 조회 API 호출 */
+    const fetchTripInfo = async () => {
+      try {
+        const result = await readTripInfoApi(tripId)
+        setTripInfo(result.data)
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+
+    if (tripId) fetchTripInfo()
+  }, [])
+
+  return (
+    <div className='flex h-screen w-screen flex-col items-center justify-center'>
+      <TripInfo tripInfo={tripInfo} />
+    </div>
+  )
 }
 
 export default Trip
