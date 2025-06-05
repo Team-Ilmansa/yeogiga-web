@@ -1,11 +1,26 @@
 import deleteTripApi from '@/apis/trip/deleteTripApi'
 import updateTripTitleApi from '@/apis/trip/updateTripTitleApi'
-import React, { useState } from 'react'
+import updateTripTimeApi from '@/apis/trip/updateTripTimeApi'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+/**날짜 값 형식 변환 */
+function toDatetimeLocalFormat(dateString) {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return ''
+  const offset = date.getTimezoneOffset()
+  const localDate = new Date(date.getTime() - offset * 60 * 1000)
+  return localDate.toISOString().slice(0, 16)
+}
 
 const TripInfo = ({ tripInfo }) => {
   const [newTitle, setNewTitle] = useState('')
   const [isUpdateTitleInputOpen, setIsUpdateTitleInputOpen] = useState(false)
+  const [newTime, setNewTime] = useState('')
+  const [newStartTime, setNewStartTime] = useState('')
+  const [newEndTime, setNewEndTime] = useState('')
+  const [isUpdateTimeInputOpen, setIsUpdateTimeInputOpen] = useState(false)
 
   const navigate = useNavigate()
 
@@ -24,6 +39,36 @@ const TripInfo = ({ tripInfo }) => {
       })
       alert('여행 이름이 성공적으로 변경되었습니다!')
       setIsUpdateTitleInputOpen(false)
+      window.location.reload()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  /**여행 시간 변경 창 출력 상태 토글 */
+  const toggleUpdateTimeInput = () => {
+    setIsUpdateTimeInputOpen((prev) => !prev)
+    setNewTime('')
+  }
+
+  /**여행 시간 변경 토클 시 날짜 초기 세팅 */
+  useEffect(() => {
+    if (isUpdateTimeInputOpen && tripInfo?.startedAt && tripInfo?.endedAt) {
+      setNewStartTime(toDatetimeLocalFormat(tripInfo.startedAt))
+      setNewEndTime(toDatetimeLocalFormat(tripInfo.endedAt))
+    }
+  }, [isUpdateTimeInputOpen, tripInfo])
+
+  /**여행 시간 변경 API 호출 */
+  const updateTime = async (e) => {
+    e.preventDefault()
+    try {
+      const result = await updateTripTimeApi(tripInfo.tripId, {
+        start: newStartTime,
+        end: newEndTime,
+      })
+      alert('여행 시간이 성공적으로 변경되었습니다!')
+      setIsUpdateTimeInputOpen(false)
       window.location.reload()
     } catch (err) {
       alert(err.message)
@@ -83,6 +128,35 @@ const TripInfo = ({ tripInfo }) => {
               기간: {new Date(tripInfo.startedAt).toLocaleString()} ~{' '}
               {new Date(tripInfo.endedAt).toLocaleString()}
             </p>
+            <button className='px-2 py-0' onClick={toggleUpdateTimeInput}>
+              수정
+            </button>
+            {isUpdateTimeInputOpen && (
+              <fieldset className='rounded-2xl border p-4'>
+                <legend className='p-2'>여행 시간</legend>
+                <form
+                  onSubmit={updateTime}
+                  className='flex flex-col items-center justify-center gap-2'
+                >
+                  <input
+                    placeholder='변경할 시작 시간을 입력해주세요.'
+                    value={newStartTime}
+                    onChange={(e) => setNewStartTime(e.target.value)}
+                    className='w-75'
+                    type='datetime-local'
+                  />
+
+                  <input
+                    placeholder='변경할 종료 시간을 입력해주세요.'
+                    value={newEndTime}
+                    onChange={(e) => setNewEndTime(e.target.value)}
+                    className='w-75'
+                    type='datetime-local'
+                  />
+                  <button type='submit'>변경하기</button>
+                </form>
+              </fieldset>
+            )}
             <p>상태: {tripInfo.status}</p>
 
             <fieldset className='rounded-2xl border p-4'>
