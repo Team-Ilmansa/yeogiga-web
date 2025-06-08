@@ -8,6 +8,7 @@ import { useEffect } from 'react'
 import { setUpInterceptors } from './apis/api'
 import MyPage from './pages/MyPage'
 import Trip from './pages/Trip'
+import Participation from './pages/Participation'
 
 const App = () => {
   return (
@@ -20,6 +21,10 @@ const App = () => {
         <Route path='oauth/naver/callback' element={<NaverRedirect />} />
         <Route path='mypage' element={<MyPage />} />
         <Route path='trip/:tripId' element={<Trip />} />
+        <Route path='trip/:tripId'>
+          <Route index element={<Trip />} />
+          <Route path='participation' element={<Participation />} />
+        </Route>
       </Routes>
     </Router>
   )

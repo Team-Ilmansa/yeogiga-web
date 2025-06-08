@@ -24,6 +24,17 @@ const TripInfo = ({ tripInfo }) => {
 
   const navigate = useNavigate()
 
+  /**여행 초대 링크 복사 */
+  const copyInviteLink = async () => {
+    try {
+      const currentUrl = window.location.origin + window.location.pathname
+      await navigator.clipboard.writeText(`${currentUrl}/participation`)
+      alert('초대 링크가 복사되었습니다!')
+    } catch (error) {
+      alert('복사 실패')
+    }
+  }
+
   /**여행 이름 변경 창 출력 상태 토글 */
   const toggleUpdateTitleInput = () => {
     setIsUpdateTitleInputOpen((prev) => !prev)
@@ -105,6 +116,7 @@ const TripInfo = ({ tripInfo }) => {
                 수정
               </button>
             </div>
+            <button onClick={copyInviteLink}>초대 링크</button>
             {isUpdateTitleInputOpen && (
               <fieldset className='rounded-2xl border p-4'>
                 <legend className='p-2'>여행 이름</legend>
