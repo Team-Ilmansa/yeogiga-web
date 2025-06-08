@@ -2,8 +2,9 @@ import React, { useState } from 'react'
 import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import './TripCalendar.css'
+import createCalendarApi from '@/apis/calendar/createCalendarApi'
 
-const TripCalendar = (tripInfo) => {
+const TripCalendar = ({ tripInfo }) => {
   const [availableDates, setAvailableDates] = useState([])
 
   const handleDateClick = (date, event) => {
@@ -26,8 +27,19 @@ const TripCalendar = (tripInfo) => {
     })
   }
 
+  /**W2M 캘린더 생성 API 호출(방장 일정 등록) */
+  const createCalendar = async () => {
+    const body = { availableDates: availableDates }
+    try {
+      const result = await createCalendarApi(tripInfo.tripId, body)
+      alert('일정이 등록되었습니다!')
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
   return (
-    <div>
+    <div className='flex flex-col gap-5'>
       <Calendar
         value={null}
         onClickDay={(value, event) => handleDateClick(value, event)}
@@ -68,6 +80,7 @@ const TripCalendar = (tripInfo) => {
           return null
         }}
       />
+      <button onClick={createCalendar}>일정 등록</button>
     </div>
   )
 }
