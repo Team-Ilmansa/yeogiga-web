@@ -30,8 +30,8 @@ const AuthProvider = ({ children }) => {
 
   /**로그인 시 세션 스토리지에 사용자 정보 및 Access Token 저장 */
   const login = useCallback(({ user, token }) => {
-    const { nickname, loginType } = parsingFromToken(token)
-    const userWithTokenInfo = { ...user, nickname, loginType }
+    const { userId, nickname, loginType } = parsingFromToken(token)
+    const userWithTokenInfo = { ...user, userId, nickname, loginType }
     setUser(userWithTokenInfo)
     setAccessToken(token)
     saveAuthToStorage(userWithTokenInfo, token)
