@@ -38,12 +38,12 @@ export const decodeToken = (token) => {
   }
 }
 
-/**디코딩 된 Access Token에서 닉네임 및 로그인타입 가져오기 */
+/**디코딩 된 Access Token에서 유저 아이디, 닉네임, 로그인타입 가져오기 */
 export const parsingFromToken = (token) => {
   const decoded = decodeToken(token)
-  if (!decoded) return { nickname: null, loginType: null }
-  const { nickname, loginType } = decoded
-  return { nickname, loginType }
+  if (!decoded) return { userId: null, nickname: null, loginType: null }
+  const { userId, nickname, loginType } = decoded
+  return { userId, nickname, loginType }
 }
 
 /**사용자 정보와 Access Token을 세션 스토리지에 저장 */
