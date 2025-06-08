@@ -99,3 +99,35 @@
   color: #8287ff;
   border-radius: 0px;
 }
+
+/* 인원 별(1 ~ 10) 캘린더 색 변경 */
+.available-1 {
+  background-color: #f5ebff;
+}
+.available-2 {
+  background-color: #ebd6ff;
+}
+.available-3 {
+  background-color: #e2c2ff;
+}
+.available-4 {
+  background-color: #d8adff;
+}
+.available-5 {
+  background-color: #ce99ff;
+}
+.available-6 {
+  background-color: #c585ff;
+}
+.available-7 {
+  background-color: #bb70ff;
+}
+.available-8 {
+  background-color: #b15cff;
+}
+.available-9 {
+  background-color: #a847ff;
+}
+.available-10 {
+  background-color: #9e33ff;
+}
