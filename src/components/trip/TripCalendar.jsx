@@ -4,10 +4,18 @@ import 'react-calendar/dist/Calendar.css'
 import './TripCalendar.css'
 import createCalendarApi from '@/apis/calendar/createCalendarApi'
 import readCalendarApi from '@/apis/calendar/readCalendarApi'
+import readMyCalendarApi from '@/apis/calendar/readMyCalendarApi'
 
 const TripCalendar = ({ tripInfo }) => {
+  /**팀원 전체 일정 */
   const [availabilities, setAvailabilities] = useState([])
+  /**등록 중인 일정 */
   const [availableDates, setAvailableDates] = useState([])
+  /**등록된 나의 일정 */
+  const [myAvailableDates, setMyAvailableDates] = useState([])
+  /**W2M 등록 여부 */
+  const [isRegistred, setIsRegistred] = useState(false)
+  /**W2M 등록 or 수정 중인 상태 */
   const [isEditing, setIsEditing] = useState(true)
 
   useEffect(() => {
@@ -24,12 +32,32 @@ const TripCalendar = ({ tripInfo }) => {
       }
     }
 
+    /**나의 W2M 캘린더 조회 API 호출 */
+    const fetchMyCalendar = async () => {
+      try {
+        const result = await readMyCalendarApi(tripInfo.tripId)
+        setMyAvailableDates(result.data?.availableDates)
+        if (result.data) {
+          setIsRegistred(true)
+        }
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+
     fetchCalendar()
+    fetchMyCalendar()
   }, [])
 
-  /**팀원 전체 캘린더 or 본인 일정 캘린더 */
-  const toggleEditingCalendar = () => {
-    setIsEditing((prev) => !prev)
+  /**등록 or 수정용 캘린더 열기 */
+  const openEditingCalendar = () => {
+    setIsEditing(true)
+    setAvailableDates(myAvailableDates)
+  }
+
+  /**등록 or 수정용 캘린더 닫기 */
+  const closeEditingCalendar = () => {
+    setIsEditing(false)
   }
 
   const handleDateClick = (date, event) => {
@@ -111,7 +139,7 @@ const TripCalendar = ({ tripInfo }) => {
             }}
           />
           <div className='flex'>
-            <button onClick={toggleEditingCalendar}>취소</button>
+            <button onClick={closeEditingCalendar}>취소</button>
             <button onClick={createCalendar}>일정 등록</button>
           </div>
         </div>
@@ -139,7 +167,7 @@ const TripCalendar = ({ tripInfo }) => {
               return null
             }}
           />
-          <button onClick={toggleEditingCalendar}>일정 등록하기</button>
+          <button onClick={openEditingCalendar}>일정 등록하기</button>
         </>
       )}
     </div>
