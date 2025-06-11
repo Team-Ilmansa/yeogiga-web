@@ -5,6 +5,7 @@ import './TripCalendar.css'
 import createCalendarApi from '@/apis/calendar/createCalendarApi'
 import readCalendarApi from '@/apis/calendar/readCalendarApi'
 import readMyCalendarApi from '@/apis/calendar/readMyCalendarApi'
+import updateMyCalendarApi from '@/apis/calendar/updateMyCalendarApi'
 
 const TripCalendar = ({ tripInfo }) => {
   /**팀원 전체 일정 */
@@ -80,12 +81,24 @@ const TripCalendar = ({ tripInfo }) => {
     })
   }
 
-  /**W2M 캘린더 생성 API 호출(방장 일정 등록) */
+  /**W2M 캘린더 생성 API 호출 */
   const createCalendar = async () => {
     const body = { availableDates: availableDates }
     try {
       const result = await createCalendarApi(tripInfo.tripId, body)
       alert('일정이 등록되었습니다!')
+      window.location.reload()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  /**W2M 캘린더 수정 API 호출 */
+  const updateCalendar = async () => {
+    const body = { availableDates: availableDates }
+    try {
+      const result = await updateMyCalendarApi(tripInfo.tripId, body)
+      alert('일정이 수정되었습니다')
       window.location.reload()
     } catch (err) {
       alert(err.message)
@@ -140,7 +153,11 @@ const TripCalendar = ({ tripInfo }) => {
           />
           <div className='flex'>
             <button onClick={closeEditingCalendar}>취소</button>
-            <button onClick={createCalendar}>일정 등록</button>
+            {isRegistred ? (
+              <button onClick={updateCalendar}>일정 수정</button>
+            ) : (
+              <button onClick={createCalendar}>일정 등록</button>
+            )}
           </div>
         </div>
       ) : (
@@ -167,7 +184,10 @@ const TripCalendar = ({ tripInfo }) => {
               return null
             }}
           />
-          <button onClick={openEditingCalendar}>일정 등록하기</button>
+          <button onClick={openEditingCalendar}>
+            일정
+            {isRegistred ? ' 수정하기' : ' 등록하기'}
+          </button>
         </>
       )}
     </div>
