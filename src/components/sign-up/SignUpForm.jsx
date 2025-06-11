@@ -76,7 +76,9 @@ const SignUpForm = () => {
             placeholder='ID'
             className='flex-1'
           />
-          <button onClick={handleDupCheckUsername}>중복 확인</button>
+          <button type='button' onClick={handleDupCheckUsername}>
+            중복 확인
+          </button>
         </div>
         <input
           {...register('password', { required: true })}
@@ -119,7 +121,9 @@ const SignUpForm = () => {
             placeholder='닉네임'
             className='flex-1'
           />
-          <button onClick={handleDupCheckNickname}>중복 확인</button>
+          <button type='button' onClick={handleDupCheckNickname}>
+            중복 확인
+          </button>
         </div>
         <button type='submit' className='flex-1'>
           회원 가입
