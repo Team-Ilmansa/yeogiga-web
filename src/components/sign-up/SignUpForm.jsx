@@ -3,6 +3,7 @@ import signUpApi from '@/apis/authentication/signUpApi'
 import usernameDupCheckApi from '@/apis/authentication/usernameDupCheckApi'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
 
 const SignUpForm = () => {
   const {
@@ -11,6 +12,8 @@ const SignUpForm = () => {
     watch,
     formState: { errors },
   } = useForm()
+
+  const navigate = useNavigate()
 
   /** 양식 제출 시 회원가입 API 호출 */
   const onSubmit = async (data) => {
@@ -31,6 +34,7 @@ const SignUpForm = () => {
     try {
       const result = await signUpApi(body)
       alert('회원가입이 완료되었습니다!')
+      navigate('/signin')
     } catch (err) {
       alert(`회원가입 실패: ${err.message}`)
       console.error('회원가입 에러:', err)
