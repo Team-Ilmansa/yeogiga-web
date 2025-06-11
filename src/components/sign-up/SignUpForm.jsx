@@ -64,7 +64,7 @@ const SignUpForm = () => {
   }
 
   return (
-    <fieldset className='flex flex-col border p-5'>
+    <fieldset className='border p-5'>
       <legend className='p-2'>회원가입</legend>
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -89,11 +89,19 @@ const SignUpForm = () => {
             placeholder='이메일 아이디'
           />
           <span>@</span>
-          <input
-            {...register('customDomain')}
-            placeholder='도메인 입력'
-            disabled={selectedDomain !== '직접 작성'}
-          />
+          {selectedDomain === '직접 작성' ? (
+            <input
+              {...register('customDomain', { required: true })}
+              placeholder='도메인 입력'
+              className='border p-2'
+            />
+          ) : (
+            <input
+              value={selectedDomain}
+              disabled
+              className='border bg-gray-100 p-2 text-gray-500'
+            />
+          )}
           <select
             {...register('domain')}
             defaultValue='직접 작성'
@@ -113,10 +121,10 @@ const SignUpForm = () => {
           />
           <button onClick={handleDupCheckNickname}>중복 확인</button>
         </div>
+        <button type='submit' className='flex-1'>
+          회원 가입
+        </button>
       </form>
-      <button type='submit' className='flex-1'>
-        회원 가입
-      </button>
     </fieldset>
   )
 }
