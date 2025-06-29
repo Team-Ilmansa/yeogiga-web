@@ -1,9 +1,10 @@
 import updateNicknameApi from '@/apis/users/updateNicknameApi'
 import userInfoApi from '@/apis/users/userInfoApi'
 import updatePasswordApi from '@/apis/users/updatePasswordApi'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import useAuth from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
+import updateProfileApi from '@/apis/users/updateProfileApi'
 
 const MyPage = () => {
   const [userInfo, setUserInfo] = useState([])
@@ -15,12 +16,14 @@ const MyPage = () => {
   const { logout, user } = useAuth()
   const loginType = user?.loginType
   const navigate = useNavigate()
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState('')
+  const fileInputRef = useRef()
 
   /**회원 정보 조회 API 호출 */
   const fetchUserInfo = async () => {
     try {
       const result = await userInfoApi()
-
       setUserInfo(result.data)
     } catch (err) {
       console.error('회원 정보 조회 에러: ', err)
@@ -71,12 +74,48 @@ const MyPage = () => {
     setNewPassword('')
   }
 
+  /**프로필 사진 등록 및 수정 API 호출 */
+  const updateProfileUpload = async (e) => {
+    const profileImage = e.target.files[0]
+    if (!profileImage) return
+    setSelectedFile(profileImage)
+    setPreviewUrl(URL.createObjectURL(profileImage))
+
+    const formData = new FormData()
+    formData.append('image', profileImage)
+    try {
+      const result = await updateProfileApi(formData)
+      fetchUserInfo()
+      alert('프로필 사진이 성공적으로 업로드되었습니다.')
+    } catch (err) {
+      alert(err.message)
+      console.error(err)
+    }
+  }
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
   useEffect(() => {
     fetchUserInfo()
   }, [])
 
   return (
     <div className='flex h-screen w-screen flex-col items-center justify-center gap-2'>
+      <img
+        src={previewUrl || '/images/default_profile.png'}
+        alt='프로필'
+        className='h-32 w-32 rounded-full object-cover'
+      />
+      <button onClick={handleUploadClick}>프로필 수정</button>
+      <input
+        ref={fileInputRef}
+        type='file'
+        accept='image/*'
+        onChange={updateProfileUpload}
+        className='hidden'
+      />
       <p>닉네임: {userInfo.nickname}</p>
       <button onClick={toggleNicknameInput}>닉네임 변경</button>
       {isNicknameInputOpen && (
