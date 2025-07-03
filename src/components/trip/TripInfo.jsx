@@ -21,6 +21,7 @@ const TripInfo = ({ tripInfo }) => {
   const [newStartTime, setNewStartTime] = useState('')
   const [newEndTime, setNewEndTime] = useState('')
   const [isUpdateTimeInputOpen, setIsUpdateTimeInputOpen] = useState(false)
+  const [isMembersOpen, setIsMembersOpen] = useState(false)
 
   const navigate = useNavigate()
 
@@ -60,6 +61,11 @@ const TripInfo = ({ tripInfo }) => {
   const toggleUpdateTimeInput = () => {
     setIsUpdateTimeInputOpen((prev) => !prev)
     setNewTime('')
+  }
+
+  /**여행 멤버 더 보기 화면 출력 상태 토글 */
+  const toggleViewMembers = () => {
+    setIsMembersOpen((prev) => !prev)
   }
 
   /**여행 시간 변경 토클 시 날짜 초기 세팅 */
@@ -173,27 +179,48 @@ const TripInfo = ({ tripInfo }) => {
 
             <fieldset className='rounded-2xl border p-4'>
               <legend className='p-2'>여행 멤버</legend>
-              <ul>
-                {tripInfo.members.map((member) => (
+              <ul className='flex items-center gap-2'>
+                {tripInfo.members.slice(0, 3).map((member) => (
                   <li key={member.userId}>
-                    {member.nickname}
-                    {member.imageUrl ? (
-                      <img
-                        src={member.imageUrl}
-                        alt={member.nickname}
-                        width='30'
-                      />
-                    ) : (
-                      <div>(이미지 없음)</div>
-                    )}
+                    <img
+                      src={member.imageUrl || '/images/default_profile.png'}
+                      alt='프로필'
+                      className='h-6 w-6 rounded-full object-cover'
+                    />
                   </li>
                 ))}
+                <button onClick={toggleViewMembers}>...</button>
               </ul>
             </fieldset>
           </fieldset>
         </div>
       ) : (
         <p>여행 정보를 불러오는 중...</p>
+      )}
+
+      {isMembersOpen && (
+        <div
+          className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'
+          onClick={toggleViewMembers}
+        >
+          <div
+            className='rounded-3xl bg-white p-20 text-3xl shadow'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ul className='flex flex-col items-baseline gap-5'>
+              {tripInfo.members.slice(0, 3).map((member) => (
+                <li key={member.userId} className='flex items-center gap-2'>
+                  <img
+                    src={member.imageUrl || '/images/default_profile.png'}
+                    alt='프로필'
+                    className='h-15 w-15 rounded-full object-cover'
+                  />
+                  <span>{member.nickname}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       )}
     </div>
   )
