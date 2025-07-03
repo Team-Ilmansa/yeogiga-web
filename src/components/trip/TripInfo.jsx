@@ -208,7 +208,7 @@ const TripInfo = ({ tripInfo }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <ul className='flex flex-col items-baseline gap-5'>
-              {tripInfo.members.slice(0, 3).map((member) => (
+              {tripInfo.members.map((member) => (
                 <li key={member.userId} className='flex items-center gap-2'>
                   <img
                     src={member.imageUrl || '/images/default_profile.png'}
