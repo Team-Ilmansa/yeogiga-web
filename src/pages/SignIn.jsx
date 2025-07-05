@@ -2,7 +2,7 @@ import SignInForm from '@/components/sign-in/SignInForm'
 
 const SignIn = () => {
   return (
-    <div className='flex h-screen w-screen items-center justify-center'>
+    <div className='relative flex h-screen w-full items-center justify-center'>
       <SignInForm />
     </div>
   )
