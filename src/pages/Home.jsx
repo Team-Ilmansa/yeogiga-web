@@ -101,7 +101,6 @@ const Home = () => {
 
   return (
     <div className='flex h-screen w-screen flex-col items-center justify-center'>
-      <h1 className='text-2xl'>amplify 적용 테스트2 문구</h1>
       <h1 className='text-3xl'>
         {user ? `안녕하세요! ${user.nickname}님!` : '로그인해 주세요'}
       </h1>
