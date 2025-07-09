@@ -11,7 +11,6 @@ import Trip from './pages/Trip'
 import Participation from './pages/Participation'
 
 const App = () => {
-  /**TODO: 스크롤 방지 기능 추가 */
   return (
     <div className='flex min-h-screen justify-center bg-gray-100'>
       <div className='min-h-screen w-full max-w-5xl bg-white px-10'>

@@ -71,7 +71,7 @@ const SignInForm = () => {
       </form>
       <div className='mb-30 text-lg text-[#7D7D7D]'>
         <Link>아이디 찾기</Link>&nbsp;|&nbsp;<Link>비밀번호 찾기</Link>
-        &nbsp;|&nbsp;<Link>회원가입하기</Link>
+        &nbsp;|&nbsp;<Link to={'/signup'}>회원가입하기</Link>
       </div>
 
       <div className='flex flex-col gap-2 text-lg text-[#7D7D7D]'>
