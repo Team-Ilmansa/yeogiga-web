@@ -5,10 +5,12 @@ import readSettingTripApi from '@/apis/trip/readSettingTripApi'
 import readTripApi from '@/apis/trip/readTripApi'
 import useAuth from '@/hooks/useAuth'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 const Home = () => {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
   const [isCreateTripInputOpen, setIsCreateTripInputOpen] = useState(false)
   const [isReadMainTripListOpen, setIsReadMainTripListOpen] = useState(false)
   const [isReadTripListOpen, setIsReadTripListOpen] = useState(false)
@@ -49,6 +51,12 @@ const Home = () => {
   }
 
   useEffect(() => {
+    /**미 로그인 시 로그인 화면으로 이동 */
+    if (!user) {
+      console.log(user)
+      navigate('/signin')
+    }
+
     /**메인 화면 내 여행 조회 API 호출 */
     const fetchMainTrip = async () => {
       try {
@@ -100,34 +108,16 @@ const Home = () => {
   }
 
   return (
-    <div className='flex h-screen w-screen flex-col items-center justify-center'>
-      <h1 className='text-3xl'>
-        {user ? `안녕하세요! ${user.nickname}님!` : '로그인해 주세요'}
-      </h1>
-
+    <div className='flex h-screen flex-col items-center justify-center'>
+      <h1 className='text-3xl'>안녕하세요! {user?.nickname}님!</h1>
       <nav className='mt-5 flex flex-col gap-2'>
-        {user ? (
-          <>
-            <button onClick={handleSignOut}>로그아웃</button>
-            <Link to='/mypage' className='link'>
-              마이 페이지
-            </Link>
-            <button onClick={toggleCreateTripInput}>여행 생성하기</button>
-            <button onClick={toggleReadMainTripList}>여행 읽기</button>
-            <button onClick={toggleReadTripList}>
-              사용자가 속한 여행 읽기
-            </button>
-          </>
-        ) : (
-          <>
-            <Link to='/signin' className='link'>
-              로그인
-            </Link>
-            <Link to='/signup' className='link'>
-              회원가입
-            </Link>
-          </>
-        )}
+        <button onClick={handleSignOut}>로그아웃</button>
+        <Link to='/mypage' className='link'>
+          마이 페이지
+        </Link>
+        <button onClick={toggleCreateTripInput}>여행 생성하기</button>
+        <button onClick={toggleReadMainTripList}>여행 읽기</button>
+        <button onClick={toggleReadTripList}>사용자가 속한 여행 읽기</button>
       </nav>
       {isCreateTripInputOpen && (
         <fieldset className='rounded-2xl border p-4'>

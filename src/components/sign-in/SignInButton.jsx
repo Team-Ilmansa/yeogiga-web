@@ -1,9 +1,9 @@
-import kakaoButton from '@/assets/kakaoButton.png'
-import naverButton from '@/assets/naverButton.png'
+import kakaoButton from '@/assets/sign-in/kakaoLogo.png'
+import naverButton from '@/assets/sign-in/naverLogo.png'
 import { kakaoLoginUrl, naverLoginUrl } from '@/config/Url'
 
 const SignInButton = () => null
-const ButtonStyle = 'mx-auto w-50 cursor-pointer'
+const ButtonStyle = 'mx-auto cursor-pointer h-aut0 w-20'
 
 SignInButton.KakaoLogin = () => {
   return (
@@ -16,11 +16,7 @@ SignInButton.KakaoLogin = () => {
 SignInButton.NaverLogin = () => {
   return (
     <a href={naverLoginUrl}>
-      <img
-        src={naverButton}
-        alt='네이버 로그인'
-        className={`${ButtonStyle} mt-3`}
-      />
+      <img src={naverButton} alt='네이버 로그인' className={ButtonStyle} />
     </a>
   )
 }
