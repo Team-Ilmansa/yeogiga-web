@@ -9,7 +9,6 @@ import { setUpInterceptors } from './apis/api'
 import MyPage from './pages/MyPage'
 import Trip from './pages/Trip'
 import Participation from './pages/Participation'
-import Dashboard from './pages/Dashboard'
 
 const App = () => {
   return (
@@ -27,7 +26,6 @@ const App = () => {
             <Route path='trip/:tripId'>
               <Route index element={<Trip />} />
               <Route path='participation' element={<Participation />} />
-              <Route path='dashboard' element={<Dashboard />} />
             </Route>
           </Routes>
         </Router>

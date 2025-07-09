@@ -6,7 +6,6 @@ import createCalendarApi from '@/apis/calendar/createCalendarApi'
 import readCalendarApi from '@/apis/calendar/readCalendarApi'
 import readMyCalendarApi from '@/apis/calendar/readMyCalendarApi'
 import updateMyCalendarApi from '@/apis/calendar/updateMyCalendarApi'
-import { useNavigate } from 'react-router-dom'
 
 const TripCalendar = ({ tripInfo }) => {
   /**팀원 전체 일정 */
@@ -19,8 +18,6 @@ const TripCalendar = ({ tripInfo }) => {
   const [isRegistred, setIsRegistred] = useState(false)
   /**W2M 등록 or 수정 중인 상태 */
   const [isEditing, setIsEditing] = useState(true)
-
-  const navigate = useNavigate()
 
   useEffect(() => {
     /**W2M 캘린더 조회 API 호출 */
@@ -102,7 +99,6 @@ const TripCalendar = ({ tripInfo }) => {
     if (window.confirm('날짜를 확정하시겠습니까?')) {
       try {
         const result = await updateMyCalendarApi(tripInfo.tripId, body)
-        navigate('/dashboard')
       } catch (err) {
         alert(err.message)
       }
