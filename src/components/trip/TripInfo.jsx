@@ -3,6 +3,7 @@ import updateTripTitleApi from '@/apis/trip/updateTripTitleApi'
 import updateTripTimeApi from '@/apis/trip/updateTripTimeApi'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import deleteMemberApi from '@/apis/member/deleteMemberApi'
 
 /**날짜 값 형식 변환 */
 function toDatetimeLocalFormat(dateString) {
@@ -105,6 +106,19 @@ const TripInfo = ({ tripInfo }) => {
     }
   }
 
+  /**여행 탈퇴 API 호출 */
+  const deleteMember = async () => {
+    if (window.confirm(`${tripInfo.title} 정말로 삭제하시겠습니까?`)) {
+      try {
+        const result = await deleteMemberApi(tripInfo.tripId)
+        alert('정상적으로 탈퇴되었습니다')
+        navigate('/')
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+  }
+
   return (
     <div>
       {tripInfo ? (
@@ -192,6 +206,9 @@ const TripInfo = ({ tripInfo }) => {
                 <button onClick={toggleViewMembers}>...</button>
               </ul>
             </fieldset>
+            <button className='px-2 py-0' onClick={deleteMember}>
+              여행 탈퇴
+            </button>
           </fieldset>
         </div>
       ) : (
