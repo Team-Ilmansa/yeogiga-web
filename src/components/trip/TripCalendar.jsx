@@ -6,6 +6,7 @@ import createCalendarApi from '@/apis/calendar/createCalendarApi'
 import readCalendarApi from '@/apis/calendar/readCalendarApi'
 import readMyCalendarApi from '@/apis/calendar/readMyCalendarApi'
 import updateMyCalendarApi from '@/apis/calendar/updateMyCalendarApi'
+import { useNavigate } from 'react-router-dom'
 
 const TripCalendar = ({ tripInfo }) => {
   /**팀원 전체 일정 */
@@ -18,6 +19,8 @@ const TripCalendar = ({ tripInfo }) => {
   const [isRegistred, setIsRegistred] = useState(false)
   /**W2M 등록 or 수정 중인 상태 */
   const [isEditing, setIsEditing] = useState(true)
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     /**W2M 캘린더 조회 API 호출 */
@@ -93,15 +96,16 @@ const TripCalendar = ({ tripInfo }) => {
     }
   }
 
-  /**W2M 캘린더 수정 API 호출 */
+  /**W2M 캘린더 수정 및 확정 API 호출 */
   const updateCalendar = async () => {
     const body = { availableDates: availableDates }
-    try {
-      const result = await updateMyCalendarApi(tripInfo.tripId, body)
-      alert('일정이 수정되었습니다')
-      window.location.reload()
-    } catch (err) {
-      alert(err.message)
+    if (window.confirm('날짜를 확정하시겠습니까?')) {
+      try {
+        const result = await updateMyCalendarApi(tripInfo.tripId, body)
+        navigate('/dashboard')
+      } catch (err) {
+        alert(err.message)
+      }
     }
   }
 
@@ -154,7 +158,7 @@ const TripCalendar = ({ tripInfo }) => {
           <div className='flex'>
             <button onClick={closeEditingCalendar}>취소</button>
             {isRegistred ? (
-              <button onClick={updateCalendar}>일정 수정</button>
+              <button onClick={updateCalendar}>날짜 확정</button>
             ) : (
               <button onClick={createCalendar}>일정 등록</button>
             )}
