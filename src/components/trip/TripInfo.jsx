@@ -1,6 +1,7 @@
 import deleteTripApi from '@/apis/trip/deleteTripApi'
 import updateTripTitleApi from '@/apis/trip/updateTripTitleApi'
 import updateTripTimeApi from '@/apis/trip/updateTripTimeApi'
+import deleteTripMemberApi from '@/apis/member/deleteTripMemberApi'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -105,6 +106,19 @@ const TripInfo = ({ tripInfo }) => {
     }
   }
 
+  /**여행 멤버 추방 API 호츌 */
+  const deleteTripMember = async (member) => {
+    if (window.confirm(`${member.nickname} 멤버를 추방하시겠습니까?`)) {
+      try {
+        const result = await deleteTripMemberApi(tripInfo.tripId, member.userId)
+        alert(`${member.nickname} 멤버를 추방 완료하였습니다`)
+        window.location.reload()
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+  }
+
   return (
     <div>
       {tripInfo ? (
@@ -185,7 +199,8 @@ const TripInfo = ({ tripInfo }) => {
                     <img
                       src={member.imageUrl || '/images/default_profile.png'}
                       alt='프로필'
-                      className='h-6 w-6 rounded-full object-cover'
+                      className='h-6 w-6 cursor-pointer rounded-full object-cover'
+                      onClick={() => deleteTripMember(member)}
                     />
                   </li>
                 ))}
