@@ -107,7 +107,6 @@ const TripInfo = ({ tripInfo }) => {
     }
   }
 
-
   /**여행 탈퇴 API 호출 */
   const deleteMember = async () => {
     if (window.confirm(`${tripInfo.title} 정말로 삭제하시겠습니까?`)) {
@@ -115,6 +114,11 @@ const TripInfo = ({ tripInfo }) => {
         const result = await deleteMemberApi(tripInfo.tripId)
         alert('정상적으로 탈퇴되었습니다')
         navigate('/')
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+  }
 
   /**여행 멤버 추방 API 호츌 */
   const deleteTripMember = async (member) => {
@@ -123,7 +127,6 @@ const TripInfo = ({ tripInfo }) => {
         const result = await deleteTripMemberApi(tripInfo.tripId, member.userId)
         alert(`${member.nickname} 멤버를 추방 완료하였습니다`)
         window.location.reload()
-
       } catch (err) {
         alert(err.message)
       }
