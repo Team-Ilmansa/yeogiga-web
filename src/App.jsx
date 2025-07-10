@@ -12,8 +12,8 @@ import Participation from './pages/Participation'
 
 const App = () => {
   return (
-    <div className='flex min-h-screen justify-center bg-gray-100'>
-      <div className='min-h-screen w-full max-w-5xl bg-white px-10'>
+    <div className='flex min-h-screen justify-center overflow-auto bg-gray-100'>
+      <div className='flex w-4xl bg-white'>
         <Router>
           <Routes>
             <Route path='/' element={<Home />} />
