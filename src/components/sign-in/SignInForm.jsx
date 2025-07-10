@@ -41,7 +41,7 @@ const SignInForm = () => {
   return (
     <div className='flex w-full flex-col items-center pt-20'>
       {/* 상단 로고 */}
-      <img src={logo} alt='여기가 로고' className='mb-20 h-auto w-100' />
+      <img src={logo} alt='여기가 로고' className='mb-20 h-auto w-60' />
 
       {/* 로그인 Form */}
       <form
@@ -50,21 +50,21 @@ const SignInForm = () => {
       >
         <div className='mb-[10px] flex w-full flex-col gap-2 px-10'>
           {/* 아이디 Input */}
-          <label className='text-2xl'>아이디</label>
+          <label className='text-xl'>아이디</label>
           <input
             {...register('username', { required: true })}
             placeholder='아이디를 입력해주세요'
             type='text'
-            className='mb-[20px] border-none bg-gray-100 p-[30px] text-2xl'
+            className='mb-[20px] border-none bg-gray-100 p-[20px] text-xl'
           />
 
           {/* 비밀번호 Input */}
-          <label className='text-2xl'>비밀번호</label>
+          <label className='text-xl'>비밀번호</label>
           <input
             {...register('password', { required: true })}
             placeholder='비밀번호를 입력해주세요'
             type='password'
-            className='border-none bg-gray-100 p-[30px] text-2xl'
+            className='border-none bg-gray-100 p-[20px] text-xl'
           />
 
           {/* 각종 버튼 */}
@@ -88,7 +88,7 @@ const SignInForm = () => {
           <div className='flex w-full items-center justify-center rounded-t-[20px] p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
             <button
               type='submit'
-              className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[30px] text-2xl text-white'
+              className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
             >
               로그인하기
             </button>
