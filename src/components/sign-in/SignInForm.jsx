@@ -9,6 +9,7 @@ const SignInForm = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
 
+  /** 입력 관리를 위한 useForm 적용 */
   const {
     register,
     handleSubmit,
@@ -16,7 +17,7 @@ const SignInForm = () => {
     formState: { errors },
   } = useForm()
 
-  /** 양식 제출 시 일반 로그인 API 호출 */
+  /** 양식 제출 시 실행 할 함수 */
   const onSubmit = async (data) => {
     const { username, password } = data
 
@@ -26,6 +27,7 @@ const SignInForm = () => {
       password: data.password,
     }
 
+    /** 일반 로그인 API 호출 */
     try {
       const result = await regularSignInApi(body)
       login({ token: result.data.accessToken })
@@ -37,23 +39,26 @@ const SignInForm = () => {
   }
 
   return (
-    <div className='flex h-screen w-full flex-col items-center pt-20'>
-      <img src={logo} alt='여기가 로고' className='mb-20 h-auto w-60' />
+    <div className='flex w-full flex-col items-center pt-20'>
+      {/* 상단 로고 */}
+      <img src={logo} alt='여기가 로고' className='mb-20 h-auto w-100' />
 
+      {/* 로그인 Form */}
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className='mb-20 flex w-full flex-col gap-10'
+        className='flex h-full w-full flex-col items-center justify-between'
       >
-        <div className='flex w-full flex-col gap-2'>
+        <div className='mb-[10px] flex w-full flex-col gap-2 px-10'>
+          {/* 아이디 Input */}
           <label className='text-2xl'>아이디</label>
           <input
             {...register('username', { required: true })}
             placeholder='아이디를 입력해주세요'
             type='text'
-            className='border-none bg-gray-100 p-[30px] text-2xl'
+            className='mb-[20px] border-none bg-gray-100 p-[30px] text-2xl'
           />
-        </div>
-        <div className='flex w-full flex-col gap-2'>
+
+          {/* 비밀번호 Input */}
           <label className='text-2xl'>비밀번호</label>
           <input
             {...register('password', { required: true })}
@@ -61,26 +66,35 @@ const SignInForm = () => {
             type='password'
             className='border-none bg-gray-100 p-[30px] text-2xl'
           />
-        </div>
-        <button
-          type='submit'
-          className='absolute bottom-0 mb-6 w-full border-none bg-[#8287FF] p-[30px] text-2xl text-white'
-        >
-          로그인하기
-        </button>
-      </form>
-      <div className='mb-30 text-lg text-[#7D7D7D]'>
-        <Link>아이디 찾기</Link>&nbsp;|&nbsp;<Link>비밀번호 찾기</Link>
-        &nbsp;|&nbsp;<Link to={'/signup'}>회원가입하기</Link>
-      </div>
 
-      <div className='flex flex-col gap-2 text-lg text-[#7D7D7D]'>
-        SNS계정으로 간편로그인하기
-        <div className='flex items-center gap-5'>
-          <SignInButton.KakaoLogin />
-          <SignInButton.NaverLogin />
+          {/* 각종 버튼 */}
+          <div className='mx-auto my-[50px] text-lg text-[var(--Grey-Scale-grey-300)]'>
+            <Link>아이디 찾기</Link>&nbsp;|&nbsp;<Link>비밀번호 찾기</Link>
+            &nbsp;|&nbsp;<Link to={'/signup'}>회원가입하기</Link>
+          </div>
         </div>
-      </div>
+
+        <div className='flex w-full flex-col items-center gap-[20px]'>
+          {/* SNS 로그인 */}
+          <div className='mb-[20px] flex flex-col gap-2 text-lg text-[var(--Grey-Scale-grey-300)]'>
+            SNS계정으로 간편로그인하기
+            <div className='flex items-center justify-center gap-5'>
+              <SignInButton.KakaoLogin />
+              <SignInButton.NaverLogin />
+            </div>
+          </div>
+
+          {/* 일반 로그인 버튼 */}
+          <div className='flex w-full items-center justify-center rounded-t-[20px] p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
+            <button
+              type='submit'
+              className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[30px] text-2xl text-white'
+            >
+              로그인하기
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   )
 }
