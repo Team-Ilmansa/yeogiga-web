@@ -13,7 +13,7 @@ import Participation from './pages/Participation'
 const App = () => {
   return (
     <div className='flex min-h-screen justify-center overflow-auto bg-gray-100'>
-      <div className='flex w-5xl bg-white'>
+      <div className='flex w-4xl bg-white'>
         <Router>
           <Routes>
             <Route path='/' element={<Home />} />
