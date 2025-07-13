@@ -131,3 +131,13 @@
 .available-10 {
   background-color: #9e33ff;
 }
+
+.confirmedDate {
+  border: 2px solid #4caf50;
+  background-color: rgba(76, 175, 80, 0.2) !important;
+}
+
+.leaderConfirmed {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
