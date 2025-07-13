@@ -19,8 +19,18 @@
   --Blue-Scale-blue-500: #8287ff;
 
   --Grey-Scale-grey-00: #fff;
+  --Grey-Scale-grey-50: #fafafa;
   --Grey-Scale-grey-100: #f0f0f0;
   --Grey-Scale-grey-200: #c6c6c6;
   --Grey-Scale-grey-300: #7d7d7d;
   --Grey-Scale-grey-400: #313131;
+}
+
+/* 스크롤바 없애기 클래스 */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
