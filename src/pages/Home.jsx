@@ -3,6 +3,11 @@ import createTripApi from '@/apis/trip/createTripApi'
 import readMainTripApi from '@/apis/trip/readMainApi'
 import readSettingTripApi from '@/apis/trip/readSettingTripApi'
 import readTripApi from '@/apis/trip/readTripApi'
+import HomeButton from '@/components/home/HomeButton'
+import HomeTitle from '@/components/home/HomeTitle'
+import PastTrips from '@/components/home/PastTrips'
+import RecommendedPlaces from '@/components/home/RecommendedPlaces'
+import TrendingPlaces from '@/components/home/TrendingPlaces'
 import useAuth from '@/hooks/useAuth'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -20,8 +25,7 @@ const Home = () => {
   const [settingTrips, setSettingTrips] = useState(null)
   const [trips, setTrips] = useState(null)
 
-  /**버튼 클릭 시 로그아웃 로직
-   * TODO: 상단 NavBar로 옮기기 */
+  /**버튼 클릭 시 로그아웃 */
   const handleSignOut = async () => {
     try {
       const result = await signOutApi()
@@ -108,9 +112,13 @@ const Home = () => {
   }
 
   return (
-    <div className='flex h-screen flex-col items-center justify-center'>
-      <h1 className='text-3xl'>안녕하세요! {user?.nickname}님!</h1>
-      <nav className='mt-5 flex flex-col gap-2'>
+    <div className='flex w-full flex-col gap-15 bg-[var(--Grey-Scale-grey-50)] pt-10 pb-50 pl-10'>
+      <HomeTitle user={user} />
+      {/* TODO: PLANNED or PROGRESSED 여행 존재 시 출력 */}
+      <RecommendedPlaces user={user} />
+      <TrendingPlaces />
+      <PastTrips />
+      <nav className='flex flex-col gap-2'>
         <button onClick={handleSignOut}>로그아웃</button>
         <Link to='/mypage' className='link'>
           마이 페이지
@@ -218,6 +226,7 @@ const Home = () => {
           ))}
         </fieldset>
       )}
+      <HomeButton />
     </div>
   )
 }
