@@ -21,7 +21,7 @@ const TripCalendar = ({ tripInfo }) => {
   const [isEditing, setIsEditing] = useState(true)
   /**팀원 전체 캘린더 클릭 시 날짜 선택 */
   const [selectedDates, setSelectedDates] = useState([])
-
+  /**여행 일정 확정 상태 */
   const [confirmedDates, setConfirmedDates] = useState([])
 
   useEffect(() => {
