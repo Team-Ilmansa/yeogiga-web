@@ -247,22 +247,79 @@ const TripCalendar = ({ tripInfo }) => {
             tileClassName={({ date, view }) => {
               if (view === 'month') {
                 const dateStr = date.toLocaleDateString('sv-SE')
+
+                /** 방장이 선택한 범위 */
+                let inSelectedRange = false
+                if (selectedDates.length > 0) {
+                  const sorted = [...selectedDates].sort()
+                  const rangeStart = new Date(sorted[0])
+                  const rangeEnd = new Date(sorted[sorted.length - 1])
+                  const current = new Date(dateStr)
+
+                  inSelectedRange = current >= rangeStart && current <= rangeEnd
+                }
+
+                /** 인원수 색상 계산 */
                 const countMap = new Map()
                 availabilities?.forEach(({ availableDates }) => {
                   availableDates.forEach((d) => {
                     countMap.set(d, (countMap.get(d) || 0) + 1)
                   })
                 })
-
                 const count = countMap.get(dateStr) || 0
                 const level = Math.min(count, 10)
-                const isSelected = selectedDates.includes(dateStr)
                 const isConfirmed =
                   Array.isArray(confirmedDates) &&
                   confirmedDates.includes(dateStr)
-                return `${isSelected ? 'confirmedDate ' : ''}${
-                  isConfirmed ? 'leaderConfirmed ' : ''
-                }available-${level}`
+
+                /** 각 이웃 날짜 */
+                const prevDate = new Date(date)
+                prevDate.setDate(date.getDate() - 1)
+                const nextDate = new Date(date)
+                nextDate.setDate(date.getDate() + 1)
+
+                const prevStr = prevDate.toLocaleDateString('sv-SE')
+                const nextStr = nextDate.toLocaleDateString('sv-SE')
+                const isPrevIn =
+                  selectedDates.length > 0 &&
+                  new Date(prevStr) >= new Date(selectedDates[0]) &&
+                  new Date(prevStr) <=
+                    new Date(selectedDates[selectedDates.length - 1])
+                const isNextIn =
+                  selectedDates.length > 0 &&
+                  new Date(nextStr) >= new Date(selectedDates[0]) &&
+                  new Date(nextStr) <=
+                    new Date(selectedDates[selectedDates.length - 1])
+
+                /** CSS용 class */
+                let classes = `available-${level}`
+                if (confirmedDates.includes(dateStr)) {
+                  const isPrev = confirmedDates.includes(prevStr)
+                  const isNext = confirmedDates.includes(nextStr)
+
+                  if (isPrev && isNext) {
+                    classes += ' confirmed-middle'
+                  } else if (!isPrev && isNext) {
+                    classes += ' confirmed-start'
+                    if (isNext) classes += ' no-right-radius'
+                  } else if (isPrev && !isNext) {
+                    classes += ' confirmed-end'
+                    if (isPrev) classes += ' no-left-radius'
+                  } else {
+                    classes += ' confirmedDate'
+                  }
+                }
+                if (inSelectedRange) {
+                  if (isPrevIn && isNextIn) {
+                    classes += ' continuousDate'
+                  } else {
+                    classes += ' selectedByLeader'
+                    if (isPrevIn) classes += ' no-left-radius'
+                    if (isNextIn) classes += ' no-right-radius'
+                  }
+                }
+
+                return classes.trim()
               }
               return null
             }}
@@ -271,7 +328,7 @@ const TripCalendar = ({ tripInfo }) => {
             일정{isRegistred ? ' 수정하기' : ' 등록하기'}
           </button>
 
-          {/**선택한 날짜가 있으면 확정 버튼 보여주기*/}
+          {/** 선택한 날짜가 있으면 확정 버튼 보여주기 */}
           {selectedDates.length > 0 &&
             (() => {
               const sorted = [...selectedDates].sort()
