@@ -95,9 +95,23 @@
 }
 
 .continuousDate {
-  background: #e6e7ff;
-  color: #8287ff;
-  border-radius: 0px;
+  position: relative;
+  z-index: 1;
+  border-radius: 0px !important;
+  overflow: hidden;
+}
+
+/* 연한 배경을 위에 덮도록 */
+.continuousDate::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(130, 135, 255, 0.2);
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* 인원 별(1 ~ 10) 캘린더 색 변경 */
@@ -130,4 +144,61 @@
 }
 .available-10 {
   background-color: #9e33ff;
+}
+
+/* 공통 확정 날짜 배경, 글자색, 강조 */
+.confirmed-start,
+.confirmed-end {
+  background-color: #8287ff !important;
+  color: black !important;
+  z-index: 2;
+}
+
+/* 시작 날짜만 왼쪽 둥글게 */
+.confirmed-start {
+  border-top-left-radius: 10px !important;
+  border-bottom-left-radius: 10px !important;
+}
+
+/* 끝 날짜만 오른쪽 둥글게 */
+.confirmed-end {
+  border-top-right-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
+}
+
+/* 시작 날짜의 오른쪽 둥글기 제거 */
+.confirmed-start.no-right-radius {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* 끝 날짜의 왼쪽 둥글기 제거 */
+.confirmed-end.no-left-radius {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+/* 확정된 가운데 날짜 */
+.confirmed-middle {
+  position: relative;
+  z-index: 1;
+  border-radius: 0 !important;
+}
+
+.confirmed-middle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(130, 135, 255, 0.5);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* 방장이 확정하기 위해 선택한 날짜 */
+.selectedByLeader {
+  background-color: rgba(130, 135, 255, 0.9) !important;
+  color: white !important;
 }

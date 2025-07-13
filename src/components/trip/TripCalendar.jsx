@@ -6,6 +6,7 @@ import createCalendarApi from '@/apis/calendar/createCalendarApi'
 import readCalendarApi from '@/apis/calendar/readCalendarApi'
 import readMyCalendarApi from '@/apis/calendar/readMyCalendarApi'
 import updateMyCalendarApi from '@/apis/calendar/updateMyCalendarApi'
+import updateTripTimeApi from '@/apis/trip/updateTripTimeApi'
 
 const TripCalendar = ({ tripInfo }) => {
   /**팀원 전체 일정 */
@@ -18,6 +19,10 @@ const TripCalendar = ({ tripInfo }) => {
   const [isRegistred, setIsRegistred] = useState(false)
   /**W2M 등록 or 수정 중인 상태 */
   const [isEditing, setIsEditing] = useState(true)
+  /**팀원 전체 캘린더 클릭 시 날짜 선택 */
+  const [selectedDates, setSelectedDates] = useState([])
+  /**여행 일정 확정 상태 */
+  const [confirmedDates, setConfirmedDates] = useState([])
 
   useEffect(() => {
     /**W2M 캘린더 조회 API 호출 */
@@ -96,14 +101,86 @@ const TripCalendar = ({ tripInfo }) => {
   /**W2M 캘린더 수정 API 호출 */
   const updateCalendar = async () => {
     const body = { availableDates: availableDates }
-    try {
-      const result = await updateMyCalendarApi(tripInfo.tripId, body)
-      alert('일정이 수정되었습니다')
-      window.location.reload()
-    } catch (err) {
-      alert(err.message)
+    if (window.confirm('날짜를 확정하시겠습니까?')) {
+      try {
+        const result = await updateMyCalendarApi(tripInfo.tripId, body)
+      } catch (err) {
+        alert(err.message)
+      }
     }
   }
+
+  /** 팀원 전체 캘린더 클릭 시 날짜 선택 */
+  const handleCalendarSelect = (date, event) => {
+    const target = event?.target?.closest('.react-calendar__tile')
+    if (target) target.blur()
+    const dateStr = date.toLocaleDateString('sv-SE')
+
+    setSelectedDates((prev) => {
+      const updated = prev.includes(dateStr)
+        ? prev.filter((d) => d !== dateStr)
+        : [...prev, dateStr]
+      return updated.sort()
+    })
+  }
+
+  /** 확정 버튼 클릭 시 동작 */
+  const handleConfirmDates = () => {
+    if (window.confirm('이 날짜들을 확정하시겠습니까?')) {
+      /**여행 일정 확정 API 호출*/
+      const updateTripCalendar = async () => {
+        const sorted = [...selectedDates].sort()
+        const newStartTime = sorted[0] + 'T00:00:00'
+        const newEndTime = sorted[sorted.length - 1] + 'T00:00:00'
+        try {
+          const result = await updateTripTimeApi(tripInfo.tripId, {
+            start: newStartTime,
+            end: newEndTime,
+          })
+          alert('날짜가 확정되었습니다!')
+          {
+            selectedDates.length > 0 &&
+              (() => {
+                const sorted = [...selectedDates].sort()
+                const start = new Date(sorted[0])
+                const end = new Date(sorted[sorted.length - 1])
+                const timeDiff = end.getTime() - start.getTime()
+                const dayCount =
+                  Math.floor(timeDiff / (1000 * 60 * 60 * 24)) + 1
+                const nightCount = dayCount - 1
+
+                return (
+                  <button type='button' onClick={handleConfirmDates}>
+                    {sorted[0]} - {sorted[sorted.length - 1]} / {nightCount}박{' '}
+                    {dayCount}일
+                  </button>
+                )
+              })()
+          }
+          console.log(result)
+          window.location.reload()
+        } catch (err) {
+          alert(err.message)
+        }
+      }
+      updateTripCalendar()
+    }
+  }
+
+  useEffect(() => {
+    if (tripInfo?.startedAt && tripInfo?.endedAt) {
+      const start = new Date(tripInfo.startedAt)
+      const end = new Date(tripInfo.endedAt)
+
+      const confirmed = []
+      const cur = new Date(start)
+      while (cur <= end) {
+        confirmed.push(cur.toLocaleDateString('sv-SE'))
+        cur.setDate(cur.getDate() + 1)
+      }
+      setConfirmedDates(confirmed)
+    }
+  }, [tripInfo.startedAt, tripInfo.endedAt])
 
   return (
     <div className='flex flex-col gap-5'>
@@ -154,40 +231,120 @@ const TripCalendar = ({ tripInfo }) => {
           <div className='flex'>
             <button onClick={closeEditingCalendar}>취소</button>
             {isRegistred ? (
-              <button onClick={updateCalendar}>일정 수정</button>
+              <button onClick={updateCalendar}>날짜 확정</button>
             ) : (
               <button onClick={createCalendar}>일정 등록</button>
             )}
           </div>
         </div>
       ) : (
-        /**팀원 전체 캘린더 */
+        /** 팀원 전체 캘린더 */
         <>
           <Calendar
             className='team-calendar'
             value={null}
-            /**CSS 적용을 위한 ClassName 변경 */
+            onClickDay={handleCalendarSelect}
             tileClassName={({ date, view }) => {
               if (view === 'month') {
                 const dateStr = date.toLocaleDateString('sv-SE')
+
+                /** 방장이 선택한 범위 */
+                let inSelectedRange = false
+                if (selectedDates.length > 0) {
+                  const sorted = [...selectedDates].sort()
+                  const rangeStart = new Date(sorted[0])
+                  const rangeEnd = new Date(sorted[sorted.length - 1])
+                  const current = new Date(dateStr)
+
+                  inSelectedRange = current >= rangeStart && current <= rangeEnd
+                }
+
+                /** 인원수 색상 계산 */
                 const countMap = new Map()
                 availabilities?.forEach(({ availableDates }) => {
                   availableDates.forEach((d) => {
                     countMap.set(d, (countMap.get(d) || 0) + 1)
                   })
                 })
-
                 const count = countMap.get(dateStr) || 0
                 const level = Math.min(count, 10)
-                return `available-${level}`
+                const isConfirmed =
+                  Array.isArray(confirmedDates) &&
+                  confirmedDates.includes(dateStr)
+
+                /** 각 이웃 날짜 */
+                const prevDate = new Date(date)
+                prevDate.setDate(date.getDate() - 1)
+                const nextDate = new Date(date)
+                nextDate.setDate(date.getDate() + 1)
+
+                const prevStr = prevDate.toLocaleDateString('sv-SE')
+                const nextStr = nextDate.toLocaleDateString('sv-SE')
+                const isPrevIn =
+                  selectedDates.length > 0 &&
+                  new Date(prevStr) >= new Date(selectedDates[0]) &&
+                  new Date(prevStr) <=
+                    new Date(selectedDates[selectedDates.length - 1])
+                const isNextIn =
+                  selectedDates.length > 0 &&
+                  new Date(nextStr) >= new Date(selectedDates[0]) &&
+                  new Date(nextStr) <=
+                    new Date(selectedDates[selectedDates.length - 1])
+
+                /** CSS용 class */
+                let classes = `available-${level}`
+                if (confirmedDates.includes(dateStr)) {
+                  const isPrev = confirmedDates.includes(prevStr)
+                  const isNext = confirmedDates.includes(nextStr)
+
+                  if (isPrev && isNext) {
+                    classes += ' confirmed-middle'
+                  } else if (!isPrev && isNext) {
+                    classes += ' confirmed-start'
+                    if (isNext) classes += ' no-right-radius'
+                  } else if (isPrev && !isNext) {
+                    classes += ' confirmed-end'
+                    if (isPrev) classes += ' no-left-radius'
+                  } else {
+                    classes += ' confirmedDate'
+                  }
+                }
+                if (inSelectedRange) {
+                  if (isPrevIn && isNextIn) {
+                    classes += ' continuousDate'
+                  } else {
+                    classes += ' selectedByLeader'
+                    if (isPrevIn) classes += ' no-left-radius'
+                    if (isNextIn) classes += ' no-right-radius'
+                  }
+                }
+
+                return classes.trim()
               }
               return null
             }}
           />
           <button onClick={openEditingCalendar}>
-            일정
-            {isRegistred ? ' 수정하기' : ' 등록하기'}
+            일정{isRegistred ? ' 수정하기' : ' 등록하기'}
           </button>
+
+          {/** 선택한 날짜가 있으면 확정 버튼 보여주기 */}
+          {selectedDates.length > 0 &&
+            (() => {
+              const sorted = [...selectedDates].sort()
+              const start = new Date(sorted[0])
+              const end = new Date(sorted[sorted.length - 1])
+              const timeDiff = end.getTime() - start.getTime()
+              const dayCount = Math.floor(timeDiff / (1000 * 60 * 60 * 24)) + 1
+              const nightCount = dayCount - 1
+
+              return (
+                <button type='button' onClick={handleConfirmDates}>
+                  {sorted[0]} - {sorted[sorted.length - 1]} / {nightCount}박{' '}
+                  {dayCount}일
+                </button>
+              )
+            })()}
         </>
       )}
     </div>
