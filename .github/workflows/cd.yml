@@ -28,6 +28,7 @@ jobs:
           VITE_NAVER_REST_API_KEY: ${{ secrets.VITE_NAVER_REST_API_KEY }}
           VITE_NAVER_REDIRECT_URI: ${{ secrets.VITE_NAVER_REDIRECT_URI }}
           VITE_SERVER_BASE_URL: ${{ secrets.VITE_SERVER_BASE_URL }}
+          VITE_PROD_SERVER_BASE_URL: ${{ secrets.VITE_PROD_SERVER_BASE_URL }}
 
         run: |
           npm install
