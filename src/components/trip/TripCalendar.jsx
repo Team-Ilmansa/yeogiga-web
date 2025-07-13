@@ -98,7 +98,7 @@ const TripCalendar = ({ tripInfo }) => {
     }
   }
 
-  /**W2M 캘린더 수정 및 확정 API 호출 */
+  /**W2M 캘린더 수정 API 호출 */
   const updateCalendar = async () => {
     const body = { availableDates: availableDates }
     if (window.confirm('날짜를 확정하시겠습니까?')) {
@@ -127,6 +127,7 @@ const TripCalendar = ({ tripInfo }) => {
   /** 확정 버튼 클릭 시 동작 */
   const handleConfirmDates = () => {
     if (window.confirm('이 날짜들을 확정하시겠습니까?')) {
+      /**여행 일정 확정 API 호출*/
       const updateTripCalendar = async () => {
         const sorted = [...selectedDates].sort()
         const newStartTime = sorted[0] + 'T00:00:00'
