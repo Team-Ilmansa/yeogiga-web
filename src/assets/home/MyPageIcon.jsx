@@ -1,7 +1,12 @@
+import { Link } from 'react-router-dom'
+
 /**홈 아이콘 svg */
-const MyPageIcon = ({ color }) => {
+const MyPageIcon = ({ color, opacity }) => {
   return (
-    <div className='flex flex-col items-center'>
+    <Link
+      to='/mypage'
+      className={`flex w-[100px] flex-col items-center opacity-${opacity}`}
+    >
       <svg
         xmlns='http://www.w3.org/2000/svg'
         width='50'
@@ -27,7 +32,7 @@ const MyPageIcon = ({ color }) => {
       <div className='text-xl font-semibold' style={{ color }}>
         마이페이지
       </div>
-    </div>
+    </Link>
   )
 }
 
