@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
 
 /**홈 아이콘 svg */
-const HomeIcon = ({ color, opacity }) => {
+const HomeIcon = ({ color, opacity = 100 }) => {
   return (
     <Link
       to='/'
-      className={`flex w-[100px] flex-col items-center opacity-${opacity}`}
+      className='flex w-[100px] flex-col items-center'
+      style={{ opacity: opacity }}
     >
       <svg
         xmlns='http://www.w3.org/2000/svg'
