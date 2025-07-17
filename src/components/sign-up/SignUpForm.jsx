@@ -3,6 +3,10 @@ import RegisterEmail from './RegisterEmail'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import StepIndicator from './StepIndicator'
+import RegisterPassword from './RegisterPassword'
+import TermsAgreement from './TermsAgreement'
+import RegisterNickname from './RegisterNickname'
+import SignUpConfirmation from './SignUpConfirmation'
 
 /**회원가입 양식 */
 const SignUpForm = () => {
@@ -18,6 +22,22 @@ const SignUpForm = () => {
     }
   }
 
+  const handleStepButton = () => {
+    if (step === 5) {
+      navigate('/signin')
+    } else {
+      setStep((prev) => prev + 1)
+    }
+  }
+
+  const stepComponentMap = {
+    1: <RegisterEmail />,
+    2: <RegisterPassword />,
+    3: <TermsAgreement />,
+    4: <RegisterNickname />,
+    5: <SignUpConfirmation />,
+  }
+
   return (
     <div className='flex w-full flex-col pt-5'>
       {/* 뒤로 가기 버튼 */}
@@ -30,18 +50,19 @@ const SignUpForm = () => {
         </button>
       </div>
 
-      {step == 1 && <RegisterEmail />}
+      {/* 스텝에 따른 컴포넌트 출력 */}
+      {stepComponentMap[step]}
 
       {/* 다음 단계 버튼 */}
       {/* TODO: 인증 완료 시에만 활성화 */}
       <div className='fixed bottom-0 left-0 flex w-full flex-col items-center gap-[20px]'>
-        <StepIndicator step={step} />
+        {step < 5 && <StepIndicator step={step} />}
         <div className='flex w-4xl items-center justify-center rounded-t-[20px] p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
           <button
-            onClick={() => setStep((prev) => prev + 1)}
+            onClick={handleStepButton}
             className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
           >
-            다음 단계로
+            {step === 5 ? '확인' : step === 4 ? '가입 완료' : '다음 단계로'}
           </button>
         </div>
       </div>
