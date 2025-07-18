@@ -3,7 +3,7 @@ import HomeIcon from '@/assets/home/HomeIcon'
 import MyPageIcon from '@/assets/home/MyPageIcon'
 
 /**홈 화면 하단 버튼바 */
-const HomeButton = () => {
+const HomeButton = ({ toggleCreateTripModal }) => {
   return (
     <div>
       {/* 가운데 버튼 상단 그림자 생성을 위한 요소 */}
@@ -28,7 +28,11 @@ const HomeButton = () => {
       <div className='fixed bottom-0 left-0 flex w-full justify-center'>
         <div className='flex w-4xl items-end justify-around rounded-t-[20px] p-[15px]'>
           <HomeIcon color='var(--Blue-Scale-blue-500)' />
-          <img src={createButton} className='h-[150px] w-[150px]' />
+          <img
+            src={createButton}
+            onClick={toggleCreateTripModal}
+            className='h-[150px] w-[150px]'
+          />
           <MyPageIcon color='var(--Grey-Scale-grey-200)' />
         </div>
       </div>
