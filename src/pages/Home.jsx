@@ -3,6 +3,7 @@ import createTripApi from '@/apis/trip/createTripApi'
 import readMainTripApi from '@/apis/trip/readMainApi'
 import readSettingTripApi from '@/apis/trip/readSettingTripApi'
 import readTripApi from '@/apis/trip/readTripApi'
+import CreateTripModal from '@/components/home/CreateTripModal'
 import HomeButton from '@/components/home/HomeButton'
 import HomeTitle from '@/components/home/HomeTitle'
 import PastTrips from '@/components/home/PastTrips'
@@ -16,11 +17,13 @@ const Home = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
-  const [isCreateTripInputOpen, setIsCreateTripInputOpen] = useState(false)
+  /**여행 생성 모달창 토글 */
+  const [isCreateTripModalOpen, setIsCreateTripModalOpen] = useState(false)
+  /**여행 이름 */
+  const [tripTitle, setTripTitle] = useState('')
+
   const [isReadMainTripListOpen, setIsReadMainTripListOpen] = useState(false)
   const [isReadTripListOpen, setIsReadTripListOpen] = useState(false)
-  const [tripTitle, setTripTitle] = useState('')
-  const [tripCity, setTripCity] = useState('')
   const [mainTrip, setMainTrip] = useState(null)
   const [settingTrips, setSettingTrips] = useState(null)
   const [trips, setTrips] = useState(null)
@@ -39,19 +42,18 @@ const Home = () => {
   const createTrip = async (e) => {
     e.preventDefault()
     try {
-      const result = await createTripApi({ title: tripTitle, city: tripCity })
+      const result = await createTripApi({ title: tripTitle })
       alert('여행이 성공적으로 생성되었습니다!')
-      setIsCreateTripInputOpen(false)
+      setIsCreateTripModalOpen(false)
     } catch (err) {
       alert(err.message)
     }
   }
 
   /**여행 생성 창 출력 상태 토글 */
-  const toggleCreateTripInput = () => {
-    setIsCreateTripInputOpen((prev) => !prev)
+  const toggleCreateTripModal = () => {
+    setIsCreateTripModalOpen((prev) => !prev)
     setTripTitle('')
-    setTripCity('')
   }
 
   useEffect(() => {
@@ -123,35 +125,19 @@ const Home = () => {
         <Link to='/mypage' className='link'>
           마이 페이지
         </Link>
-        <button onClick={toggleCreateTripInput}>여행 생성하기</button>
         <button onClick={toggleReadMainTripList}>여행 읽기</button>
         <button onClick={toggleReadTripList}>사용자가 속한 여행 읽기</button>
       </nav>
-      {isCreateTripInputOpen && (
-        <fieldset className='rounded-2xl border p-4'>
-          <legend className='p-2'>여행 생성</legend>
-          <form
-            onSubmit={createTrip}
-            className='flex flex-col items-center justify-center gap-2'
-          >
-            <input
-              placeholder='여행 이름을 입력해주세요.'
-              value={tripTitle}
-              onChange={(e) => setTripTitle(e.target.value)}
-              className='w-75'
-              type='text'
-            />
-            <input
-              placeholder='여행 갈 목적지를 입력해주세요'
-              value={tripCity}
-              onChange={(e) => setTripCity(e.target.value)}
-              className='w-75'
-              type='text'
-            />
-            <button type='submit'>생성하기</button>
-          </form>
-        </fieldset>
+
+      {isCreateTripModalOpen && (
+        <CreateTripModal
+          toggleCreateTripModal={toggleCreateTripModal}
+          createTrip={createTrip}
+          tripTitle={tripTitle}
+          setTripTitle={setTripTitle}
+        />
       )}
+
       {isReadMainTripListOpen && (
         <fieldset className='rounded-2xl border p-4'>
           <legend className='p-2'>여행 목록</legend>
@@ -226,7 +212,7 @@ const Home = () => {
           ))}
         </fieldset>
       )}
-      <HomeButton />
+      <HomeButton toggleCreateTripModal={toggleCreateTripModal} />
     </div>
   )
 }
