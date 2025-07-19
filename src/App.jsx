@@ -9,7 +9,7 @@ import { setUpInterceptors } from './apis/api'
 import MyPage from './pages/MyPage'
 import Trip from './pages/Trip'
 import Participation from './pages/Participation'
-import Dashboard from './pages/dashboard'
+import Dashboard from './pages/Dashboard'
 
 const App = () => {
   return (
