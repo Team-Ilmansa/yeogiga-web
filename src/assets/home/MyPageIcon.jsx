@@ -1,7 +1,7 @@
 /**홈 아이콘 svg */
 const MyPageIcon = ({ color }) => {
   return (
-    <div className='flex flex-col items-center'>
+    <div className='items-center'>
       <svg
         xmlns='http://www.w3.org/2000/svg'
         width='50'
