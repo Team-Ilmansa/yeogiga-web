@@ -140,7 +140,8 @@ const TripCalendar = ({ tripInfo }) => {
             end: newEndTime,
           })
           alert('날짜가 확정되었습니다!')
-          navigate('/dashboard')
+          const { tripId } = tripInfo
+          navigate(`/trip/${tripId}/dashboard`)
           {
             selectedDates.length > 0 &&
               (() => {
