@@ -7,7 +7,7 @@ const emailRequestApi = async (body) => {
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {
-      throw new Error(err.response.data.message)
+      throw err.response.data
     } else if (err.response) {
       throw new Error(`오류 발생 (status: ${err.response.status})`)
     } else if (err.request) {

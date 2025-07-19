@@ -43,7 +43,9 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified }) => {
       const result = await emailRequestApi(body)
       setHasRequested(true)
     } catch (err) {
-      setEmailError(err.message)
+      /**이미 가입된 이메일인 경우 처리 */
+      if (err.code === 'A013') setEmailError(err.message)
+      else alert(err.message)
     }
   }
 
