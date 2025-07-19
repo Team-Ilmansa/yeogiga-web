@@ -12,8 +12,12 @@ import SignUpConfirmation from './SignUpConfirmation'
 const SignUpForm = () => {
   const navigate = useNavigate()
 
+  /**회원가입 각 단계 */
   const [step, setStep] = useState(1)
+  /**이메일 인증 완료 여부 */
+  const [isEmailVerified, setIsEmailVerified] = useState(false)
 
+  /**뒤로 가기 버튼 */
   const handleBack = () => {
     if (step === 1) {
       navigate(-1)
@@ -22,6 +26,7 @@ const SignUpForm = () => {
     }
   }
 
+  /**하단 버튼 */
   const handleStepButton = () => {
     if (step === 5) {
       navigate('/signin')
@@ -30,8 +35,14 @@ const SignUpForm = () => {
     }
   }
 
+  /**단계 별 컴포넌트 설정 */
   const stepComponentMap = {
-    1: <RegisterEmail />,
+    1: (
+      <RegisterEmail
+        isEmailVerified={isEmailVerified}
+        setIsEmailVerified={setIsEmailVerified}
+      />
+    ),
     2: <RegisterPassword />,
     3: <TermsAgreement />,
     4: <RegisterNickname />,
@@ -54,13 +65,19 @@ const SignUpForm = () => {
       {stepComponentMap[step]}
 
       {/* 다음 단계 버튼 */}
-      {/* TODO: 인증 완료 시에만 활성화 */}
       <div className='fixed bottom-0 left-0 flex w-full flex-col items-center gap-[20px]'>
         {step < 5 && <StepIndicator step={step} />}
         <div className='flex w-4xl items-center justify-center rounded-t-[20px] p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
+          {/* 이메일 인증 완료 시 활성화
+          TODO: 나머지 단계에도 적용 */}
           <button
             onClick={handleStepButton}
-            className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+            disabled={step === 1 && !isEmailVerified}
+            className={`w-full border-none p-[20px] text-2xl text-white transition-opacity ${
+              step === 1 && !isEmailVerified
+                ? 'cursor-not-allowed bg-[var(--Grey-Scale-grey-200)]'
+                : 'cursor-pointer bg-[var(--Blue-Scale-blue-500)]'
+            }`}
           >
             {step === 5 ? '확인' : step === 4 ? '가입 완료' : '다음 단계로'}
           </button>
