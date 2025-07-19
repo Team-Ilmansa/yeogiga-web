@@ -7,6 +7,7 @@ import readCalendarApi from '@/apis/calendar/readCalendarApi'
 import readMyCalendarApi from '@/apis/calendar/readMyCalendarApi'
 import updateMyCalendarApi from '@/apis/calendar/updateMyCalendarApi'
 import updateTripTimeApi from '@/apis/trip/updateTripTimeApi'
+import { useNavigate } from 'react-router-dom'
 
 const TripCalendar = ({ tripInfo }) => {
   /**팀원 전체 일정 */
@@ -23,6 +24,7 @@ const TripCalendar = ({ tripInfo }) => {
   const [selectedDates, setSelectedDates] = useState([])
   /**여행 일정 확정 상태 */
   const [confirmedDates, setConfirmedDates] = useState([])
+  const navigate = useNavigate()
 
   useEffect(() => {
     /**W2M 캘린더 조회 API 호출 */
@@ -138,6 +140,8 @@ const TripCalendar = ({ tripInfo }) => {
             end: newEndTime,
           })
           alert('날짜가 확정되었습니다!')
+          const { tripId } = tripInfo
+          navigate(`/trip/${tripId}/dashboard`)
           {
             selectedDates.length > 0 &&
               (() => {
