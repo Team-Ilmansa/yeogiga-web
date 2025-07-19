@@ -1,5 +1,4 @@
-import React from 'react'
-
+/**체크 표시 svg */
 const Check = ({ color }) => {
   return (
     <svg
