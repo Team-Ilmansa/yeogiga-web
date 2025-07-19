@@ -2,7 +2,7 @@ import readTripInfoApi from '@/apis/trip/readTripInfo'
 import TripCalendar from '@/components/trip/TripCalendar'
 import TripInfo from '@/components/trip/TripInfo'
 import { useEffect, useState } from 'react'
-import { Outlet, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 const Trip = () => {
   const { tripId } = useParams()
@@ -26,7 +26,6 @@ const Trip = () => {
     <div className='flex h-screen w-screen flex-col items-center justify-center'>
       <TripInfo tripInfo={tripInfo} />
       {tripInfo?.status === 'SETTING' && <TripCalendar tripInfo={tripInfo} />}
-      <Outlet context={{ tripInfo }} />
     </div>
   )
 }
