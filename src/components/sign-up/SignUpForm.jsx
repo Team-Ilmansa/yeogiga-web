@@ -18,6 +18,8 @@ const SignUpForm = () => {
   const [isEmailVerified, setIsEmailVerified] = useState(false)
   /**아이디, 비밀번호 유효성 여부 */
   const [isPasswordVerified, setIsPasswordVerified] = useState(false)
+  /**닉네임 유효성 여부 */
+  const [isNicknameVerified, setIsNicknameVerified] = useState(false)
 
   /**뒤로 가기 버튼 */
   const handleBack = () => {
@@ -47,7 +49,7 @@ const SignUpForm = () => {
     ),
     2: <RegisterPassword setIsPasswordVerified={setIsPasswordVerified} />,
     3: <TermsAgreement />,
-    4: <RegisterNickname />,
+    4: <RegisterNickname setIsNicknameVerified={setIsNicknameVerified} />,
     5: <SignUpConfirmation />,
   }
 
@@ -76,11 +78,13 @@ const SignUpForm = () => {
             onClick={handleStepButton}
             disabled={
               (step === 1 && !isEmailVerified) ||
-              (step === 2 && !isPasswordVerified)
+              (step === 2 && !isPasswordVerified) ||
+              (step === 4 && !isNicknameVerified)
             }
             className={`w-full border-none p-[20px] text-2xl text-white transition-colors ${
               (step === 1 && !isEmailVerified) ||
-              (step === 2 && !isPasswordVerified)
+              (step === 2 && !isPasswordVerified) ||
+              (step === 4 && !isNicknameVerified)
                 ? 'cursor-not-allowed bg-[var(--Grey-Scale-grey-200)]'
                 : 'cursor-pointer bg-[var(--Blue-Scale-blue-500)]'
             }`}
