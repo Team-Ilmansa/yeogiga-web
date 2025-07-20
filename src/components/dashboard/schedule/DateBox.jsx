@@ -15,12 +15,12 @@ const DateBox = () => {
       >
         <div className='text-[16px] text-gray-500'>Date</div>
         {isOpen ? (
-          <ArrowDown
+          <ArrowUp
             className='text-gray-400 transition-transform duration-300'
             size={18}
           />
         ) : (
-          <ArrowUp
+          <ArrowDown
             className='text-gray-400 transition-transform duration-300'
             size={18}
           />
