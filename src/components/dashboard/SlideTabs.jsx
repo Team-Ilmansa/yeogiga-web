@@ -3,13 +3,14 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Scrollbar } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/scrollbar'
+import ScheduleDashBoard from './schedule/ScheduleDashBoard'
 
 const SlideTabs = () => {
   const [activeTab, setActiveTab] = useState(0)
   const contentSwiperRef = useRef(null)
 
   const tabList = [
-    { label: '일정 대시보드', content: '일정 대시보드 내용' },
+    { label: '일정 대시보드' },
     { label: '갤러리', content: '갤러리 내용' },
     { label: '즐겨찾는 사진', content: '즐겨찾는 사진 내용' },
   ]
@@ -67,9 +68,13 @@ const SlideTabs = () => {
         slidesPerView={1}
         spaceBetween={0}
       >
-        {tabList.map((tab) => (
+        {tabList.map((tab, index) => (
           <SwiperSlide key={tab.label}>
-            <div className='p-4'>{tab.content}</div>
+            <div className='mt-5'>
+              {index === 0 && <ScheduleDashBoard />}
+              {index === 1 && <>🖼 갤러리 내용</>}
+              {index === 2 && <>⭐ 즐겨찾는 사진 내용</>}
+            </div>
           </SwiperSlide>
         ))}
       </Swiper>
