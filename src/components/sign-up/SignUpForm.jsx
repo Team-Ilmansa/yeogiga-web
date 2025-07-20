@@ -16,6 +16,8 @@ const SignUpForm = () => {
   const [step, setStep] = useState(1)
   /**이메일 인증 완료 여부 */
   const [isEmailVerified, setIsEmailVerified] = useState(false)
+  /**아이디, 비밀번호 유효성 여부 */
+  const [isPasswordVerified, setIsPasswordVerified] = useState(false)
 
   /**뒤로 가기 버튼 */
   const handleBack = () => {
@@ -43,7 +45,7 @@ const SignUpForm = () => {
         setIsEmailVerified={setIsEmailVerified}
       />
     ),
-    2: <RegisterPassword />,
+    2: <RegisterPassword setIsPasswordVerified={setIsPasswordVerified} />,
     3: <TermsAgreement />,
     4: <RegisterNickname />,
     5: <SignUpConfirmation />,
@@ -68,13 +70,17 @@ const SignUpForm = () => {
       <div className='fixed bottom-0 left-0 flex w-full flex-col items-center gap-[20px]'>
         {step < 5 && <StepIndicator step={step} />}
         <div className='flex w-4xl items-center justify-center rounded-t-[20px] p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
-          {/* 이메일 인증 완료 시 활성화
+          {/* 1, 2단게 인증 완료 시 활성화
           TODO: 나머지 단계에도 적용 */}
           <button
             onClick={handleStepButton}
-            disabled={step === 1 && !isEmailVerified}
-            className={`w-full border-none p-[20px] text-2xl text-white transition-opacity ${
-              step === 1 && !isEmailVerified
+            disabled={
+              (step === 1 && !isEmailVerified) ||
+              (step === 2 && !isPasswordVerified)
+            }
+            className={`w-full border-none p-[20px] text-2xl text-white transition-colors ${
+              (step === 1 && !isEmailVerified) ||
+              (step === 2 && !isPasswordVerified)
                 ? 'cursor-not-allowed bg-[var(--Grey-Scale-grey-200)]'
                 : 'cursor-pointer bg-[var(--Blue-Scale-blue-500)]'
             }`}
