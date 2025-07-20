@@ -1,6 +1,7 @@
 import TripTitle from '@/components/dashboard/TripTitle'
 import GoBack from '@/assets/sign-up/GoBack'
 import { useNavigate, useParams } from 'react-router-dom'
+import SlideTabs from '@/components/dashboard/SlideTabs'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -24,8 +25,10 @@ const Dashboard = () => {
       </div>
 
       {/* 여행 타이틀 */}
-      <div className='flex w-full flex-col gap-15 pt-10 pb-10 pl-10'>
+      <div className='flex w-full flex-col gap-15 px-10 pt-10 pb-10'>
         <TripTitle />
+        {/* 탭 창 구현 */}
+        <SlideTabs />
       </div>
     </div>
   )
