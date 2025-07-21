@@ -28,9 +28,9 @@ const DateBox = () => {
       </div>
 
       {isOpen && (
-        <div className='mt-[5px] py-10 text-center text-[16px] text-gray-400'>
+        <div className='mt-[5px] py-10 text-center text-base text-gray-400'>
           아직 예정된 일정이 없어요
-          <div className='mt-2 text-[16px] text-[var(--Blue-Scale-blue-500)]'>
+          <div className='mt-2 text-base text-[var(--Blue-Scale-blue-500)]'>
             + 일정 담으러 가기
           </div>
         </div>

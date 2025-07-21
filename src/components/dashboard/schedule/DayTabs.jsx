@@ -25,8 +25,7 @@ const DayTabs = () => {
             <div
               key={tab.label}
               onClick={() => handleTabClick(index)}
-              style={{ fontSize: '16px' }}
-              className={`cursor-pointer rounded-full px-4 py-1 ${
+              className={`cursor-pointer rounded-full px-4 py-1 text-base ${
                 isActive
                   ? 'bg-[var(--Blue-Scale-blue-500)] text-white'
                   : 'border border-gray-300 bg-white text-gray-500'
