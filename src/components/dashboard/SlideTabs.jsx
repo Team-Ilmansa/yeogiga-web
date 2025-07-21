@@ -11,8 +11,8 @@ const SlideTabs = () => {
 
   const tabList = [
     { label: '일정 대시보드' },
-    { label: '갤러리', content: '갤러리 내용' },
-    { label: '즐겨찾는 사진', content: '즐겨찾는 사진 내용' },
+    { label: '갤러리' },
+    { label: '즐겨찾는 사진' },
   ]
 
   const handleTabClick = (index) => {
@@ -23,7 +23,7 @@ const SlideTabs = () => {
   }
 
   return (
-    <div className='w-full'>
+    <div className='w-full overflow-hidden'>
       {/* 탭 바 */}
       <div className='flex'>
         {tabList.map((tab, index) => {
@@ -47,9 +47,7 @@ const SlideTabs = () => {
                 >
                   {tab.label}
                 </div>
-
                 <div className='absolute bottom-0 left-0 z-0 h-[4px] w-full bg-gray-100 shadow-none' />
-
                 {isActive && (
                   <div
                     className='absolute bottom-0 left-0 z-10 h-[4px] w-full'
@@ -61,22 +59,26 @@ const SlideTabs = () => {
           )
         })}
       </div>
-
       <Swiper
         onSwiper={(swiper) => (contentSwiperRef.current = swiper)}
         onSlideChange={(swiper) => setActiveTab(swiper.activeIndex)}
         slidesPerView={1}
         spaceBetween={0}
+        className='w-full overflow-hidden'
       >
-        {tabList.map((tab, index) => (
-          <SwiperSlide key={tab.label}>
-            <div className='mt-5'>
-              {index === 0 && <ScheduleDashBoard />}
-              {index === 1 && <>🖼 갤러리 내용</>}
-              {index === 2 && <>⭐ 즐겨찾는 사진 내용</>}
-            </div>
-          </SwiperSlide>
-        ))}
+        <SwiperSlide className='!w-full'>
+          <div className='mt-5 w-full'>
+            <ScheduleDashBoard />
+          </div>
+        </SwiperSlide>
+
+        <SwiperSlide className='!w-full'>
+          <div className='w-full'>🖼 갤러리 내용</div>
+        </SwiperSlide>
+
+        <SwiperSlide className='!w-full'>
+          <div className='w-full'>⭐ 즐겨찾는 사진 내용</div>
+        </SwiperSlide>
       </Swiper>
     </div>
   )
