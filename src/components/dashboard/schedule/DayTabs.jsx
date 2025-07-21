@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css'
-import DateBox from './\bDateBox'
+import DateBox from './DateBox'
 
 const DayTabs = () => {
   const [activeTab, setActiveTab] = useState(0)
