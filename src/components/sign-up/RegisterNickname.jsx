@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 /**닉네임 등록 화면 */
-const RegisterNickname = ({ setIsNicknameVerified }) => {
+const RegisterNickname = ({ setIsNicknameVerified, setNickname }) => {
   /**닉네임 메세지 */
   const [nicknameError, setNicknameError] = useState('')
   const [nicknameMessage, setNicknameMessage] = useState('')
@@ -38,6 +38,7 @@ const RegisterNickname = ({ setIsNicknameVerified }) => {
       const result = await nicknameDupCheckApi(nickname)
       setNicknameMessage('사용 가능한 닉네임이에요')
       setIsNicknameVerified(true)
+      setNickname(nickname)
     } catch (err) {
       setNicknameError('이미 사용중인 닉네임이에요')
     }

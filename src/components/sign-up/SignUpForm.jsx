@@ -7,6 +7,7 @@ import RegisterPassword from './RegisterPassword'
 import TermsAgreement from './TermsAgreement'
 import RegisterNickname from './RegisterNickname'
 import SignUpConfirmation from './SignUpConfirmation'
+import signUpApi from '@/apis/authentication/signUpApi'
 
 /**회원가입 양식 */
 const SignUpForm = () => {
@@ -21,6 +22,12 @@ const SignUpForm = () => {
   /**닉네임 유효성 여부 */
   const [isNicknameVerified, setIsNicknameVerified] = useState(false)
 
+  /**입력 받은 값 */
+  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [nickname, setNickname] = useState('')
+
   /**뒤로 가기 버튼 */
   const handleBack = () => {
     if (step === 1) {
@@ -31,9 +38,23 @@ const SignUpForm = () => {
   }
 
   /**하단 버튼 */
-  const handleStepButton = () => {
+  const handleStepButton = async () => {
     if (step === 5) {
       navigate('/signin')
+    } else if (step == 4) {
+      /**4단계에서 가입 완료 버튼 클릭 시 회원가입 API 호출 */
+      const body = {
+        username: username,
+        password: password,
+        email: email,
+        nickname: nickname,
+      }
+      try {
+        const result = await signUpApi(body)
+        setStep((prev) => prev + 1)
+      } catch (err) {
+        alert(err.message)
+      }
     } else {
       setStep((prev) => prev + 1)
     }
@@ -45,12 +66,24 @@ const SignUpForm = () => {
       <RegisterEmail
         isEmailVerified={isEmailVerified}
         setIsEmailVerified={setIsEmailVerified}
+        setEmail={setEmail}
       />
     ),
-    2: <RegisterPassword setIsPasswordVerified={setIsPasswordVerified} />,
+    2: (
+      <RegisterPassword
+        setIsPasswordVerified={setIsPasswordVerified}
+        setUsername={setUsername}
+        setPassword={setPassword}
+      />
+    ),
     3: <TermsAgreement />,
-    4: <RegisterNickname setIsNicknameVerified={setIsNicknameVerified} />,
-    5: <SignUpConfirmation />,
+    4: (
+      <RegisterNickname
+        setIsNicknameVerified={setIsNicknameVerified}
+        setNickname={setNickname}
+      />
+    ),
+    5: <SignUpConfirmation nickname={nickname} />,
   }
 
   return (
