@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 /**비밀번호 등록 화면 */
-const RegisterPassword = ({ setIsPasswordVerified }) => {
+const RegisterPassword = ({
+  setIsPasswordVerified,
+  setUsername,
+  setPassword,
+}) => {
   /**아이디 메세지 */
   const [usernameError, setUsernameError] = useState('')
   const [usernameMessage, setUsernameMessage] = useState('')
@@ -61,6 +65,12 @@ const RegisterPassword = ({ setIsPasswordVerified }) => {
   /**아이디, 비밀번호 검사 전체 통과 시 버튼 활성화 */
   useEffect(() => {
     setIsPasswordVerified(isFormValid)
+
+    /**조건 충족 시 아이디, 비밀번호 전달 */
+    if (isFormValid) {
+      setUsername(username)
+      setPassword(password)
+    }
   }, [isFormValid])
 
   return (

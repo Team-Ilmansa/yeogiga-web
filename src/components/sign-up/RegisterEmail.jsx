@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 /**이메일 인증 화면 */
-const RegisterEmail = ({ isEmailVerified, setIsEmailVerified }) => {
+const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
   /**최초 전송 여부 */
   const [hasRequested, setHasRequested] = useState(false)
   /**이메일 에러 메시지 */
@@ -49,6 +49,7 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified }) => {
     }
   }
 
+  /**이메일 인증 번호 검증 */
   const handleVerifyCode = async (data) => {
     /**API body 양식에 맞게 변경 */
     const body = {
@@ -58,7 +59,7 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified }) => {
     try {
       const result = await verifyCodeApi(body)
       setIsEmailVerified(true)
-      console.log(result)
+      setEmail(data.email)
     } catch (err) {
       alert(err.message)
     }

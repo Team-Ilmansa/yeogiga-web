@@ -1,11 +1,11 @@
 /**회원가입 완료 화면 */
-const SignUpConfirmation = () => {
+const SignUpConfirmation = ({ nickname }) => {
   return (
     <div>
       <div className='mb-15 px-10'>
         {/* 회원가입 완료 화면 상단 문구 */}
         <div className='text-4xl/[1.4] font-bold text-[var(--Grey-Scale-grey-400)]'>
-          님
+          {nickname}님
           <br />
           여기가 가입을 축하드려요!
         </div>
