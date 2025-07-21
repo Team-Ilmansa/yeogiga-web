@@ -2,7 +2,7 @@ import ArrowUp from '@/assets/dashboard/ArrowUp'
 import ArrowDown from '@/assets/dashboard/ArrowDown'
 import { useState } from 'react'
 
-const DateBox = () => {
+const DateBox = ({ date }) => {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleOpen = () => setIsOpen((prev) => !prev)
@@ -13,7 +13,7 @@ const DateBox = () => {
         className='flex cursor-pointer items-center justify-between'
         onClick={toggleOpen}
       >
-        <div className='text-[16px] text-gray-500'>Date</div>
+        <div className='text-base text-gray-400'>{date || '여행 전체'}</div>
         {isOpen ? (
           <ArrowUp
             className='text-gray-400 transition-transform duration-300'
@@ -30,7 +30,7 @@ const DateBox = () => {
       {isOpen && (
         <div className='mt-[5px] py-10 text-center text-base text-gray-400'>
           아직 예정된 일정이 없어요
-          <div className='mt-2 text-base text-[var(--Blue-Scale-blue-500)]'>
+          <div className='mt-2 cursor-pointer text-base text-[var(--Blue-Scale-blue-500)]'>
             + 일정 담으러 가기
           </div>
         </div>
