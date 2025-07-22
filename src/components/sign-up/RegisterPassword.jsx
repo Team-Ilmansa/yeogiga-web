@@ -97,6 +97,7 @@ const RegisterPassword = ({
               {...register('username')}
               placeholder='아이디를 입력해주세요'
               type='text'
+              autoComplete='username'
               className='border-none bg-gray-100 p-[20px] text-xl'
             />
             <button
@@ -135,6 +136,7 @@ const RegisterPassword = ({
           {...register('password')}
           placeholder='비밀번호를 입력해주세요'
           type='password'
+          autoComplete='new-password'
           className='border-none bg-gray-100 p-[20px] text-xl'
         />
 
@@ -176,6 +178,7 @@ const RegisterPassword = ({
           {...register('confirmPassword')}
           placeholder='비밀번호를 입력해주세요'
           type='password'
+          autoComplete='new-password'
           className='border-none bg-gray-100 p-[20px] text-xl'
         />
 
