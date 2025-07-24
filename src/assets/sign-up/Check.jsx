@@ -11,8 +11,8 @@ const Check = ({ color }) => {
       <path
         d='M10 3L4.5 8.5L2 6'
         stroke={color}
-        stroke-linecap='round'
-        stroke-linejoin='round'
+        strokeLinecap='round'
+        strokeLinejoin='round'
       />
     </svg>
   )

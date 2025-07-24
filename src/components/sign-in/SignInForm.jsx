@@ -55,6 +55,7 @@ const SignInForm = () => {
             {...register('username', { required: true })}
             placeholder='아이디를 입력해주세요'
             type='text'
+            autoComplete='username'
             className='mb-[20px] border-none bg-gray-100 p-[20px] text-xl'
           />
 
@@ -64,6 +65,7 @@ const SignInForm = () => {
             {...register('password', { required: true })}
             placeholder='비밀번호를 입력해주세요'
             type='password'
+            autoComplete='current-password'
             className='border-none bg-gray-100 p-[20px] text-xl'
           />
 
