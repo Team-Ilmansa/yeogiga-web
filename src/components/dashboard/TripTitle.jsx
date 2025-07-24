@@ -1,103 +1,84 @@
-import readTripInfoApi from '@/apis/trip/readTripInfo'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
+import readTripInfoApi from '@/apis/trip/readTripInfo'
 import PinIcon from '@/assets/dashboard/PinIcon'
 import CalendarIcon from '@/assets/dashboard/CalendarIcon'
 import UserIcon from '@/assets/dashboard/UserIcon'
 
 const TripTitle = () => {
   const { tripId } = useParams()
-  const [tripInfo, setTripInfo] = useState()
-  const statusTextMap = {
-    SETTING: '준비중인 여행',
-    PLANNED: '계획중인 여행',
-    PROGRESSED: '진행중인 여행',
-    COMPLETE: '종료된 여행',
-  }
+  const [tripInfo, setTripInfo] = useState(null)
 
   useEffect(() => {
-    const fetchTripInfo = async () => {
+    const fetchTrip = async () => {
       try {
         const result = await readTripInfoApi(tripId)
         setTripInfo(result.data)
       } catch (err) {
-        alert(err.message)
+        alert('여행 정보를 불러오지 못했습니다.')
       }
     }
 
-    if (tripId) fetchTripInfo()
-  }, [])
+    fetchTrip()
+  }, [tripId])
+
+  const statusTextMap = useMemo(
+    () => ({
+      SETTING: '준비중인 여행',
+      PLANNED: '계획중인 여행',
+      PROGRESSED: '진행중인 여행',
+      COMPLETE: '종료된 여행',
+    }),
+    [],
+  )
+
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString('ko-KR').replace(/. /g, '. ').slice(0, -1)
+
+  if (!tripInfo) return <p>여행 정보를 불러오는 중...</p>
 
   return (
     <div>
-      {tripInfo ? (
-        <div>
-          {/* 상태 + 타이틀 */}
-          <div>
-            <div
-              style={{ color: 'var(--Blue-Scale-blue-500)', fontSize: '14pt' }}
-            >
-              {statusTextMap[tripInfo.status]}
-            </div>
-            <div className='font-bold' style={{ fontSize: '28pt' }}>
-              {tripInfo.title}
-            </div>
-          </div>
-
-          <div
-            className='mt-4 flex flex-col gap-y-1 text-sm text-gray-700'
-            style={{ fontSize: '14pt' }}
-          >
-            {/* 위치 */}
-            <div className='flex items-center gap-2'>
-              <PinIcon className='h-5 w-5' />
-              <div>{tripInfo.city || '???'}</div>
-            </div>
-
-            <div className='flex items-center gap-2'>
-              <CalendarIcon className='h-5 w-5' />
-              <span>
-                {new Date(tripInfo.startedAt)
-                  .toLocaleDateString('ko-KR', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                  })
-                  .slice(0, -1)}{' '}
-                -{' '}
-                {new Date(tripInfo.endedAt)
-                  .toLocaleDateString('ko-KR', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                  })
-                  .slice(0, -1)}
-              </span>
-            </div>
-
-            <div className='flex items-center gap-2'>
-              <UserIcon className='h-5 w-5' />
-              <ul className='flex gap-1'>
-                {tripInfo.members.map((member) => (
-                  <li key={member.userId}>
-                    {member.imageUrl ? (
-                      <img
-                        src={member.imageUrl}
-                        alt={member.nickname}
-                        className='h-[20px] w-[20px] rounded-full object-cover'
-                      />
-                    ) : (
-                      <div className='h-[20px] w-[20px] rounded-full bg-gray-300' />
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+      <div>
+        <div
+          className='text-[14pt]'
+          style={{ color: 'var(--Blue-Scale-blue-500)' }}
+        >
+          {statusTextMap[tripInfo.status]}
         </div>
-      ) : (
-        <p>여행 정보를 불러오는 중...</p>
-      )}
+        <div className='text-[28pt] font-bold'>{tripInfo.title}</div>
+      </div>
+
+      <div className='mt-4 flex flex-col gap-y-1 text-[14pt] text-gray-700'>
+        <div className='flex items-center gap-2'>
+          <PinIcon className='h-5 w-5' />
+          <div>{tripInfo.city || '???'}</div>
+        </div>
+        <div className='flex items-center gap-2'>
+          <CalendarIcon className='h-5 w-5' />
+          <span>
+            {formatDate(tripInfo.startedAt)} - {formatDate(tripInfo.endedAt)}
+          </span>
+        </div>
+        <div className='flex items-center gap-2'>
+          <UserIcon className='h-5 w-5' />
+          <ul className='flex gap-1'>
+            {tripInfo.members.map((member) => (
+              <li key={member.userId}>
+                {member.imageUrl ? (
+                  <img
+                    src={member.imageUrl}
+                    alt={member.nickname}
+                    className='h-[20px] w-[20px] rounded-full object-cover'
+                  />
+                ) : (
+                  <div className='h-[20px] w-[20px] rounded-full bg-gray-300' />
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </div>
   )
 }
