@@ -23,9 +23,9 @@ const Trip = () => {
   }, [])
 
   return (
-    <div className='flex h-screen w-screen flex-col items-center justify-center'>
-      <TripInfo tripInfo={tripInfo} />
+    <div className='w-full'>
       {tripInfo?.status === 'SETTING' && <TripCalendar tripInfo={tripInfo} />}
+      <TripInfo tripInfo={tripInfo} />
     </div>
   )
 }
