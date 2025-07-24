@@ -8,6 +8,8 @@ import readMyCalendarApi from '@/apis/calendar/readMyCalendarApi'
 import updateMyCalendarApi from '@/apis/calendar/updateMyCalendarApi'
 import updateTripTimeApi from '@/apis/trip/updateTripTimeApi'
 import { useNavigate } from 'react-router-dom'
+import FirstCalendar from './FirstCalendar'
+import GoBack from '@/assets/sign-up/GoBack'
 
 const TripCalendar = ({ tripInfo }) => {
   /**팀원 전체 일정 */
@@ -187,7 +189,18 @@ const TripCalendar = ({ tripInfo }) => {
   }, [tripInfo.startedAt, tripInfo.endedAt])
 
   return (
-    <div className='flex flex-col gap-5'>
+    <div className='flex flex-col pt-5'>
+      {/* 뒤로 가기 버튼 */}
+      <div>
+        <button
+          className='text-bold my-5 border-none px-8'
+          onClick={() => navigate(-1)}
+        >
+          <GoBack />
+        </button>
+      </div>
+      <FirstCalendar />
+
       {isEditing ? (
         /**일정 등록용 캘린더 */
         <div className='flex flex-col items-center'>
