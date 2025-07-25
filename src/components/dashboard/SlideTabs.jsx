@@ -6,7 +6,7 @@ import 'swiper/css/scrollbar'
 import ScheduleDashBoard from './schedule/ScheduleDashBoard'
 import GalaryDashBoard from './galary/GalaryDashboard'
 
-const SlideTabs = () => {
+const SlideTabs = ({ isScheduleConfirmed }) => {
   const [activeTab, setActiveTab] = useState(0)
   const contentSwiperRef = useRef(null)
 
@@ -32,7 +32,11 @@ const SlideTabs = () => {
           return (
             <div
               key={tab.label}
-              className='w-1/3 cursor-pointer'
+              className={`w-1/3 cursor-pointer ${
+                !isScheduleConfirmed && (index === 1 || index === 2)
+                  ? 'pointer-events-none opacity-50'
+                  : ''
+              }`}
               onClick={() => handleTabClick(index)}
             >
               <div
