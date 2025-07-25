@@ -1,7 +1,8 @@
+import createCalendarApi from '@/apis/calendar/createCalendarApi'
 import React, { useEffect, useState } from 'react'
 
 /**아직 내 일정을 등록하지 않았을 때 나오는 W2M */
-const FirstCalendar = () => {
+const FirstCalendar = ({ tripInfo }) => {
   /**3개월치 달력 배열 */
   const [calendarList, setCalendarList] = useState([])
   /**선택된 날짜 목록 */
@@ -106,6 +107,18 @@ const FirstCalendar = () => {
   const sortedDates = [...selectedDates].sort(
     (a, b) => new Date(a) - new Date(b),
   )
+
+  /**W2M 캘린더 생성 API 호출 */
+  const createCalendar = async () => {
+    const body = { availableDates: selectedDates }
+    try {
+      const result = await createCalendarApi(tripInfo.tripId, body)
+      alert('일정이 등록되었습니다!')
+      window.location.reload()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
 
   return (
     <div>
@@ -213,6 +226,22 @@ const FirstCalendar = () => {
           </div>
         </div>
       ))}
+
+      {/* 일정 등록 버튼 */}
+      <div
+        className={`fixed bottom-0 left-0 flex w-full transform flex-col items-center gap-[20px] transition-transform duration-300 ${
+          selectedDates.length > 0 ? 'translate-y-0' : 'translate-y-full'
+        }`}
+      >
+        <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
+          <button
+            onClick={createCalendar}
+            className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+          >
+            일정 등록 / {selectedDates.length}일
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
