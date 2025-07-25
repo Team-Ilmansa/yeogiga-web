@@ -19,7 +19,7 @@ const TripCalendar = ({ tripInfo }) => {
   /**등록된 나의 일정 */
   const [myAvailableDates, setMyAvailableDates] = useState([])
   /**W2M 등록 여부 */
-  const [isRegistred, setIsRegistred] = useState(false)
+  const [isRegistred, setIsRegistred] = useState(true)
   /**W2M 등록 or 수정 중인 상태 */
   const [isEditing, setIsEditing] = useState(true)
   /**팀원 전체 캘린더 클릭 시 날짜 선택 */
@@ -48,10 +48,11 @@ const TripCalendar = ({ tripInfo }) => {
         const result = await readMyCalendarApi(tripInfo.tripId)
         setMyAvailableDates(result.data?.availableDates)
         if (result.data) {
-          setIsRegistred(true)
+          navigate('dashboard')
         }
       } catch (err) {
-        console.log(err.message)
+        if (err.code === 'T009') setIsRegistred(false)
+        console.error(err.message)
       }
     }
 
