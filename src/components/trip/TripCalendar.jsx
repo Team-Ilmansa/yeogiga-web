@@ -51,7 +51,7 @@ const TripCalendar = ({ tripInfo }) => {
           setIsRegistred(true)
         }
       } catch (err) {
-        alert(err.message)
+        console.log(err.message)
       }
     }
 
@@ -199,7 +199,7 @@ const TripCalendar = ({ tripInfo }) => {
           <GoBack />
         </button>
       </div>
-      <FirstCalendar />
+      {!isRegistred && <FirstCalendar tripInfo={tripInfo} />}
 
       {isEditing ? (
         /**일정 등록용 캘린더 */
