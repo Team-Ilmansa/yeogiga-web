@@ -5,7 +5,7 @@ import PinIcon from '@/assets/dashboard/PinIcon'
 import CalendarIcon from '@/assets/dashboard/CalendarIcon'
 import UserIcon from '@/assets/dashboard/UserIcon'
 
-const TripTitle = () => {
+const TripTitle = ({ isScheduleConfirmed, setIsScheduleConfirmed }) => {
   const { tripId } = useParams()
   const [tripInfo, setTripInfo] = useState(null)
 
@@ -14,6 +14,8 @@ const TripTitle = () => {
       try {
         const result = await readTripInfoApi(tripId)
         setTripInfo(result.data)
+
+        if (result.data.startedAt) setIsScheduleConfirmed(true)
       } catch (err) {
         alert('여행 정보를 불러오지 못했습니다.')
       }
@@ -57,7 +59,9 @@ const TripTitle = () => {
         <div className='flex items-center gap-2'>
           <CalendarIcon className='h-5 w-5' />
           <span>
-            {formatDate(tripInfo.startedAt)} - {formatDate(tripInfo.endedAt)}
+            {isScheduleConfirmed
+              ? `${formatDate(tripInfo.startedAt)} - ${formatDate(tripInfo.endedAt)}`
+              : '???'}
           </span>
         </div>
         <div className='flex items-center gap-2'>
