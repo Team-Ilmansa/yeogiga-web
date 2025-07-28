@@ -10,6 +10,7 @@ import MyPage from './pages/MyPage'
 import Trip from './pages/Trip'
 import Participation from './pages/Participation'
 import Dashboard from './pages/Dashboard'
+import ConfirmCalendar from './pages/ConfirmCalendar'
 
 const App = () => {
   return (
@@ -23,9 +24,9 @@ const App = () => {
             <Route path='oauth/kakao/callback' element={<KakaoRedirect />} />
             <Route path='oauth/naver/callback' element={<NaverRedirect />} />
             <Route path='mypage' element={<MyPage />} />
-            <Route path='trip/:tripId' element={<Trip />} />
             <Route path='trip/:tripId'>
               <Route index element={<Trip />} />
+              <Route path='confirmation' element={<ConfirmCalendar />} />
               <Route path='participation' element={<Participation />} />
               <Route path='dashboard' element={<Dashboard />} />
             </Route>
