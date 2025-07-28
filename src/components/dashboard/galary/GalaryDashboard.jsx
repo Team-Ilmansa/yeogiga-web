@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import readTripInfoApi from '@/apis/trip/readTripInfo'
 import DayTabs from './DayTabs'
+import PhotoAlbum from './PhotoAlbum'
 
 const GalaryDashBoard = () => {
   const { tripId } = useParams()
@@ -22,7 +23,12 @@ const GalaryDashBoard = () => {
 
   if (!tripInfo) return null
 
-  return <DayTabs startedAt={tripInfo.startedAt} endedAt={tripInfo.endedAt} />
+  return (
+    <>
+      <DayTabs startedAt={tripInfo.startedAt} endedAt={tripInfo.endedAt} />
+      <PhotoAlbum />
+    </>
+  )
 }
 
 export default GalaryDashBoard
