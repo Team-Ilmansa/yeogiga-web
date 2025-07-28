@@ -39,7 +39,10 @@ const Dashboard = () => {
       {!isScheduleConfirmed && (
         <div className='fixed bottom-0 left-0 flex w-full transform flex-col items-center gap-[20px] transition-transform duration-300'>
           <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
-            <button className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'>
+            <button
+              onClick={() => navigate('../confirmation')}
+              className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+            >
               여행 날짜 확정하기
             </button>
           </div>
