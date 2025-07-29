@@ -77,8 +77,8 @@ const TripConfirmCalendar = ({ tripInfo }) => {
     setCalendarList(allCalendars)
 
     // 팀 전체 W2M 조회 함수 호출
-    fetchTeamCalendar()
-  }, [])
+    if (tripInfo?.tripId) fetchTeamCalendar()
+  }, [tripInfo])
 
   /** 인원 수에 따라 투명도 계산 함수 (최대 1.0) */
   const getOpacityByCount = (count) => {
@@ -115,7 +115,7 @@ const TripConfirmCalendar = ({ tripInfo }) => {
   }
 
   return (
-    <div className='flex flex-col pt-5'>
+    <div className='flex w-full flex-col pt-5'>
       {/* 뒤로 가기 버튼 */}
       <div>
         <button

@@ -1,10 +1,10 @@
+import FirstCalendar from '@/components/trip/FirstCalendar'
 import readTripInfoApi from '@/apis/trip/readTripInfo'
-import TripCalendar from '@/components/trip/TripCalendar'
-import TripInfo from '@/components/trip/TripInfo'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-const Trip = () => {
+/**개인 일정 등록을 위한 W2M 페이지 */
+const TripCalendar = () => {
   const { tripId } = useParams()
   const [tripInfo, setTripInfo] = useState()
 
@@ -22,12 +22,7 @@ const Trip = () => {
     if (tripId) fetchTripInfo()
   }, [])
 
-  return (
-    <div className='w-full'>
-      {tripInfo?.status === 'SETTING' && <TripCalendar tripInfo={tripInfo} />}
-      <TripInfo tripInfo={tripInfo} />
-    </div>
-  )
+  return <FirstCalendar tripInfo={tripInfo} />
 }
 
-export default Trip
+export default TripCalendar

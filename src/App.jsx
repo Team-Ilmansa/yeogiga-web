@@ -7,10 +7,10 @@ import NaverRedirect from './components/sign-in/NaverRedirect'
 import { useEffect } from 'react'
 import { setUpInterceptors } from './apis/api'
 import MyPage from './pages/MyPage'
-import Trip from './pages/Trip'
 import Participation from './pages/Participation'
 import Dashboard from './pages/Dashboard'
 import ConfirmCalendar from './pages/ConfirmCalendar'
+import TripCalendar from './pages/TripCalendar'
 
 const App = () => {
   return (
@@ -25,10 +25,10 @@ const App = () => {
             <Route path='oauth/naver/callback' element={<NaverRedirect />} />
             <Route path='mypage' element={<MyPage />} />
             <Route path='trip/:tripId'>
-              <Route index element={<Trip />} />
+              <Route index element={<Dashboard />} />
+              <Route path='calendar' element={<TripCalendar />} />
               <Route path='confirmation' element={<ConfirmCalendar />} />
               <Route path='participation' element={<Participation />} />
-              <Route path='dashboard' element={<Dashboard />} />
             </Route>
           </Routes>
         </Router>

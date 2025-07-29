@@ -22,13 +22,7 @@ const ConfirmCalendar = () => {
     if (tripId) fetchTripInfo()
   }, [])
 
-  return (
-    <div className='w-full'>
-      {tripInfo?.status === 'SETTING' && (
-        <TripConfirmCalendar tripInfo={tripInfo} />
-      )}
-    </div>
-  )
+  return <TripConfirmCalendar tripInfo={tripInfo} />
 }
 
 export default ConfirmCalendar
