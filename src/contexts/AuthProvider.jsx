@@ -42,7 +42,7 @@ const AuthProvider = ({ children }) => {
     setUser(null)
     setAccessToken(null)
     clearStorage()
-    window.location.href = '/'
+    window.location.href = '/signin'
   }, [])
 
   /**AuthProvier가 로드되면서 logout 함수를 logoutCallback 변수로 삽입 */
