@@ -1,10 +1,10 @@
+import FirstCalendar from '@/components/trip/FirstCalendar'
 import readTripInfoApi from '@/apis/trip/readTripInfo'
-import TripConfirmCalendar from '@/components/trip/TripConfirmCalendar'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
-/**일정 확정용 W2M 페이지 */
-const ConfirmCalendar = () => {
+/**개인 일정 등록을 위한 W2M 페이지 */
+const TripCalendar = () => {
   const { tripId } = useParams()
   const [tripInfo, setTripInfo] = useState()
 
@@ -22,7 +22,7 @@ const ConfirmCalendar = () => {
     if (tripId) fetchTripInfo()
   }, [])
 
-  return <TripConfirmCalendar tripInfo={tripInfo} />
+  return <FirstCalendar tripInfo={tripInfo} />
 }
 
-export default ConfirmCalendar
+export default TripCalendar

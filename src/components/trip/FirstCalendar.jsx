@@ -1,9 +1,13 @@
 import createCalendarApi from '@/apis/calendar/createCalendarApi'
 import React, { useEffect, useState } from 'react'
 import generateCalendar from './utils/generateCalendar'
+import GoBack from '@/assets/sign-up/GoBack'
+import { useNavigate } from 'react-router-dom'
 
 /**아직 내 일정을 등록하지 않았을 때 나오는 W2M */
 const FirstCalendar = ({ tripInfo }) => {
+  const navigate = useNavigate()
+
   /**3개월치 달력 배열 */
   const [calendarList, setCalendarList] = useState([])
   /**선택된 날짜 목록 */
@@ -57,14 +61,23 @@ const FirstCalendar = ({ tripInfo }) => {
     try {
       const result = await createCalendarApi(tripInfo.tripId, body)
       alert('일정이 등록되었습니다!')
-      window.location.reload()
+      navigate('..')
     } catch (err) {
       alert(err.message)
     }
   }
 
   return (
-    <div>
+    <div className='flex w-full flex-col pt-5'>
+      {/* 뒤로 가기 버튼 */}
+      <div>
+        <button
+          className='text-bold my-5 border-none px-8'
+          onClick={() => navigate(-1)}
+        >
+          <GoBack />
+        </button>
+      </div>
       <div className='mb-15 px-10'>
         {/* 상단 문구 */}
         <div className='text-4xl/[1.4] font-bold text-[var(--Grey-Scale-grey-400)]'>
