@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import useAuth from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import updateProfileApi from '@/apis/users/updateProfileApi'
+import HomeButton from '@/components/home/HomeButton'
 
 const MyPage = () => {
   const [userInfo, setUserInfo] = useState([])
@@ -132,7 +133,7 @@ const MyPage = () => {
       {loginType !== 'SOCIAL' && (
         <>
           <p>이메일: {userInfo.email}</p>
-          <button onClick={togglePasswordInput}>비밀번호 변경</button>
+          <button onClick={togglePasswordInput}>비밀번호 변경</button>x
           {isPasswordInputOpen && (
             <form
               onSubmit={updatePassword}
@@ -158,6 +159,7 @@ const MyPage = () => {
         </>
       )}
       <button onClick={() => navigate('/')}>홈으로 이동</button>
+      <HomeButton currentPage='mypage' />
     </div>
   )
 }

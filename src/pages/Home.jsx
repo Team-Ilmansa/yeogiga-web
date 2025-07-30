@@ -213,7 +213,10 @@ const Home = () => {
           ))}
         </fieldset>
       )}
-      <HomeButton toggleCreateTripModal={toggleCreateTripModal} />
+      <HomeButton
+        urrentPage='/'
+        toggleCreateTripModal={toggleCreateTripModal}
+      />
     </div>
   )
 }
