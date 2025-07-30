@@ -57,9 +57,6 @@ const Home = () => {
   }
 
   useEffect(() => {
-    // user 로드 중 로그아웃 방지
-    if (user === null) return
-
     /**메인 화면 내 여행 조회 API 호출 */
     const fetchMainTrip = async () => {
       try {
@@ -80,16 +77,9 @@ const Home = () => {
       }
     }
 
-    // 미 로그인 상태라면 로그인 화면으로 이동
-    if (!user) {
-      navigate('/signin')
-    }
-    // 로그인된 상태일 때만 데이터 요청
-    else {
-      fetchMainTrip()
-      fetchSettingTrip()
-    }
-  }, [user])
+    fetchMainTrip()
+    fetchSettingTrip()
+  }, [])
 
   /**메인 화면 내 여행 출력 상태 토글 */
   const toggleReadMainTripList = () => {
