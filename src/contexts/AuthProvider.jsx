@@ -13,6 +13,7 @@ import { setLogoutCallback } from '@/apis/authentication/logoutHandler'
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [accessToken, setAccessToken] = useState(null)
+  const [isLoading, setIsLoading] = useState(true) // 로딩 상태 추가
 
   useEffect(() => {
     const storedUser = loadUserFromStorage()
@@ -25,7 +26,11 @@ const AuthProvider = ({ children }) => {
       if (nickname || loginType) {
         setUser((prev) => ({ ...prev, nickname, loginType }))
       }
+    } else {
+      setUser(undefined)
     }
+
+    setIsLoading(false)
   }, [])
 
   /**로그인 시 세션 스토리지에 사용자 정보 및 Access Token 저장 */
@@ -52,8 +57,8 @@ const AuthProvider = ({ children }) => {
 
   /**웹 전체에 전역으로 공급 */
   const value = useMemo(
-    () => ({ user, accessToken, login, logout }),
-    [user, accessToken, login, logout],
+    () => ({ user, accessToken, login, logout, isLoading }),
+    [user, accessToken, login, logout, isLoading],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

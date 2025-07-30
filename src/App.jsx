@@ -11,6 +11,7 @@ import Participation from './pages/Participation'
 import Dashboard from './pages/Dashboard'
 import ConfirmCalendar from './pages/ConfirmCalendar'
 import TripCalendar from './pages/TripCalendar'
+import ProtectedRoute from './components/common/ProtectedRoute'
 
 const App = () => {
   return (
@@ -18,17 +19,22 @@ const App = () => {
       <div className='flex w-4xl bg-white'>
         <Router>
           <Routes>
-            <Route path='/' element={<Home />} />
+            {/* 보호되지 않는 공개 라우트 */}
             <Route path='signin' element={<SignIn />} />
             <Route path='signup' element={<SignUp />} />
             <Route path='oauth/kakao/callback' element={<KakaoRedirect />} />
             <Route path='oauth/naver/callback' element={<NaverRedirect />} />
-            <Route path='mypage' element={<MyPage />} />
-            <Route path='trip/:tripId'>
-              <Route index element={<Dashboard />} />
-              <Route path='calendar' element={<TripCalendar />} />
-              <Route path='confirmation' element={<ConfirmCalendar />} />
-              <Route path='participation' element={<Participation />} />
+
+            {/* 보호된 비공개 라우트 */}
+            <Route element={<ProtectedRoute />}>
+              <Route path='/' element={<Home />} />
+              <Route path='mypage' element={<MyPage />} />
+              <Route path='trip/:tripId'>
+                <Route index element={<Dashboard />} />
+                <Route path='calendar' element={<TripCalendar />} />
+                <Route path='confirmation' element={<ConfirmCalendar />} />
+                <Route path='participation' element={<Participation />} />
+              </Route>
             </Route>
           </Routes>
         </Router>
