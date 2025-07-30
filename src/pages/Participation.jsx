@@ -35,39 +35,58 @@ const Participation = () => {
   }
 
   return (
-    <div className='flex h-screen w-screen flex-col items-center justify-center'>
+    <div className='flex h-screen w-full flex-col items-center justify-center rounded-2xl px-6 py-5'>
       {tripInfo ? (
         <div>
-          <fieldset className='flex flex-col gap-5 rounded-2xl border p-4'>
-            <legend className='p-2'>여행 정보</legend>
+          <div className='flex flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-4 shadow-md'>
             <div className='flex justify-between'>
-              <h3>{tripInfo.title}</h3>
+              <h2 className='mt-auto text-base font-semibold text-gray-900'>
+                <span style={{ color: 'var(--Blue-Scale-blue-500)' }}>
+                  {tripInfo.title}
+                </span>
+                에 참가하시겠습니까?
+              </h2>
             </div>
 
-            <fieldset className='rounded-2xl border p-4'>
-              <legend className='p-2'>여행 멤버</legend>
-              <ul>
-                {tripInfo.members.map((member) => (
-                  <li key={member.userId}>
-                    {member.nickname}
-                    {member.imageUrl ? (
-                      <img
-                        src={member.imageUrl}
-                        alt={member.nickname}
-                        width='30'
-                      />
-                    ) : (
-                      <div>(이미지 없음)</div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </fieldset>
-            <div className='flex justify-between'>
-              <button onClick={() => navigate('/')}>취소</button>
-              <button onClick={createMember}>참가</button>
+            <ul className='flex gap-4'>
+              {tripInfo.members.map((member) => (
+                <li
+                  key={member.userId}
+                  className='flex w-10 flex-col items-center gap-1'
+                >
+                  <span className='h-4 text-sm leading-none'>
+                    {member.userId === tripInfo.leaderId ? '👑' : '\u00A0'}
+                  </span>
+                  {member.imageUrl ? (
+                    <img
+                      src={member.imageUrl}
+                      alt='프로필 이미지'
+                      className='h-8 w-8 cursor-pointer rounded-full object-cover'
+                    />
+                  ) : (
+                    <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-xs text-gray-500'>
+                      없음
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            <div className='flex w-full gap-3'>
+              <button
+                className='font-large text-m text-grey-400 w-1/2 rounded-xl border-none bg-gray-100 px-4 py-3 font-semibold outline-none'
+                onClick={() => navigate('/')}
+              >
+                취소하기
+              </button>
+              <button
+                className='font-large text-m w-1/2 rounded-xl border-none bg-[var(--Blue-Scale-blue-500)] px-4 py-3 font-semibold text-white outline-none'
+                onClick={createMember}
+              >
+                참가하기
+              </button>
             </div>
-          </fieldset>
+          </div>
         </div>
       ) : (
         <p>여행 정보를 불러오는 중...</p>
