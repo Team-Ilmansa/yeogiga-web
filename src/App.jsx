@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard'
 import ConfirmCalendar from './pages/ConfirmCalendar'
 import TripCalendar from './pages/TripCalendar'
 import ProtectedRoute from './components/common/ProtectedRoute'
+import UpdateCalendar from './pages/UpdateCalendar'
 
 const App = () => {
   return (
@@ -32,6 +33,7 @@ const App = () => {
               <Route path='trip/:tripId'>
                 <Route index element={<Dashboard />} />
                 <Route path='calendar' element={<TripCalendar />} />
+                <Route path='update' element={<UpdateCalendar />} />
                 <Route path='confirmation' element={<ConfirmCalendar />} />
                 <Route path='participation' element={<Participation />} />
               </Route>
