@@ -105,7 +105,7 @@ const KebabModal = ({ onClose, onOpenUpdateModal }) => {
               여행 이름 변경하기
             </button>
             {/** TODO: 추후 캘린더 생성 후 연결 예정 */}
-            <button className={buttonStyle}>
+            <button onClick={() => navigate('update')} className={buttonStyle}>
               <CalendarIcon />
               일정 수정하기
             </button>
