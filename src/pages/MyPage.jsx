@@ -5,6 +5,12 @@ import { useEffect, useRef, useState } from 'react'
 import useAuth from '@/hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
 import updateProfileApi from '@/apis/users/updateProfileApi'
+import HomeButton from '@/components/home/HomeButton'
+
+import { ChevronRight } from 'lucide-react'
+import ProfileCard from '@/components/mypage/ProfileCard'
+import FavoritePhotos from '@/components/mypage/FavoritePhotos'
+import PastTrip from '@/components/mypage/PastTrip'
 
 const MyPage = () => {
   const [userInfo, setUserInfo] = useState([])
@@ -102,63 +108,78 @@ const MyPage = () => {
   }, [])
 
   return (
-    <div className='flex h-screen w-screen flex-col items-center justify-center gap-2'>
-      <img
-        src={previewUrl || '/images/default_profile.png'}
-        alt='프로필'
-        className='h-32 w-32 rounded-full object-cover'
-      />
-      <button onClick={handleUploadClick}>프로필 수정</button>
-      <input
-        ref={fileInputRef}
-        type='file'
-        accept='image/*'
-        onChange={updateProfileUpload}
-        className='hidden'
-      />
-      <p>닉네임: {userInfo.nickname}</p>
-      <button onClick={toggleNicknameInput}>닉네임 변경</button>
-      {isNicknameInputOpen && (
-        <form onSubmit={updateNickname} className='flex gap-2'>
+    <>
+      <div className='flex w-full flex-col gap-15 bg-[var(--Grey-Scale-grey-50)] pt-10 pb-50 pl-10'>
+        {/* 마이페이지 유저정보 */}
+        <div>
+          <h1 className='text-4xl leading-normal font-bold'>
+            {userInfo.nickname}님의
+            <br />
+            마이페이지
+          </h1>
+        </div>
+        {/* 프로필카드 */}
+        <ProfileCard userInfo={userInfo} />
+        {/* 즐겨찾기한 사진 */}
+        <FavoritePhotos />
+        {/* 지난 여행 전체보기 */}
+        <PastTrip />
+        {/* TODO: 이외 기능 추가 */}
+        <div className='flex h-screen w-screen flex-col items-center justify-center gap-2'>
+          <button onClick={handleUploadClick}>프로필 수정</button>
           <input
-            placeholder='새로운 닉네임을 입력해주세요'
-            value={newNickname}
-            onChange={(e) => setNewNickname(e.target.value)}
-            className='w-75'
+            ref={fileInputRef}
+            type='file'
+            accept='image/*'
+            onChange={updateProfileUpload}
+            className='hidden'
           />
-          <button type='submit'>확인</button>
-        </form>
-      )}
-      {loginType !== 'SOCIAL' && (
-        <>
-          <p>이메일: {userInfo.email}</p>
-          <button onClick={togglePasswordInput}>비밀번호 변경</button>
-          {isPasswordInputOpen && (
-            <form
-              onSubmit={updatePassword}
-              className='flex flex-col items-center justify-center gap-2'
-            >
+          <p>닉네임: {userInfo.nickname}</p>
+          <button onClick={toggleNicknameInput}>닉네임 변경</button>
+          {isNicknameInputOpen && (
+            <form onSubmit={updateNickname} className='flex gap-2'>
               <input
-                placeholder='기존 비밀번호를 입력해주세요'
-                value={originalPassword}
-                onChange={(e) => setOriginalPassword(e.target.value)}
+                placeholder='새로운 닉네임을 입력해주세요'
+                value={newNickname}
+                onChange={(e) => setNewNickname(e.target.value)}
                 className='w-75'
-                type='password'
               />
-              <input
-                placeholder='새로운 비밀번호를 입력해주세요'
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className='w-75'
-                type='password'
-              />
-              <button type='submit'>변경하기</button>
+              <button type='submit'>확인</button>
             </form>
           )}
-        </>
-      )}
-      <button onClick={() => navigate('/')}>홈으로 이동</button>
-    </div>
+          {loginType !== 'SOCIAL' && (
+            <>
+              <p>이메일: {userInfo.email}</p>
+              <button onClick={togglePasswordInput}>비밀번호 변경</button>x
+              {isPasswordInputOpen && (
+                <form
+                  onSubmit={updatePassword}
+                  className='flex flex-col items-center justify-center gap-2'
+                >
+                  <input
+                    placeholder='기존 비밀번호를 입력해주세요'
+                    value={originalPassword}
+                    onChange={(e) => setOriginalPassword(e.target.value)}
+                    className='w-75'
+                    type='password'
+                  />
+                  <input
+                    placeholder='새로운 비밀번호를 입력해주세요'
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className='w-75'
+                    type='password'
+                  />
+                  <button type='submit'>변경하기</button>
+                </form>
+              )}
+            </>
+          )}
+          <button onClick={() => navigate('/')}>홈으로 이동</button>
+          <HomeButton currentPage='mypage' />
+        </div>
+      </div>
+    </>
   )
 }
 
