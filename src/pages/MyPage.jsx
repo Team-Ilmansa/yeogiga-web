@@ -11,6 +11,7 @@ import { ChevronRight } from 'lucide-react'
 import ProfileCard from '@/components/mypage/ProfileCard'
 import FavoritePhotos from '@/components/mypage/FavoritePhotos'
 import PastTrip from '@/components/mypage/PastTrip'
+import AccountSettings from '@/components/mypage/AccountSettings'
 
 const MyPage = () => {
   const [userInfo, setUserInfo] = useState([])
@@ -124,7 +125,9 @@ const MyPage = () => {
         <FavoritePhotos />
         {/* 지난 여행 전체보기 */}
         <PastTrip />
-        {/* TODO: 이외 기능 추가 */}
+        {/* 이외 기능 추가 */}
+        <AccountSettings />
+
         <div className='flex h-screen w-screen flex-col items-center justify-center gap-2'>
           <button onClick={handleUploadClick}>프로필 수정</button>
           <input
