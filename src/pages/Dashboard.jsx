@@ -7,6 +7,7 @@ import KebabIcon from '@/assets/dashboard/KebabIcon'
 import readMyCalendarApi from '@/apis/calendar/readMyCalendarApi'
 import KebabModal from '@/components/dashboard/modal/KebabModal'
 import UpdateTitleModal from '@/components/dashboard/modal/UpdateTitleModal'
+import Notices from '@/components/notice/Notices'
 
 /**여행 정보 대시보드 페이지 */
 const Dashboard = () => {
@@ -76,6 +77,7 @@ const Dashboard = () => {
             isScheduleConfirmed={isScheduleConfirmed}
             setIsScheduleConfirmed={setIsScheduleConfirmed}
           />
+          <Notices />
           <SlideTabs isScheduleConfirmed={isScheduleConfirmed} />
         </div>
         {/* 여행 날짜 확정 버튼 */}
