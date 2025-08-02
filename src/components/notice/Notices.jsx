@@ -25,15 +25,18 @@ const Notices = () => {
     }
   }, [user, tripId])
 
+  /**보라색 박스 공통 스타일링 지정 */
   const containerStyle =
-    'flex items-center gap-3 rounded-2xl bg-indigo-50  px-4 py-5'
+    'flex items-center gap-3 rounded-2xl bg-[var(--Blue-Scale-blue-100)]  px-4 py-5'
+  /**폰트 스타일링 지정 */
   const fontStyle = 'text-base font-medium text-gray-700'
 
   return (
     <div className='space-y-2'>
-      {/* 헤더 영역 */}
+      {/**헤더 영역 */}
       <div className='flex items-center justify-between'>
         <h1 className='text-3xl leading-normal font-bold'>현재 공지</h1>
+        {/* TODO: 지난 공지 전체보기 버튼 연결 */}
         <button className='mt-2 flex items-center border-none text-base text-gray-400 hover:text-gray-500'>
           지난 공지 전체보기
         </button>
