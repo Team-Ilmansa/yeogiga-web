@@ -66,9 +66,7 @@ const Participation = () => {
           <div className='flex w-[380px] flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-4 shadow-md'>
             <div className='flex justify-between'>
               <h2 className='mt-3 text-xl font-semibold text-gray-900'>
-                {leaderNickname}님이 보낸 여행요청을
-                <br />
-                수락하시겠어요?
+                여행 초대 요청을 수락하시겠어요?
                 <p className='mt-1 text-sm font-medium text-gray-500'>
                   요청을 수락하면 바로 합류할 수 있어요
                 </p>
