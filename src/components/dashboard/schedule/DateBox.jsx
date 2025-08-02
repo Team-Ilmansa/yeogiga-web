@@ -1,8 +1,10 @@
 import ArrowUp from '@/assets/dashboard/ArrowUp'
 import ArrowDown from '@/assets/dashboard/ArrowDown'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const DateBox = ({ date }) => {
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleOpen = () => setIsOpen((prev) => !prev)
@@ -30,7 +32,10 @@ const DateBox = ({ date }) => {
       {isOpen && (
         <div className='mt-[5px] py-10 text-center text-base text-gray-400'>
           아직 예정된 일정이 없어요
-          <div className='mt-2 cursor-pointer text-base text-[var(--Blue-Scale-blue-500)]'>
+          <div
+            onClick={() => navigate('map')}
+            className='mt-2 cursor-pointer text-base text-[var(--Blue-Scale-blue-500)]'
+          >
             + 일정 담으러 가기
           </div>
         </div>
