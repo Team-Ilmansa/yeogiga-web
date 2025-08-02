@@ -54,6 +54,7 @@ const Notices = () => {
         </div>
 
         {/** 공지사항 */}
+        {/* TODO: 가장 최신 공지사항 하나만 보이도록 구현(지난 공지  전체보기 구현 후) */}
         {notices.length === 0 ? (
           <div className={containerStyle}>
             <Archive className='h-6 w-6 text-[var(--Blue-Scale-blue-500)]' />
