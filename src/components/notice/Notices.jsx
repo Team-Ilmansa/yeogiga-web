@@ -44,7 +44,7 @@ const Notices = () => {
 
       {/**현재 공지 리스트 */}
       <div className='space-y-3'>
-        {/**집결지 */}
+        {/* TODO: 집결지 API 연동 */}
         <div className={containerStyle}>
           <PlaceIcon className='h-6 w-6' />
           <div className='flex items-baseline gap-2'>
