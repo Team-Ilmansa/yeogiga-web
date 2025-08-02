@@ -13,6 +13,7 @@ import ConfirmCalendar from './pages/ConfirmCalendar'
 import TripCalendar from './pages/TripCalendar'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import UpdateCalendar from './pages/UpdateCalendar'
+import CreateNotices from './components/notice/CreateNotices'
 
 const App = () => {
   return (
@@ -36,6 +37,8 @@ const App = () => {
                 <Route path='update' element={<UpdateCalendar />} />
                 <Route path='confirmation' element={<ConfirmCalendar />} />
                 <Route path='participation' element={<Participation />} />
+                {/* TODO: 추후 Notice 페이지와 결합 */}
+                <Route path='post/notice' element={<CreateNotices />} />
               </Route>
             </Route>
           </Routes>
