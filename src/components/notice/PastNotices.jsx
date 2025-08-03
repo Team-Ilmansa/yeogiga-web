@@ -86,6 +86,7 @@ const PastNotices = () => {
       <h1 className='text-4xl font-bold'>지난 공지사항 전체보기</h1>
 
       {/** 공지사항 수정 및 삭제 모달 */}
+      {/* TODO: 디자인 변경 예정 */}
       {isModalOpen && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
           <div className='w-[400px] rounded-2xl bg-white p-6 shadow-xl'>
