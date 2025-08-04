@@ -6,6 +6,7 @@ import readNoticeApi from '@/apis/notice/readNoticeApi'
 import { useNavigate, useParams } from 'react-router-dom'
 import deleteNoticeApi from '@/apis/notice/deleteNoticeApi'
 import readSpecificNoticeApi from '@/apis/notice/readSpecificNoticeApi'
+import readPinApi from '@/apis/pin/readPinApi'
 
 const Notices = () => {
   const { user } = useAuth()
@@ -14,6 +15,9 @@ const Notices = () => {
   const [notices, setNotices] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedNotice, setSelectedNotice] = useState(null)
+  /** 집결지 데이터 상태 추가 */
+  const [pinData, setPinData] = useState(null)
+  const [hasPin, setHasPin] = useState(true)
 
   /**전체 공지사항 조회 API 호출 */
   useEffect(() => {
@@ -40,6 +44,27 @@ const Notices = () => {
       console.error(err)
     }
   }
+
+  /** 집결지 핀 조회 API 호출 */
+  useEffect(() => {
+    if (tripId) {
+      const fetchPin = async () => {
+        try {
+          const result = await readPinApi(tripId)
+          if (result?.data?.place) {
+            setPinData(result.data)
+            setHasPin(true)
+          } else {
+            setHasPin(false)
+          }
+        } catch (err) {
+          console.error('집결지 조회 실패:', err)
+          setHasPin(false)
+        }
+      }
+      fetchPin()
+    }
+  }, [tripId])
 
   /**보라색 박스 공통 스타일링 지정 */
   const containerStyle =
@@ -101,7 +126,7 @@ const Notices = () => {
       {/**헤더 영역 */}
       <div className='flex items-center justify-between'>
         <h1 className='text-3xl leading-normal font-bold'>현재 공지</h1>
-        {/* TODO: 지난 공지 전체보기 버튼 연결 */}
+        {/** TODO: 지난 공지 전체보기 버튼 연결 */}
         <button
           onClick={() => navigate(`/trip/${tripId}/past/notices`)}
           className='mt-2 flex items-center border-none text-base text-gray-400 hover:text-gray-500'
@@ -112,15 +137,22 @@ const Notices = () => {
 
       {/**현재 공지 리스트 */}
       <div className='space-y-3'>
-        {/* TODO: 집결지 API 연동 */}
+        {/** TODO: 집결지 생성 API 연동 후 확인 */}
         <div className={containerStyle}>
           <PlaceIcon className='h-6 w-6' />
           <div className='flex items-baseline gap-2'>
-            <span className={fontStyle}>Text</span>
-            <span className='text-sm text-indigo-300'>Time</span>
+            {hasPin && pinData ? (
+              <>
+                <span className={fontStyle}>{pinData.place}</span>
+                <span className='text-sm text-indigo-300'>
+                  {pinData.time ? new Date(pinData.time).toLocaleString() : ''}
+                </span>
+              </>
+            ) : (
+              <span className={fontStyle}>집결지 없음</span>
+            )}
           </div>
         </div>
-
         {/** 공지사항 */}
         {notices.length === 0 ? (
           <div className={containerStyle}>

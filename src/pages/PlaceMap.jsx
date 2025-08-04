@@ -1,3 +1,4 @@
+import PlaceMapWithPin from '@/components/trip/pin/PlaceMapWithPin'
 import { useEffect } from 'react'
 
 /**목적지 검색을 위한 지도 화면 */
@@ -53,6 +54,7 @@ const PlaceMap = () => {
   return (
     <div className='relative h-full w-full'>
       <div id='map' className='h-full w-full'></div>
+      <PlaceMapWithPin />
     </div>
   )
 }
