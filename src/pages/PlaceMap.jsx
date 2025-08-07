@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import Search from '../assets/map/Search'
 import searchPlaceApi from '@/apis/map/searchPlaceApi'
 import { ExternalLink } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import PlusCalendar from '@/assets/map/PlusCalendar'
 import MapPin from '@/assets/map/MapPin'
 import Trash from '@/assets/map/Trash'
+import addPlaceApi from '@/apis/map/addPlaceApi'
 
 /**목적지 검색을 위한 지도 화면 */
 const PlaceMap = () => {
@@ -27,6 +28,9 @@ const PlaceMap = () => {
   const [showSavedList, setShowSavedList] = useState(false)
   /**정보창 내용 변경(선택된 장소 or 저장된 장소 목록) */
   const [panelChanging, setPanelChanging] = useState(false)
+
+  /**주소에서 여행 번호, 일차 가져오기 */
+  const { tripId, day } = useParams()
 
   useEffect(() => {
     /**지도 생성 함수 */
@@ -91,8 +95,9 @@ const PlaceMap = () => {
     }
   }, [map])
 
+  /**패널 상하 전환용 함수 */
   const switchPanelContent = (newContentType) => {
-    setPanelChanging(true) // 먼저 내려가게
+    setPanelChanging(true)
 
     setTimeout(() => {
       if (newContentType === 'saved') {
@@ -101,8 +106,8 @@ const PlaceMap = () => {
       } else if (newContentType === 'selected') {
         setShowSavedList(false)
       }
-      setPanelChanging(false) // 다시 올라오게
-    }, 300) // 내려간 다음 바꾸고 올라옴
+      setPanelChanging(false)
+    }, 300)
   }
 
   /**검색 시 실행 */
@@ -143,6 +148,7 @@ const PlaceMap = () => {
     }
   }
 
+  /**장소 임시저장을 위한 함수 */
   const handleAdd = () => {
     if (!selectedPlace) return
 
@@ -157,6 +163,34 @@ const PlaceMap = () => {
     if (!alreadySaved) {
       setSavedPlaces((prev) => [...prev, selectedPlace])
     }
+  }
+
+  /**일정에 장소 등록을 위한 함수 */
+  const handleConfirm = async () => {
+    let successCount = 0
+
+    for (const place of savedPlaces) {
+      const body = {
+        name: place.title,
+        latitude: place.latitude,
+        longitude: place.longitude,
+        // 임시 구현
+        placeType: 'ETC',
+      }
+
+      try {
+        const result = await addPlaceApi(tripId, day, body)
+
+        // 등록 성공 시 해당 place 제거
+        setSavedPlaces((prev) => prev.filter((p) => p !== place))
+        successCount += 1
+      } catch (err) {
+        if (err.code == 'T002') alert(`${place.title}: ${err.message}`)
+        else alert(err.message)
+      }
+    }
+
+    alert(`${successCount}개의 장소가 등록되었습니다.`)
   }
 
   return (
@@ -251,7 +285,10 @@ const PlaceMap = () => {
                       </li>
                     ))}
                   </ul>
-                  <button className='mt-5 flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'>
+                  <button
+                    onClick={handleConfirm}
+                    className='mt-5 flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                  >
                     <span>
                       <PlusCalendar size={40} color={'white'} />
                     </span>
