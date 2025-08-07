@@ -3,7 +3,7 @@ import ArrowDown from '@/assets/dashboard/ArrowDown'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const DateBox = ({ date }) => {
+const DateBox = ({ date, dayIndex }) => {
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
 
@@ -33,7 +33,7 @@ const DateBox = ({ date }) => {
         <div className='mt-[5px] py-10 text-center text-base text-gray-400'>
           아직 예정된 일정이 없어요
           <div
-            onClick={() => navigate('map')}
+            onClick={() => navigate(`map/${dayIndex}`)}
             className='mt-2 cursor-pointer text-base text-[var(--Blue-Scale-blue-500)]'
           >
             + 일정 담으러 가기

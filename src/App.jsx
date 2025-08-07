@@ -45,7 +45,7 @@ const App = () => {
                 {/* TODO: 추후 Notice 페이지와 결합 */}
                 {/* 지난 여행 전체보기 페이지 */}
                 <Route path='past/notices' element={<PastNotices />} />
-                <Route path='map' element={<PlaceMap />} />
+                <Route path='map/:day' element={<PlaceMap />} />
               </Route>
             </Route>
           </Routes>

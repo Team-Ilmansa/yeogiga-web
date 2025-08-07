@@ -65,9 +65,14 @@ const DayTabs = ({ startedAt, endedAt }) => {
 
       <div className='mt-4 flex flex-col gap-3'>
         {activeTab === 0
-          ? dates.map((d, i) => <DateBox key={i} date={formatDateToDot(d)} />)
+          ? dates.map((d, i) => (
+              <DateBox key={i} date={formatDateToDot(d)} dayIndex={i + 1} />
+            ))
           : dates[activeTab - 1] && (
-              <DateBox date={formatDateToDot(dates[activeTab - 1])} />
+              <DateBox
+                date={formatDateToDot(dates[activeTab - 1])}
+                dayIndex={activeTab}
+              />
             )}
       </div>
     </div>
