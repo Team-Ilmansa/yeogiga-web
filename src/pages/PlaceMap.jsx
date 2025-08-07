@@ -6,6 +6,8 @@ import searchPlaceApi from '@/apis/map/searchPlaceApi'
 import { ExternalLink } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import PlusCalendar from '@/assets/map/PlusCalendar'
+import MapPin from '@/assets/map/MapPin'
+import Trash from '@/assets/map/Trash'
 
 /**목적지 검색을 위한 지도 화면 */
 const PlaceMap = () => {
@@ -19,6 +21,12 @@ const PlaceMap = () => {
   const [markers, setMarkers] = useState([])
   /**마커가 클릭된 장소 */
   const [selectedPlace, setSelectedPlace] = useState(null)
+  /**임시로 추가된 장소 */
+  const [savedPlaces, setSavedPlaces] = useState([])
+  /**저장 장소 정보 */
+  const [showSavedList, setShowSavedList] = useState(false)
+  /**정보창 내용 변경(선택된 장소 or 저장된 장소 목록) */
+  const [panelChanging, setPanelChanging] = useState(false)
 
   useEffect(() => {
     /**지도 생성 함수 */
@@ -83,6 +91,20 @@ const PlaceMap = () => {
     }
   }, [map])
 
+  const switchPanelContent = (newContentType) => {
+    setPanelChanging(true) // 먼저 내려가게
+
+    setTimeout(() => {
+      if (newContentType === 'saved') {
+        setShowSavedList(true)
+        setSelectedPlace(null)
+      } else if (newContentType === 'selected') {
+        setShowSavedList(false)
+      }
+      setPanelChanging(false) // 다시 올라오게
+    }, 300) // 내려간 다음 바꾸고 올라옴
+  }
+
   /**검색 시 실행 */
   const handleSearch = async (e) => {
     e.preventDefault()
@@ -101,6 +123,7 @@ const PlaceMap = () => {
         })
 
         naver.maps.Event.addListener(marker, 'click', () => {
+          switchPanelContent('selected') // ↓ 내려갔다가 ↑ 다시 올라옴
           setSelectedPlace(place)
         })
 
@@ -117,6 +140,22 @@ const PlaceMap = () => {
       setMarkers(newMarkers)
     } catch (err) {
       console.error(err.message)
+    }
+  }
+
+  const handleAdd = () => {
+    if (!selectedPlace) return
+
+    /**중복 방지 */
+    const alreadySaved = savedPlaces.some(
+      (place) =>
+        place.name === selectedPlace.name &&
+        place.latitude === selectedPlace.latitude &&
+        place.longitude === selectedPlace.longitude,
+    )
+
+    if (!alreadySaved) {
+      setSavedPlaces((prev) => [...prev, selectedPlace])
     }
   }
 
@@ -151,38 +190,117 @@ const PlaceMap = () => {
 
       {/* 실제 지도 */}
       <div id='map' className='h-full w-full'></div>
-      <PlaceMapWithPin />
+      {/* <PlaceMapWithPin /> */}
 
-      {/* 마커 클릭 시 열리는 정보창 */}
+      {/**정보창 + 플로팅 버튼 컨테이너 */}
       <div
-        className={`absolute bottom-0 left-0 z-10 flex w-full transform flex-col gap-5 rounded-t-2xl border-t border-gray-300 bg-white p-10 transition-transform duration-300 ${selectedPlace ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed bottom-0 left-0 z-10 flex w-full justify-center transition-all duration-300 ${selectedPlace || showSavedList ? 'translate-y-0' : 'translate-y-full'} ${panelChanging ? 'pointer-events-none translate-y-[100%]' : 'opacity-100'} `}
       >
-        <div className='flex flex-col gap-1'>
-          <div className='flex items-center gap-1'>
-            <h3 className='text-3xl font-bold text-[var(--Grey-Scale-grey-400)]'>
-              {selectedPlace?.title}
-            </h3>
-            {selectedPlace?.link && (
-              <a
-                href={selectedPlace?.link}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='mt-1 inline-block text-sm text-blue-500 underline'
-              >
-                <ExternalLink className='h-6 w-6 text-[var(--Grey-Scale-grey-200)]' />
-              </a>
+        <div className='relative w-4xl'>
+          {/* 저장된 장소 수를 표시하는 플로팅 버튼 */}
+          <div className='absolute -top-20 left-6 z-20'>
+            <button
+              onClick={() => switchPanelContent('saved')}
+              className='relative flex h-12 w-12 items-center justify-center rounded-full border-none bg-white shadow-md'
+            >
+              <MapPin color={'var(--Grey-Scale-grey-400)'} size={30} />
+
+              {savedPlaces.length > 0 && (
+                <span className='absolute -top-1 -right-1 z-30 flex h-5 w-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--Blue-Scale-blue-500)] px-1 text-xs leading-none text-white'>
+                  {savedPlaces.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          <div className='flex flex-col gap-3 rounded-t-2xl border-t border-gray-300 bg-white p-10'>
+            {showSavedList ? (
+              savedPlaces.length > 0 ? (
+                // 저장된 장소가 있을 때 목록 보여줌
+                <div className='flex flex-col gap-3'>
+                  <ul className='flex max-h-[200px] flex-col gap-10 overflow-y-auto'>
+                    {savedPlaces.map((place, idx) => (
+                      <li
+                        key={idx}
+                        className='flex items-center justify-between gap-4'
+                      >
+                        {/* 왼쪽 정보 */}
+                        <div className='flex flex-col gap-1'>
+                          <p className='text-3xl font-bold text-[var(--Grey-Scale-grey-400)]'>
+                            {place.title}
+                          </p>
+                          <p className='text-base text-[var(--Grey-Scale-grey-400)]'>
+                            {place.roadAddress || place.address}
+                          </p>
+                        </div>
+
+                        {/* 삭제 버튼 */}
+                        <button
+                          onClick={() => {
+                            setSavedPlaces((prev) =>
+                              prev.filter((_, i) => i !== idx),
+                            )
+                          }}
+                          className='border-none text-gray-300 transition-colors duration-200 hover:text-red-400'
+                        >
+                          <Trash
+                            size={35}
+                            color={'var(--Grey-Scale-grey-200)'}
+                          />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <button className='mt-5 flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'>
+                    <span>
+                      <PlusCalendar size={40} color={'white'} />
+                    </span>
+                    일정에 {savedPlaces.length}개의 장소 추가하기
+                  </button>
+                </div>
+              ) : (
+                // 저장된 장소 없을 때 대체 텍스트
+                <div className='text-center text-lg text-[var(--Grey-Scale-grey-300)]'>
+                  저장된 장소가 없습니다. <br />
+                  장소를 선택한 후 "일정에 추가하기"를 눌러 저장하세요.
+                </div>
+              )
+            ) : (
+              // 마커 클릭 정보
+              <>
+                <div className='flex flex-col gap-1'>
+                  <div className='flex items-center gap-1'>
+                    <h3 className='text-3xl font-bold text-[var(--Grey-Scale-grey-400)]'>
+                      {selectedPlace?.title}
+                    </h3>
+                    {selectedPlace?.link && (
+                      <a
+                        href={selectedPlace?.link}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='mt-1 inline-block text-sm text-blue-500 underline'
+                      >
+                        <ExternalLink className='h-6 w-6 text-[var(--Grey-Scale-grey-200)]' />
+                      </a>
+                    )}
+                  </div>
+                  <p className='text-base text-gray-600'>
+                    {selectedPlace?.roadAddress || selectedPlace?.address}
+                  </p>
+                </div>
+                <button
+                  onClick={handleAdd}
+                  className='flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                >
+                  <span>
+                    <PlusCalendar size={40} color={'white'} />
+                  </span>
+                  일정에 추가하기
+                </button>
+              </>
             )}
           </div>
-          <p className='text-base text-gray-600'>
-            {selectedPlace?.roadAddress || selectedPlace?.address}
-          </p>
         </div>
-        <button className='flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'>
-          <span>
-            <PlusCalendar size={40} color={'white'} />
-          </span>
-          일정에 추가하기
-        </button>
       </div>
     </div>
   )
