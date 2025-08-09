@@ -1,5 +1,4 @@
-import React from 'react'
-
+/**위 화살표 */
 const ArrowUp = () => {
   return (
     <div>
@@ -13,9 +12,9 @@ const ArrowUp = () => {
         <path
           d='M11 6.5L6 1.5L1 6.5'
           stroke='#7D7D7D'
-          stroke-width='1.66667'
-          stroke-linecap='round'
-          stroke-linejoin='round'
+          strokeWidth='1.66667'
+          strokeLinecap='round'
+          strokeLinejoin='round'
         />
       </svg>
     </div>
