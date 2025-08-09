@@ -20,6 +20,7 @@ const KakaoRedirect = () => {
   const fetchKakaoAccessToken = async (code) => {
     try {
       const response = await oauthSignInApi('KAKAO', code)
+      localStorage.setItem('provider', 'KAKAO')
       login({ token: response.data.token.accessToken })
       navigate('/')
     } catch (error) {
