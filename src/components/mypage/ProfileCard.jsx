@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
-import kakaoLogoImg from '@/assets/mypage/kakaoLogo.png'
-import naverLogoImg from '@/assets/mypage/naverLogo.png'
+import kakaoLogoImg from '@/assets/mypage/kakaoIcon.png'
+import naverLogoImg from '@/assets/mypage/naverIcon.png'
 
 const ProfileCard = ({ userInfo }) => {
   const [previewUrl, setPreviewUrl] = useState('')
