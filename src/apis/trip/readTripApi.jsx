@@ -3,7 +3,11 @@ import api from '@/apis/api'
 /**사용자가 속한 여행 조회 API */
 const readTripApi = async () => {
   try {
-    const response = await api.get('trip')
+    const response = await api.get('trip', {
+      params: {
+        status: 'ALL',
+      },
+    })
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {
