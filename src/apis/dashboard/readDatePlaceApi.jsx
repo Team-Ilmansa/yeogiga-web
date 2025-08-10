@@ -1,5 +1,4 @@
 import api from '@/apis/api'
-import { prodBaseUrl } from '@/config/Env'
 
 /**일자별 목적지 조회 API */
 const readDatePlaceApi = async (tripId, day) => {
