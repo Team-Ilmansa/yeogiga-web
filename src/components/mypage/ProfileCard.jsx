@@ -1,8 +1,11 @@
 import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+import kakaoLogoImg from '@/assets/mypage/kakaoIcon.png'
+import naverLogoImg from '@/assets/mypage/naverIcon.png'
 
 const ProfileCard = ({ userInfo }) => {
   const [previewUrl, setPreviewUrl] = useState('')
+  const provider = localStorage.getItem('provider')
 
   return (
     <div className='flex h-[160px] w-[800px] items-center rounded-[20px] border border-gray-100 bg-white px-10 shadow-sm'>
@@ -14,11 +17,21 @@ const ProfileCard = ({ userInfo }) => {
         />
       </div>
       <div className='flex w-full flex-col justify-center'>
-        <p className='mb-2 text-3xl font-bold text-gray-900'>
-          <p className='text-xl text-gray-900'>
-            <span className='text-3xl font-bold'>{userInfo.nickname}</span> 님
-          </p>
-        </p>
+        <div className='mb-2 flex items-center gap-1'>
+          {/** 소셜 로그인 로고 */}
+          {provider === 'KAKAO' && (
+            <img src={kakaoLogoImg} alt='Kakao' className='h-7 w-auto' />
+          )}
+          {provider === 'NAVER' && (
+            <img src={naverLogoImg} alt='Naver' className='h-7 w-auto' />
+          )}
+
+          {/** 닉네임 */}
+          <span className='text-3xl font-bold text-gray-900'>
+            {userInfo.nickname}
+          </span>
+          <span className='text-xl font-bold text-gray-900'>님</span>
+        </div>
 
         <div className='flex items-center justify-between'>
           <p className='text-lg text-gray-500'>{userInfo.email}</p>

@@ -21,6 +21,7 @@ const NaverRedirect = () => {
   const fetchNaverAccessToken = async (code) => {
     try {
       const response = await oauthSignInApi('NAVER', code)
+      localStorage.setItem('provider', 'NAVER')
       login({ token: response.data.token.accessToken })
       navigate('/')
     } catch (error) {
