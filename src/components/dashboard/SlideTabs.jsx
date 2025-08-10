@@ -69,6 +69,10 @@ const SlideTabs = ({ isScheduleConfirmed }) => {
         onSlideChange={(swiper) => setActiveTab(swiper.activeIndex)}
         slidesPerView={1}
         spaceBetween={0}
+        allowTouchMove={true} // 전체는 허용
+        noSwiping={true}
+        noSwipingClass='no-swipe-zone' // 이 클래스 붙은 곳만 스와이프 금지
+        simulateTouch={true}
         className='w-full overflow-hidden'
       >
         <SwiperSlide className='!w-full'>

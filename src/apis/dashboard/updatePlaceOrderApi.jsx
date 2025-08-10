@@ -1,9 +1,9 @@
 import api from '@/apis/api'
 
-/**일자별 목적지 조회 API */
-const readDatePlaceApi = async (tripId, day) => {
+/**일자별 목적지 순서 변경 API */
+const updatePlaceOrderApi = async (tripId, day, body) => {
   try {
-    const response = await api.get(`trip/${tripId}/days/${day}/places`)
+    const response = await api.put(`trip/${tripId}/days/${day}/places`, body)
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {
@@ -18,4 +18,4 @@ const readDatePlaceApi = async (tripId, day) => {
   }
 }
 
-export default readDatePlaceApi
+export default updatePlaceOrderApi

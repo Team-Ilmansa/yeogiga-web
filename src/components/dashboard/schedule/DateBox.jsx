@@ -3,20 +3,35 @@ import ArrowDown from '@/assets/dashboard/ArrowDown'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import readDatePlaceApi from '@/apis/dashboard/readDatePlaceApi'
+import {
+  DndContext,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import SortablePlaceItem from './SortablePlaceItem'
+import updatePlaceOrderApi from '@/apis/dashboard/updatePlaceOrderApi'
 
 /**일자별 일정 박스 */
 const DateBox = ({ date, dayIndex }) => {
-  console.log(dayIndex)
-  const navigate = useNavigate()
-  /**토글 열림 여부 */
+  /**토글 여부 */
   const [isOpen, setIsOpen] = useState(false)
-  /**일자별 장소 */
+  /**일차별 장소 */
   const [places, setPlaces] = useState([])
 
+  const navigate = useNavigate()
   const { tripId } = useParams()
 
   const toggleOpen = () => setIsOpen((prev) => !prev)
 
+  /**일자별 장소 불러오기 */
   useEffect(() => {
     const fetchDatePlaces = async () => {
       try {
@@ -27,10 +42,36 @@ const DateBox = ({ date, dayIndex }) => {
       }
     }
     fetchDatePlaces()
-  }, [dayIndex])
+  }, [dayIndex, tripId])
+
+  /**드래그 종료 시 실행할 함수 */
+  const handleDragEnd = async ({ active, over }) => {
+    if (!over || active.id === over.id) return
+
+    const prev = places
+    const oldIndex = places.findIndex((p) => p.id === active.id)
+    const newIndex = places.findIndex((p) => p.id === over.id)
+
+    // 순서 바꾸기
+    const next = arrayMove(places, oldIndex, newIndex)
+    setPlaces(next)
+
+    /**API 양식에 맞게 변경 */
+    const body = {
+      orderedPlaceIds: next.map((place) => place.id),
+    }
+
+    try {
+      await updatePlaceOrderApi(tripId, dayIndex, body)
+    } catch (err) {
+      alert(err.message)
+      // 실패할 경우 롤백
+      setPlaces(prev)
+    }
+  }
 
   return (
-    <div className='w-full rounded-[20px] border border-gray-300 bg-white px-4 py-3 drop-shadow'>
+    <div className='no-swipe-zone w-full rounded-[20px] border border-gray-300 bg-white px-4 py-3 drop-shadow'>
       <div
         className='flex cursor-pointer items-center justify-between'
         onClick={toggleOpen}
@@ -50,19 +91,28 @@ const DateBox = ({ date, dayIndex }) => {
       </div>
 
       {isOpen && (
-        <div className='mt-[5px] flex flex-col gap-2 px-5 pt-10'>
+        <div className='mt-[5px] flex flex-col justify-center px-5 pt-5'>
           {places.length > 0 ? (
             <>
-              {places.map((place) => (
-                <div className='flex items-center justify-start gap-5'>
-                  <div className='flex h-10 w-10 items-center justify-center rounded-full bg-[var(--Grey-Scale-grey-100)]'>
-                    C
-                  </div>
-                  <div className='w-full rounded-2xl bg-[var(--Grey-Scale-grey-100)] p-5 text-base text-[var(--Grey-Scale-grey-300)]'>
-                    {place.name}
-                  </div>
-                </div>
-              ))}
+              <DndContext
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={places.map((p) => p.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <ul className='space-y-2'>
+                    {places.map((place) => (
+                      <SortablePlaceItem
+                        key={place.id}
+                        id={place.id}
+                        name={place.name}
+                      />
+                    ))}
+                  </ul>
+                </SortableContext>
+              </DndContext>
             </>
           ) : (
             <div className='text-center text-base text-gray-400'>
