@@ -18,6 +18,8 @@ import {
 } from '@dnd-kit/sortable'
 import SortablePlaceItem from './SortablePlaceItem'
 import updatePlaceOrderApi from '@/apis/dashboard/updatePlaceOrderApi'
+import { createPortal } from 'react-dom'
+import deleteDatePlaceApi from '@/apis/dashboard/deleteDatePlaceApi'
 
 /**일자별 일정 박스 */
 const DateBox = ({ date, dayIndex }) => {
@@ -25,6 +27,14 @@ const DateBox = ({ date, dayIndex }) => {
   const [isOpen, setIsOpen] = useState(false)
   /**일차별 장소 */
   const [places, setPlaces] = useState([])
+  /**삭제 메뉴 */
+  const [ctxMenu, setCtxMenu] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    placeId: null,
+    placeName: '',
+  })
 
   const navigate = useNavigate()
   const { tripId } = useParams()
@@ -43,6 +53,53 @@ const DateBox = ({ date, dayIndex }) => {
     }
     fetchDatePlaces()
   }, [dayIndex, tripId])
+
+  /**우클릭으로 삭제 메뉴 열기 */
+  const handleContextMenu = (e, place) => {
+    e.preventDefault()
+    const MENU_W = 160
+    const MENU_H = 48
+    const PADDING = 8
+    const x = Math.min(e.clientX + 2, window.innerWidth - MENU_W - PADDING)
+    const y = Math.min(e.clientY + 2, window.innerHeight - MENU_H - PADDING)
+
+    setCtxMenu({
+      visible: true,
+      x,
+      y,
+      placeId: place.id,
+      placeName: place.name,
+    })
+  }
+
+  // 바깥 클릭 or ESC로 닫기
+  useEffect(() => {
+    if (!ctxMenu.visible) return
+    const close = () => setCtxMenu((prev) => ({ ...prev, visible: false }))
+    const onKey = (e) => e.key === 'Escape' && close()
+    document.addEventListener('click', close)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('click', close)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [ctxMenu.visible])
+
+  /**삭제 함수 */
+  const handleDelete = async () => {
+    const id = ctxMenu.placeId
+    setCtxMenu((prev) => ({ ...prev, visible: false }))
+    const prev = places
+    const next = prev.filter((p) => p.id !== id)
+    setPlaces(next)
+
+    try {
+      deleteDatePlaceApi(tripId, dayIndex, ctxMenu.placeId)
+    } catch (err) {
+      alert(err.message)
+      setPlaces(prev) // 롤백
+    }
+  }
 
   /**드래그 종료 시 실행할 함수 */
   const handleDragEnd = async ({ active, over }) => {
@@ -108,6 +165,7 @@ const DateBox = ({ date, dayIndex }) => {
                         key={place.id}
                         id={place.id}
                         name={place.name}
+                        onContextMenu={(e) => handleContextMenu(e, place)}
                       />
                     ))}
                   </ul>
@@ -128,6 +186,24 @@ const DateBox = ({ date, dayIndex }) => {
           </div>
         </div>
       )}
+      {/* 컨텍스트 메뉴 */}
+      {ctxMenu.visible &&
+        createPortal(
+          <div
+            className='fixed z-[9999] min-w-[140px] rounded-xl border border-gray-200 bg-white p-1 shadow-xl'
+            style={{ left: ctxMenu.x, top: ctxMenu.y }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type='button'
+              className='block w-full rounded-lg border-none px-3 py-2 text-left text-sm hover:bg-red-50 hover:text-red-600'
+              onClick={handleDelete}
+            >
+              삭제
+            </button>
+          </div>,
+          document.body,
+        )}
     </div>
   )
 }
