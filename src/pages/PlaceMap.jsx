@@ -30,11 +30,22 @@ const PlaceMap = () => {
   /**정보창 내용 변경(선택된 장소 or 저장된 장소 목록) */
   const [panelChanging, setPanelChanging] = useState(false)
   /**집결지 공지 체크박스 상태 */
+  /**집결지 공지 체크박스*/
   const [noticeAsPin, setNoticeAsPin] = useState(false)
 
-  /**주소에서 여행 번호, 일차 가져오기 */
-  const { tripId, day } = useParams()
+  /**집결 시간 설정 */
+  const [noticeTime, setNoticeTime] = useState(() => {
+    const pad = (n) => String(n).padStart(2, '0')
+    const d = new Date()
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  })
 
+  const toLocalDateTimeString = (localDatetime) => {
+    return localDatetime.length === 16 ? `${localDatetime}:00` : localDatetime
+  }
+
+  // 주소에서 여행 번호, 일차 가져오기
+  const { tripId, day } = useParams()
   useEffect(() => {
     /**지도 생성 함수 */
     const initMap = (lat, lng) => {
@@ -155,6 +166,7 @@ const PlaceMap = () => {
   const handleAdd = async () => {
     if (!selectedPlace) return
 
+    // 0) 저장 목록 중복 방지
     const alreadySaved = savedPlaces.some(
       (place) =>
         (place.name || place.title) ===
@@ -165,8 +177,27 @@ const PlaceMap = () => {
     if (!alreadySaved) setSavedPlaces((prev) => [...prev, selectedPlace])
 
     if (noticeAsPin) {
+      if (!noticeTime) {
+        alert('집결 시간을 선택해 주세요.')
+        return
+      }
+
+      /** 버퍼 몇 초 추가(서버-클라이언트 시간차/전송지연 대응) */
+      const now = new Date()
+      const chosen = new Date(noticeTime)
+      const bufferedNow = new Date(now.getTime() + 5000) // 5초 버퍼
+
+      if (chosen < bufferedNow) {
+        alert(
+          '집결 시간은 현재 시각 이후여야 합니다. (몇 분 뒤로 설정해 주세요)',
+        )
+        return
+      }
+
+      const timeLocal = toLocalDateTimeString(noticeTime)
+
       try {
-        await createPinApi(tripId, {
+        const result = await createPinApi(tripId, {
           latitude: selectedPlace.latitude,
           longitude: selectedPlace.longitude,
           place:
@@ -174,8 +205,10 @@ const PlaceMap = () => {
             selectedPlace.name ||
             selectedPlace.roadAddress ||
             selectedPlace.address,
-          time: new Date().toISOString(),
+          time: timeLocal,
         })
+        alert('집결지가 성공적으로 공지되었습니다!')
+        console.log(result)
       } catch (err) {
         alert(err.message)
       }
@@ -209,17 +242,6 @@ const PlaceMap = () => {
 
     alert(`${successCount}개의 장소가 등록되었습니다.`)
   }
-  /**집결지 공지하기 시간 설정용 */
-  const [noticeTime, setNoticeTime] = useState(() => {
-    const pad = (n) => String(n).padStart(2, '0')
-    const d = new Date()
-    const y = d.getFullYear()
-    const m = pad(d.getMonth() + 1)
-    const day = pad(d.getDate())
-    const hh = pad(d.getHours())
-    const mm = pad(d.getMinutes())
-    return `${y}-${m}-${day}T${hh}:${mm}`
-  })
 
   // 선택 장소가 바뀌면 체크/시간 초기화
   useEffect(() => {
@@ -230,6 +252,29 @@ const PlaceMap = () => {
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
     )
   }, [selectedPlace])
+
+  /**집결지 공지 시간 관련 함수 */
+  const toOffsetISO = (localDatetime) => {
+    const toLocalDateTimeString = (localDatetime) => {
+      return localDatetime.length === 16 ? `${localDatetime}:00` : localDatetime
+    }
+
+    const d = new Date(localDatetime)
+    const pad = (n) => String(Math.trunc(Math.abs(n))).padStart(2, '0')
+    const y = d.getFullYear()
+    const m = pad(d.getMonth() + 1)
+    const day = pad(d.getDate())
+    const hh = pad(d.getHours())
+    const mm = pad(d.getMinutes())
+    const ss = pad(d.getSeconds())
+
+    const tzMin = -d.getTimezoneOffset()
+    const sign = tzMin >= 0 ? '+' : '-'
+    const tzH = pad(Math.trunc(tzMin / 60))
+    const tzM = pad(tzMin % 60)
+
+    return `${y}-${m}-${day}T${hh}:${mm}:${ss}${sign}${tzH}:${tzM}`
+  }
 
   return (
     <div className='relative h-full w-full'>
