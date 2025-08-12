@@ -9,6 +9,7 @@ import PlusCalendar from '@/assets/map/PlusCalendar'
 import MapPin from '@/assets/map/MapPin'
 import Trash from '@/assets/map/Trash'
 import addPlaceApi from '@/apis/map/addPlaceApi'
+import createPinApi from '@/apis/pin/createPinApi'
 
 /**목적지 검색을 위한 지도 화면 */
 const PlaceMap = () => {
@@ -28,6 +29,8 @@ const PlaceMap = () => {
   const [showSavedList, setShowSavedList] = useState(false)
   /**정보창 내용 변경(선택된 장소 or 저장된 장소 목록) */
   const [panelChanging, setPanelChanging] = useState(false)
+  /**집결지 공지 체크박스 상태 */
+  const [noticeAsPin, setNoticeAsPin] = useState(false)
 
   /**주소에서 여행 번호, 일차 가져오기 */
   const { tripId, day } = useParams()
@@ -148,20 +151,34 @@ const PlaceMap = () => {
     }
   }
 
-  /**장소 임시저장을 위한 함수 */
-  const handleAdd = () => {
+  /** 장소 임시저장 + 집결지 핀 생성 */
+  const handleAdd = async () => {
     if (!selectedPlace) return
 
-    /**중복 방지 */
     const alreadySaved = savedPlaces.some(
       (place) =>
-        place.name === selectedPlace.name &&
+        (place.name || place.title) ===
+          (selectedPlace.name || selectedPlace.title) &&
         place.latitude === selectedPlace.latitude &&
         place.longitude === selectedPlace.longitude,
     )
+    if (!alreadySaved) setSavedPlaces((prev) => [...prev, selectedPlace])
 
-    if (!alreadySaved) {
-      setSavedPlaces((prev) => [...prev, selectedPlace])
+    if (noticeAsPin) {
+      try {
+        await createPinApi(tripId, {
+          latitude: selectedPlace.latitude,
+          longitude: selectedPlace.longitude,
+          place:
+            selectedPlace.title ||
+            selectedPlace.name ||
+            selectedPlace.roadAddress ||
+            selectedPlace.address,
+          time: new Date().toISOString(),
+        })
+      } catch (err) {
+        alert(err.message)
+      }
     }
   }
 
@@ -303,7 +320,6 @@ const PlaceMap = () => {
                 </div>
               )
             ) : (
-              // 마커 클릭 정보
               <>
                 <div className='flex flex-col gap-1'>
                   <div className='flex items-center gap-1'>
@@ -325,9 +341,33 @@ const PlaceMap = () => {
                     {selectedPlace?.roadAddress || selectedPlace?.address}
                   </p>
                 </div>
+
+                {/* 집결지 공지하기 체크박스 */}
+                <label className='mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-[var(--Grey-Scale-grey-200)] bg-white px-4 py-3'>
+                  <input
+                    type='checkbox'
+                    className='h-5 w-5 accent-[var(--Blue-Scale-blue-500)]'
+                    checked={noticeAsPin}
+                    onChange={(e) => setNoticeAsPin(e.target.checked)}
+                  />
+                  <div className='flex flex-col'>
+                    <div className='flex items-center gap-2'>
+                      <span className='rounded-md bg-yellow-300 px-2 py-[2px] text-xs font-semibold text-yellow-900'>
+                        집결지
+                      </span>
+                      <span className='text-[14px] text-[var(--Grey-Scale-grey-300)]'>
+                        공지하기
+                      </span>
+                    </div>
+                    <span className='text-[13px] text-[var(--Grey-Scale-grey-300)]'>
+                      이 장소를 팀의 집결지로 공지합니다.
+                    </span>
+                  </div>
+                </label>
+
                 <button
                   onClick={handleAdd}
-                  className='flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                  className='mt-3 flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
                 >
                   <span>
                     <PlusCalendar size={40} color={'white'} />
