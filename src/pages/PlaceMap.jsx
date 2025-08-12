@@ -166,7 +166,6 @@ const PlaceMap = () => {
   const handleAdd = async () => {
     if (!selectedPlace) return
 
-    // 0) 저장 목록 중복 방지
     const alreadySaved = savedPlaces.some(
       (place) =>
         (place.name || place.title) ===
