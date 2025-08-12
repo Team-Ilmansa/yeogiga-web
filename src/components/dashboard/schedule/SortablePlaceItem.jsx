@@ -2,7 +2,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
 /**Drag & Drop을 적용하기 위한 컴포넌트 */
-const SortablePlaceItem = ({ id, name }) => {
+const SortablePlaceItem = ({ id, name, onContextMenu }) => {
   const {
     attributes,
     listeners,
@@ -25,6 +25,7 @@ const SortablePlaceItem = ({ id, name }) => {
       className='flex items-center justify-start gap-5'
       {...attributes}
       {...listeners}
+      onContextMenu={onContextMenu}
     >
       <div className='flex h-10 w-10 cursor-grab items-center justify-center rounded-full bg-[var(--Grey-Scale-grey-100)]'>
         C
