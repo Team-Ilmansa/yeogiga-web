@@ -209,6 +209,27 @@ const PlaceMap = () => {
 
     alert(`${successCount}개의 장소가 등록되었습니다.`)
   }
+  /**집결지 공지하기 시간 설정용 */
+  const [noticeTime, setNoticeTime] = useState(() => {
+    const pad = (n) => String(n).padStart(2, '0')
+    const d = new Date()
+    const y = d.getFullYear()
+    const m = pad(d.getMonth() + 1)
+    const day = pad(d.getDate())
+    const hh = pad(d.getHours())
+    const mm = pad(d.getMinutes())
+    return `${y}-${m}-${day}T${hh}:${mm}`
+  })
+
+  // 선택 장소가 바뀌면 체크/시간 초기화
+  useEffect(() => {
+    setNoticeAsPin(false)
+    const pad = (n) => String(n).padStart(2, '0')
+    const d = new Date()
+    setNoticeTime(
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
+    )
+  }, [selectedPlace])
 
   return (
     <div className='relative h-full w-full'>
@@ -364,6 +385,20 @@ const PlaceMap = () => {
                     </span>
                   </div>
                 </label>
+                {/**시간 설정 (집결지 공지하기 체크되었을 때만 표시) */}
+                {noticeAsPin && (
+                  <div className='mt-2 flex items-center gap-3 rounded-xl border border-[var(--Grey-Scale-grey-200)] bg-white px-4 py-3'>
+                    <label className='w-28 shrink-0 text-sm text-[var(--Grey-Scale-grey-300)]'>
+                      집결 시간
+                    </label>
+                    <input
+                      type='datetime-local'
+                      value={noticeTime}
+                      onChange={(e) => setNoticeTime(e.target.value)}
+                      className='w-full rounded-md border border-gray-200 px-3 py-2 text-gray-700 outline-none'
+                    />
+                  </div>
+                )}
 
                 <button
                   onClick={handleAdd}
