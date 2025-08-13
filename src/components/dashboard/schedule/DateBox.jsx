@@ -20,6 +20,7 @@ import SortablePlaceItem from './SortablePlaceItem'
 import updatePlaceOrderApi from '@/apis/dashboard/updatePlaceOrderApi'
 import { createPortal } from 'react-dom'
 import deleteDatePlaceApi from '@/apis/dashboard/deleteDatePlaceApi'
+import recommendDatePlaceOrderApi from '@/apis/dashboard/recommendDatePlaceOrderApi'
 
 /**일자별 일정 박스 */
 const DateBox = ({ date, dayIndex }) => {
@@ -41,16 +42,18 @@ const DateBox = ({ date, dayIndex }) => {
 
   const toggleOpen = () => setIsOpen((prev) => !prev)
 
-  /**일자별 장소 불러오기 */
-  useEffect(() => {
-    const fetchDatePlaces = async () => {
-      try {
-        const result = await readDatePlaceApi(tripId, dayIndex)
-        setPlaces(result.data)
-      } catch (err) {
-        alert(err.message)
-      }
+  /**일자별 담은 장소 불러오기 */
+  const fetchDatePlaces = async () => {
+    try {
+      const result = await readDatePlaceApi(tripId, dayIndex)
+      console.log(result)
+      setPlaces(result.data)
+    } catch (err) {
+      alert(err.message)
     }
+  }
+
+  useEffect(() => {
     fetchDatePlaces()
   }, [dayIndex, tripId])
 
@@ -127,6 +130,17 @@ const DateBox = ({ date, dayIndex }) => {
     }
   }
 
+  /**일정 추천받기 함수 */
+  const handleRecommend = async () => {
+    try {
+      const result = await recommendDatePlaceOrderApi(tripId, dayIndex)
+      console.log(result)
+      fetchDatePlaces()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
   return (
     <div className='no-swipe-zone w-full rounded-[20px] border border-gray-300 bg-white px-4 py-3 drop-shadow'>
       <div
@@ -178,12 +192,29 @@ const DateBox = ({ date, dayIndex }) => {
             </div>
           )}
 
-          <div
-            onClick={() => navigate(`map/${dayIndex}`)}
-            className='mt-2 cursor-pointer py-5 text-center text-base text-[var(--Blue-Scale-blue-500)]'
-          >
-            + 일정 담으러 가기
-          </div>
+          {places.length > 0 ? (
+            <div className='mt-2 flex w-full justify-around py-5'>
+              <div
+                onClick={() => navigate(`map/${dayIndex}`)}
+                className='cursor-pointer text-center text-base text-[var(--Blue-Scale-blue-500)]'
+              >
+                + 일정 담으러 가기
+              </div>
+              <div
+                onClick={handleRecommend}
+                className='cursor-pointer text-center text-base text-[var(--Blue-Scale-blue-500)]'
+              >
+                일정 추천 받기
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => navigate(`map/${dayIndex}`)}
+              className='mt-2 cursor-pointer py-5 text-center text-base text-[var(--Blue-Scale-blue-500)]'
+            >
+              + 일정 담으러 가기
+            </div>
+          )}
         </div>
       )}
       {/* 컨텍스트 메뉴 */}
