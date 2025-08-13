@@ -46,7 +46,6 @@ const DateBox = ({ date, dayIndex }) => {
   const fetchDatePlaces = async () => {
     try {
       const result = await readDatePlaceApi(tripId, dayIndex)
-      console.log(result)
       setPlaces(result.data)
     } catch (err) {
       alert(err.message)
@@ -134,7 +133,6 @@ const DateBox = ({ date, dayIndex }) => {
   const handleRecommend = async () => {
     try {
       const result = await recommendDatePlaceOrderApi(tripId, dayIndex)
-      console.log(result)
       fetchDatePlaces()
     } catch (err) {
       alert(err.message)
