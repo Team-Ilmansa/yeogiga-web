@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import DateBox from './DateBox'
 
-const DayTabs = ({ startedAt, endedAt }) => {
+const DayTabs = ({ tripInfo }) => {
   const [activeTab, setActiveTab] = useState(0)
   const [dates, setDates] = useState([])
+
+  const { startedAt, endedAt } = tripInfo
 
   const formatDateToDot = (dateObj) => {
     const year = dateObj.getFullYear()
@@ -66,12 +68,20 @@ const DayTabs = ({ startedAt, endedAt }) => {
       <div className='mt-4 flex flex-col gap-3'>
         {activeTab === 0
           ? dates.map((d, i) => (
-              <DateBox key={i} date={formatDateToDot(d)} dayIndex={i + 1} />
+              <DateBox
+                key={i}
+                date={formatDateToDot(d)}
+                dayIndex={i + 1}
+                totalDay={dates.length}
+                tripInfo={tripInfo}
+              />
             ))
           : dates[activeTab - 1] && (
               <DateBox
                 date={formatDateToDot(dates[activeTab - 1])}
                 dayIndex={activeTab}
+                totalDay={dates.length}
+                tripInfo={tripInfo}
               />
             )}
       </div>

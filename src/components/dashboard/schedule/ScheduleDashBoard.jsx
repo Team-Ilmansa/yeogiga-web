@@ -21,8 +21,7 @@ const ScheduleDashBoard = () => {
     fetchTrip()
   }, [tripId])
 
-  if (tripInfo?.startedAt)
-    return <DayTabs startedAt={tripInfo.startedAt} endedAt={tripInfo.endedAt} />
+  if (tripInfo?.startedAt) return <DayTabs tripInfo={tripInfo} />
   else {
     return (
       <div className='mt-30 flex w-full flex-col items-center justify-center gap-5'>
