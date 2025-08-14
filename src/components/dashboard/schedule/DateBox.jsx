@@ -154,7 +154,7 @@ const DateBox = ({ date, dayIndex, totalDay, tripInfo }) => {
   /**버튼 하단 고정을 위한 컴포넌트 */
   const FixedActionBar = ({ children }) => {
     return createPortal(
-      <div className='fixed inset-x-0 bottom-0 z-50'>{children}</div>,
+      <div className='fixed inset-x-0 bottom-0 z-10'>{children}</div>,
       document.body,
     )
   }
