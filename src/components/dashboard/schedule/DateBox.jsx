@@ -18,7 +18,6 @@ import {
 } from '@dnd-kit/sortable'
 import SortablePlaceItem from './SortablePlaceItem'
 import updatePlaceOrderApi from '@/apis/dashboard/updatePlaceOrderApi'
-import { createPortal } from 'react-dom'
 import deleteDatePlaceApi from '@/apis/dashboard/deleteDatePlaceApi'
 import recommendDatePlaceOrderApi from '@/apis/dashboard/recommendDatePlaceOrderApi'
 import confirmTripPlaceApi from '@/apis/dashboard/confirmTripPlaceApi'
@@ -140,25 +139,6 @@ const DateBox = ({ date, dayIndex, totalDay, tripInfo }) => {
     }
   }
 
-  /**일정 확정 API 호출 */
-  const handleConfirmPlace = async () => {
-    const body = { lastDay: totalDay }
-    try {
-      const result = await confirmTripPlaceApi(tripId, body)
-      console.log(result)
-    } catch (err) {
-      alert(err.message)
-    }
-  }
-
-  /**버튼 하단 고정을 위한 컴포넌트 */
-  const FixedActionBar = ({ children }) => {
-    return createPortal(
-      <div className='fixed inset-x-0 bottom-0 z-10'>{children}</div>,
-      document.body,
-    )
-  }
-
   return (
     <div className='no-swipe-zone w-full rounded-[20px] border border-gray-300 bg-white px-4 py-3 drop-shadow'>
       <div
@@ -253,22 +233,6 @@ const DateBox = ({ date, dayIndex, totalDay, tripInfo }) => {
           </div>,
           document.body,
         )}
-
-      {/* 일정 확정 버튼 */}
-      {tripInfo.status === 'SETTING' && (
-        <FixedActionBar>
-          <div className='fixed bottom-0 left-0 flex w-full flex-col items-center gap-[20px]'>
-            <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
-              <button
-                onClick={handleConfirmPlace}
-                className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
-              >
-                여행 일정 확정하기
-              </button>
-            </div>
-          </div>
-        </FixedActionBar>
-      )}
     </div>
   )
 }
