@@ -20,10 +20,9 @@ import SortablePlaceItem from './SortablePlaceItem'
 import updatePlaceOrderApi from '@/apis/dashboard/updatePlaceOrderApi'
 import deleteDatePlaceApi from '@/apis/dashboard/deleteDatePlaceApi'
 import recommendDatePlaceOrderApi from '@/apis/dashboard/recommendDatePlaceOrderApi'
-import confirmTripPlaceApi from '@/apis/dashboard/confirmTripPlaceApi'
 
 /**일자별 일정 박스 */
-const DateBox = ({ date, dayIndex, totalDay, tripInfo }) => {
+const DateBox = ({ date, dayIndex, tripInfo }) => {
   /**토글 여부 */
   const [isOpen, setIsOpen] = useState(false)
   /**일차별 장소 */

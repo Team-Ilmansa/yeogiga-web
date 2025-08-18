@@ -3,11 +3,14 @@ import DateBox from './DateBox'
 import { createPortal } from 'react-dom'
 import PlusCalendar from '@/assets/map/PlusCalendar'
 import NoticeIcon from '@/assets/dashboard/NoticeIcon'
+import confirmTripPlaceApi from '@/apis/dashboard/confirmTripPlaceApi'
+import { useParams } from 'react-router-dom'
 
 const DayTabs = ({ tripInfo }) => {
   const [activeTab, setActiveTab] = useState(0)
   const [dates, setDates] = useState([])
 
+  const { tripId } = useParams()
   const { startedAt, endedAt } = tripInfo
 
   const formatDateToDot = (dateObj) => {
@@ -48,10 +51,10 @@ const DayTabs = ({ tripInfo }) => {
 
   /**일정 확정 API 호출 */
   const handleConfirmPlace = async () => {
-    const body = { lastDay: totalDay }
+    const body = { lastDay: dates.length }
     try {
       const result = await confirmTripPlaceApi(tripId, body)
-      console.log(result)
+      window.location.reload()
     } catch (err) {
       alert(err.message)
     }
@@ -94,7 +97,6 @@ const DayTabs = ({ tripInfo }) => {
                 key={i}
                 date={formatDateToDot(d)}
                 dayIndex={i + 1}
-                totalDay={dates.length}
                 tripInfo={tripInfo}
               />
             ))
@@ -102,7 +104,6 @@ const DayTabs = ({ tripInfo }) => {
               <DateBox
                 date={formatDateToDot(dates[activeTab - 1])}
                 dayIndex={activeTab}
-                totalDay={dates.length}
                 tripInfo={tripInfo}
               />
             )}
