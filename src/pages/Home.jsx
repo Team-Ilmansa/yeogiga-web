@@ -91,7 +91,7 @@ const Home = () => {
     const fetchTrip = async () => {
       try {
         const result = await readTripApi()
-        setTrips(result)
+        setTrips(result.data)
       } catch (err) {
         alert(err.message)
       }
@@ -165,8 +165,12 @@ const Home = () => {
           {Array.isArray(trips) && trips.length > 0 ? (
             trips.map((trip) => (
               <div key={trip.tripId} className='mb-4 border-b pb-2'>
-                <h3 className='text-xl font-bold'>{trip.title}</h3>
-                <p>도시: {trip.city}</p>
+                <h3
+                  className='cursor-pointer text-xl font-bold'
+                  onClick={() => navigate(`trip/${trip.tripId}`)}
+                >
+                  {trip.title}
+                </h3>
                 <p>여행 상태: {trip.status}</p>
                 <p>
                   기간: {new Date(trip.startedAt).toLocaleDateString()} ~{' '}
