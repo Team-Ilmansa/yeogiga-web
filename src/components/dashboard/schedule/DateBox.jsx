@@ -20,10 +20,9 @@ import SortablePlaceItem from './SortablePlaceItem'
 import updatePlaceOrderApi from '@/apis/dashboard/updatePlaceOrderApi'
 import deleteDatePlaceApi from '@/apis/dashboard/deleteDatePlaceApi'
 import recommendDatePlaceOrderApi from '@/apis/dashboard/recommendDatePlaceOrderApi'
-import confirmTripPlaceApi from '@/apis/dashboard/confirmTripPlaceApi'
 
 /**일자별 일정 박스 */
-const DateBox = ({ date, dayIndex, totalDay, tripInfo }) => {
+const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect }) => {
   /**토글 여부 */
   const [isOpen, setIsOpen] = useState(false)
   /**일차별 장소 */
@@ -40,7 +39,9 @@ const DateBox = ({ date, dayIndex, totalDay, tripInfo }) => {
   const navigate = useNavigate()
   const { tripId } = useParams()
 
-  const toggleOpen = () => setIsOpen((prev) => !prev)
+  const toggleOpen = () => {
+    setIsOpen((prev) => !prev)
+  }
 
   /**일자별 담은 장소 불러오기 */
   const fetchDatePlaces = async () => {
@@ -140,7 +141,10 @@ const DateBox = ({ date, dayIndex, totalDay, tripInfo }) => {
   }
 
   return (
-    <div className='no-swipe-zone w-full rounded-[20px] border border-gray-300 bg-white px-4 py-3 drop-shadow'>
+    <div
+      className={`no-swipe-zone w-full rounded-[20px] border bg-white px-4 py-3 drop-shadow ${selected ? 'border-[var(--Blue-Scale-blue-500)]' : 'border-gray-300'}`}
+      onClick={onSelect}
+    >
       <div
         className='flex cursor-pointer items-center justify-between'
         onClick={toggleOpen}
@@ -158,11 +162,10 @@ const DateBox = ({ date, dayIndex, totalDay, tripInfo }) => {
           />
         )}
       </div>
-
       {isOpen && (
-        <div className='mt-[5px] flex flex-col justify-center px-5 pt-5'>
+        <div className='mt-[5px] flex flex-col justify-center px-5'>
           {places.length > 0 ? (
-            <>
+            <div className='pt-5'>
               <DndContext
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
@@ -183,36 +186,37 @@ const DateBox = ({ date, dayIndex, totalDay, tripInfo }) => {
                   </ul>
                 </SortableContext>
               </DndContext>
-            </>
+            </div>
           ) : (
             <div className='text-center text-base text-gray-400'>
               아직 예정된 일정이 없어요
             </div>
           )}
 
-          {places.length > 0 ? (
-            <div className='mt-2 flex w-full justify-around py-5'>
+          {tripInfo.status === 'SETTING' &&
+            (places.length > 0 ? (
+              <div className='mt-2 flex w-full justify-around pt-5'>
+                <div
+                  onClick={() => navigate(`map/${dayIndex}`)}
+                  className='cursor-pointer text-center text-base text-[var(--Blue-Scale-blue-500)]'
+                >
+                  + 일정 담으러 가기
+                </div>
+                <div
+                  onClick={handleRecommend}
+                  className='cursor-pointer text-center text-base text-[var(--Blue-Scale-blue-500)]'
+                >
+                  일정 추천 받기
+                </div>
+              </div>
+            ) : (
               <div
                 onClick={() => navigate(`map/${dayIndex}`)}
-                className='cursor-pointer text-center text-base text-[var(--Blue-Scale-blue-500)]'
+                className='mt-2 cursor-pointer pt-5 text-center text-base text-[var(--Blue-Scale-blue-500)]'
               >
                 + 일정 담으러 가기
               </div>
-              <div
-                onClick={handleRecommend}
-                className='cursor-pointer text-center text-base text-[var(--Blue-Scale-blue-500)]'
-              >
-                일정 추천 받기
-              </div>
-            </div>
-          ) : (
-            <div
-              onClick={() => navigate(`map/${dayIndex}`)}
-              className='mt-2 cursor-pointer py-5 text-center text-base text-[var(--Blue-Scale-blue-500)]'
-            >
-              + 일정 담으러 가기
-            </div>
-          )}
+            ))}
         </div>
       )}
       {/* 컨텍스트 메뉴 */}

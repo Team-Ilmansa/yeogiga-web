@@ -1,14 +1,17 @@
 import api from '@/apis/api'
 import { prodBaseUrl } from '@/config/Env'
 
-/**메인 화면 내 여행 조회 API */
-const readMainTripApi = async () => {
+/**여행 확정 후 일정에 장소 추가 API */
+const addPlanningPlaceApi = async (tripId, tripDayPlaceId, body) => {
   try {
-    const response = await api.get(`${prodBaseUrl}trip/main`)
+    const response = await api.post(
+      `${prodBaseUrl}trip/${tripId}/day-place/${tripDayPlaceId}/places`,
+      body,
+    )
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {
-      throw new Error(err.response.data.message)
+      throw err.response.data
     } else if (err.response) {
       throw new Error(`오류 발생 (status: ${err.response.status})`)
     } else if (err.request) {
@@ -19,4 +22,4 @@ const readMainTripApi = async () => {
   }
 }
 
-export default readMainTripApi
+export default addPlanningPlaceApi

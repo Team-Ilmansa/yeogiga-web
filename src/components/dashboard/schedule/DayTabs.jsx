@@ -3,12 +3,18 @@ import DateBox from './DateBox'
 import { createPortal } from 'react-dom'
 import PlusCalendar from '@/assets/map/PlusCalendar'
 import NoticeIcon from '@/assets/dashboard/NoticeIcon'
+import confirmTripPlaceApi from '@/apis/dashboard/confirmTripPlaceApi'
+import { useNavigate, useParams } from 'react-router-dom'
 
 const DayTabs = ({ tripInfo }) => {
   const [activeTab, setActiveTab] = useState(0)
   const [dates, setDates] = useState([])
+  const [selectedDay, setSelectedDay] = useState(null)
 
+  const { tripId } = useParams()
   const { startedAt, endedAt } = tripInfo
+
+  const navigate = useNavigate()
 
   const formatDateToDot = (dateObj) => {
     const year = dateObj.getFullYear()
@@ -48,10 +54,10 @@ const DayTabs = ({ tripInfo }) => {
 
   /**일정 확정 API 호출 */
   const handleConfirmPlace = async () => {
-    const body = { lastDay: totalDay }
+    const body = { lastDay: dates.length }
     try {
       const result = await confirmTripPlaceApi(tripId, body)
-      console.log(result)
+      window.location.reload()
     } catch (err) {
       alert(err.message)
     }
@@ -94,15 +100,15 @@ const DayTabs = ({ tripInfo }) => {
                 key={i}
                 date={formatDateToDot(d)}
                 dayIndex={i + 1}
-                totalDay={dates.length}
                 tripInfo={tripInfo}
+                selected={selectedDay === i}
+                onSelect={() => setSelectedDay(i)}
               />
             ))
           : dates[activeTab - 1] && (
               <DateBox
                 date={formatDateToDot(dates[activeTab - 1])}
                 dayIndex={activeTab}
-                totalDay={dates.length}
                 tripInfo={tripInfo}
               />
             )}
@@ -126,7 +132,10 @@ const DayTabs = ({ tripInfo }) => {
         <FixedActionBar>
           <div className='fixed bottom-0 left-0 flex w-full justify-center'>
             <div className='flex w-4xl items-center justify-center gap-4 rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
-              <button className='flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'>
+              <button
+                className='flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                onClick={() => navigate(`map/plan/${selectedDay + 1}`)}
+              >
                 <PlusCalendar size={40} color={'white'} />
                 일정 추가하기
               </button>
