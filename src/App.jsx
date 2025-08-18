@@ -18,6 +18,7 @@ import PastNotices from './components/notice/PastNotices'
 import PlaceMap from './pages/PlaceMap'
 import RestoreAccount from './pages/RestoreAccount'
 import GuestSignUp from './components/sign-up/GuestSignUp'
+import PlanningPlaceMap from './pages/PlanningPlaceMap'
 
 const App = () => {
   return (
@@ -51,6 +52,7 @@ const App = () => {
                 {/* 지난 여행 전체보기 페이지 */}
                 <Route path='past/notices' element={<PastNotices />} />
                 <Route path='map/:day' element={<PlaceMap />} />
+                <Route path='map/plan/:day' element={<PlanningPlaceMap />} />
               </Route>
             </Route>
           </Routes>

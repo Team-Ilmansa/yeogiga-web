@@ -108,7 +108,7 @@ const TripConfirmCalendar = ({ tripInfo }) => {
       })
 
       alert('날짜가 확정되었습니다!')
-      navigate(`/trip/${tripInfo.tripId}/dashboard`)
+      navigate(`/trip/${tripInfo.tripId}`)
     } catch (err) {
       alert(err.message)
     }

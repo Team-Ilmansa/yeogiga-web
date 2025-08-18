@@ -1,9 +1,20 @@
 import { useEffect, useState } from 'react'
 import DateBox from './DateBox'
+import { createPortal } from 'react-dom'
+import PlusCalendar from '@/assets/map/PlusCalendar'
+import NoticeIcon from '@/assets/dashboard/NoticeIcon'
+import confirmTripPlaceApi from '@/apis/dashboard/confirmTripPlaceApi'
+import { useNavigate, useParams } from 'react-router-dom'
 
-const DayTabs = ({ startedAt, endedAt }) => {
+const DayTabs = ({ tripInfo }) => {
   const [activeTab, setActiveTab] = useState(0)
   const [dates, setDates] = useState([])
+  const [selectedDay, setSelectedDay] = useState(null)
+
+  const { tripId } = useParams()
+  const { startedAt, endedAt } = tripInfo
+
+  const navigate = useNavigate()
 
   const formatDateToDot = (dateObj) => {
     const year = dateObj.getFullYear()
@@ -31,6 +42,25 @@ const DayTabs = ({ startedAt, endedAt }) => {
 
   const handleTabClick = (index) => {
     setActiveTab(index)
+  }
+
+  /**버튼 하단 고정을 위한 컴포넌트 */
+  const FixedActionBar = ({ children }) => {
+    return createPortal(
+      <div className='fixed inset-x-0 bottom-0 z-10'>{children}</div>,
+      document.body,
+    )
+  }
+
+  /**일정 확정 API 호출 */
+  const handleConfirmPlace = async () => {
+    const body = { lastDay: dates.length }
+    try {
+      const result = await confirmTripPlaceApi(tripId, body)
+      window.location.reload()
+    } catch (err) {
+      alert(err.message)
+    }
   }
 
   return (
@@ -66,15 +96,57 @@ const DayTabs = ({ startedAt, endedAt }) => {
       <div className='mt-4 flex flex-col gap-3'>
         {activeTab === 0
           ? dates.map((d, i) => (
-              <DateBox key={i} date={formatDateToDot(d)} dayIndex={i + 1} />
+              <DateBox
+                key={i}
+                date={formatDateToDot(d)}
+                dayIndex={i + 1}
+                tripInfo={tripInfo}
+                selected={selectedDay === i}
+                onSelect={() => setSelectedDay(i)}
+              />
             ))
           : dates[activeTab - 1] && (
               <DateBox
                 date={formatDateToDot(dates[activeTab - 1])}
                 dayIndex={activeTab}
+                tripInfo={tripInfo}
               />
             )}
       </div>
+
+      {/* 일정 확정 버튼 */}
+      {tripInfo.status === 'SETTING' ? (
+        <FixedActionBar>
+          <div className='fixed bottom-0 left-0 flex w-full justify-center'>
+            <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
+              <button
+                onClick={handleConfirmPlace}
+                className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+              >
+                여행 일정 확정하기
+              </button>
+            </div>
+          </div>
+        </FixedActionBar>
+      ) : (
+        <FixedActionBar>
+          <div className='fixed bottom-0 left-0 flex w-full justify-center'>
+            <div className='flex w-4xl items-center justify-center gap-4 rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
+              <button
+                className='flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                onClick={() => navigate(`map/plan/${selectedDay + 1}`)}
+              >
+                <PlusCalendar size={40} color={'white'} />
+                일정 추가하기
+              </button>
+              <button className='flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'>
+                <NoticeIcon size={40} color={'white'} />
+                공지하기
+              </button>
+            </div>
+          </div>
+        </FixedActionBar>
+      )}
     </div>
   )
 }
