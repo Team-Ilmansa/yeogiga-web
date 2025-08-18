@@ -21,9 +21,22 @@ const NaverRedirect = () => {
   const fetchNaverAccessToken = async (code) => {
     try {
       const response = await oauthSignInApi('NAVER', code)
+
+      const accessToken = response.data.token.accessToken
+      const shouldSignup = response.data.shouldSignup === true
+
       localStorage.setItem('provider', 'NAVER')
-      login({ token: response.data.token.accessToken })
-      navigate('/')
+
+      if (accessToken) {
+        login({ token: accessToken })
+      }
+
+      /**최초 소셜 회원가입 시 게스트 회원등록 페이지로 이동 */
+      if (shouldSignup) {
+        navigate('signup/guest')
+      } else {
+        navigate('/')
+      }
     } catch (error) {
       const errRes = error.response?.data
       /**탈퇴 계정 로그인 시 복구 페이지로 이동 */

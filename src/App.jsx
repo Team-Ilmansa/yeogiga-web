@@ -17,6 +17,7 @@ import CreateNotices from './components/notice/CreateNotices'
 import PastNotices from './components/notice/PastNotices'
 import PlaceMap from './pages/PlaceMap'
 import RestoreAccount from './pages/RestoreAccount'
+import GuestSignUp from './components/sign-up/GuestSignUp'
 import PlanningPlaceMap from './pages/PlanningPlaceMap'
 
 const App = () => {
@@ -30,6 +31,7 @@ const App = () => {
             <Route path='signup' element={<SignUp />} />
             <Route path='oauth/kakao/callback' element={<KakaoRedirect />} />
             <Route path='oauth/naver/callback' element={<NaverRedirect />} />
+            <Route path='signup/guest' element={<GuestSignUp />} />
             {/* TODO: 추후 페이지 변경 예정 */}
             <Route path='restore/account' element={<RestoreAccount />} />
 
