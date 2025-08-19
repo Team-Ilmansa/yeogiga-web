@@ -93,7 +93,7 @@ const GuestSignUp = () => {
       {stepComponentMap[step]}
       {/**다음 단계 버튼 */}
       <div className='fixed bottom-0 left-0 flex w-full flex-col items-center gap-[20px]'>
-        {step < 3 && <StepIndicator step={step} />}
+        {step < 3 && <StepIndicator step={step} totalSteps={3} />}
         <div className='flex w-4xl items-center justify-center rounded-t-[20px] p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
           <button
             onClick={handleStepButton}
