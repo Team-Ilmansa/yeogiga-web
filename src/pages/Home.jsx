@@ -86,12 +86,12 @@ const Home = () => {
     setIsReadMainTripListOpen((prev) => !prev)
   }
 
-  /**사용자가 속한 여행 조회 APU 호출 */
+  /**사용자가 속한 여행 조회 API 호출 */
   useEffect(() => {
     const fetchTrip = async () => {
       try {
         const result = await readTripApi()
-        setTrips(result.data)
+        setTrips(result.data.content)
       } catch (err) {
         alert(err.message)
       }
