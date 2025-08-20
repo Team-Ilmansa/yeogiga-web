@@ -2,7 +2,6 @@ import ArrowUp from '@/assets/dashboard/ArrowUp'
 import ArrowDown from '@/assets/dashboard/ArrowDown'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import readDatePlaceApi from '@/apis/dashboard/readDatePlaceApi'
 import {
   DndContext,
   MouseSensor,
@@ -17,12 +16,19 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import SortablePlaceItem from './SortablePlaceItem'
-import updatePlaceOrderApi from '@/apis/dashboard/updatePlaceOrderApi'
-import deleteDatePlaceApi from '@/apis/dashboard/deleteDatePlaceApi'
-import recommendDatePlaceOrderApi from '@/apis/dashboard/recommendDatePlaceOrderApi'
+import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
+import updatePlanningPlaceOrderApi from '@/apis/planning-dashboard/updatePlaceOrderApi'
+import deletePlanningDatePlaceApi from '@/apis/planning-dashboard/deletePlanningDatePlaceApi'
 
-/**일자별 일정 박스 */
-const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect }) => {
+/**확정 후 일자별 일정 박스 */
+const PlanningDateBox = ({
+  date,
+  dayIndex,
+  tripInfo,
+  selected,
+  onSelect,
+  planningPlaces,
+}) => {
   /**토글 여부 */
   const [isOpen, setIsOpen] = useState(false)
   /**일차별 장소 */
@@ -39,23 +45,13 @@ const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect }) => {
   const navigate = useNavigate()
   const { tripId } = useParams()
 
+  useEffect(() => {
+    setPlaces(planningPlaces?.places)
+  }, [planningPlaces])
+
   const toggleOpen = () => {
     setIsOpen((prev) => !prev)
   }
-
-  /**일자별 담은 장소 불러오기 */
-  const fetchDatePlaces = async () => {
-    try {
-      const result = await readDatePlaceApi(tripId, dayIndex)
-      setPlaces(result.data)
-    } catch (err) {
-      alert(err.message)
-    }
-  }
-
-  useEffect(() => {
-    fetchDatePlaces()
-  }, [dayIndex, tripId])
 
   /**우클릭으로 삭제 메뉴 열기 */
   const handleContextMenu = (e, place) => {
@@ -97,7 +93,7 @@ const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect }) => {
     setPlaces(next)
 
     try {
-      deleteDatePlaceApi(tripId, dayIndex, ctxMenu.placeId)
+      deletePlanningDatePlaceApi(tripId, dayIndex, ctxMenu.placeId)
     } catch (err) {
       alert(err.message)
       setPlaces(prev) // 롤백
@@ -122,21 +118,11 @@ const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect }) => {
     }
 
     try {
-      await updatePlaceOrderApi(tripId, dayIndex, body)
+      await updatePlanningPlaceOrderApi(tripId, dayIndex, body)
     } catch (err) {
       alert(err.message)
       // 실패할 경우 롤백
       setPlaces(prev)
-    }
-  }
-
-  /**일정 추천받기 함수 */
-  const handleRecommend = async () => {
-    try {
-      const result = await recommendDatePlaceOrderApi(tripId, dayIndex)
-      fetchDatePlaces()
-    } catch (err) {
-      alert(err.message)
     }
   }
 
@@ -192,30 +178,6 @@ const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect }) => {
               아직 예정된 일정이 없어요
             </div>
           )}
-
-          {places.length > 0 ? (
-            <div className='mt-2 flex w-full justify-around pt-5'>
-              <div
-                onClick={() => navigate(`map/${dayIndex}`)}
-                className='cursor-pointer text-center text-base text-[var(--Blue-Scale-blue-500)]'
-              >
-                + 일정 담으러 가기
-              </div>
-              <div
-                onClick={handleRecommend}
-                className='cursor-pointer text-center text-base text-[var(--Blue-Scale-blue-500)]'
-              >
-                일정 추천 받기
-              </div>
-            </div>
-          ) : (
-            <div
-              onClick={() => navigate(`map/${dayIndex}`)}
-              className='mt-2 cursor-pointer pt-5 text-center text-base text-[var(--Blue-Scale-blue-500)]'
-            >
-              + 일정 담으러 가기
-            </div>
-          )}
         </div>
       )}
       {/* 컨텍스트 메뉴 */}
@@ -240,4 +202,4 @@ const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect }) => {
   )
 }
 
-export default DateBox
+export default PlanningDateBox
