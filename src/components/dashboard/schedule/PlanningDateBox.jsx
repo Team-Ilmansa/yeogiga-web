@@ -19,6 +19,7 @@ import SortablePlaceItem from './SortablePlaceItem'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
 import updatePlanningPlaceOrderApi from '@/apis/planning-dashboard/updatePlaceOrderApi'
 import deletePlanningDatePlaceApi from '@/apis/planning-dashboard/deletePlanningDatePlaceApi'
+import { createPortal } from 'react-dom'
 
 /**확정 후 일자별 일정 박스 */
 const PlanningDateBox = ({
@@ -93,7 +94,7 @@ const PlanningDateBox = ({
     setPlaces(next)
 
     try {
-      deletePlanningDatePlaceApi(tripId, dayIndex, ctxMenu.placeId)
+      deletePlanningDatePlaceApi(tripId, planningPlaces.id, ctxMenu.placeId)
     } catch (err) {
       alert(err.message)
       setPlaces(prev) // 롤백
@@ -118,7 +119,7 @@ const PlanningDateBox = ({
     }
 
     try {
-      await updatePlanningPlaceOrderApi(tripId, dayIndex, body)
+      await updatePlanningPlaceOrderApi(tripId, planningPlaces.id, body)
     } catch (err) {
       alert(err.message)
       // 실패할 경우 롤백
