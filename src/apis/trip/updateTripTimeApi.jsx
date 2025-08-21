@@ -1,10 +1,9 @@
 import api from '@/apis/api'
-import { prodBaseUrl } from '@/config/Env'
 
 /**여행 시간 수정 API */
 const updateTripTimeApi = async (tripId, body) => {
   try {
-    const response = await api.put(`${prodBaseUrl}trip/${tripId}/time`, body)
+    const response = await api.put(`trip/${tripId}/time`, body)
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {

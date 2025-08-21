@@ -1,10 +1,9 @@
 import api from '@/apis/api'
-import { prodBaseUrl } from '@/config/Env'
 
 /**장소 키워드 검색 API */
 const searchPlaceApi = async (keyword) => {
   try {
-    const response = await api.get(`${prodBaseUrl}places/search`, {
+    const response = await api.get(`places/search`, {
       params: {
         place: keyword,
       },

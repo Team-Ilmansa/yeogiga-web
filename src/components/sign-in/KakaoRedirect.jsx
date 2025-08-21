@@ -50,7 +50,7 @@ const KakaoRedirect = () => {
         })
       } else {
         alert(`로그인 실패: ${errRes?.message || err.message}`)
-        console.error('로그인 에러: ', err)
+        console.error('로그인 에러: ', error)
       }
     }
   }
