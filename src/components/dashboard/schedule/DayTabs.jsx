@@ -5,11 +5,14 @@ import PlusCalendar from '@/assets/map/PlusCalendar'
 import NoticeIcon from '@/assets/dashboard/NoticeIcon'
 import confirmTripPlaceApi from '@/apis/dashboard/confirmTripPlaceApi'
 import { useNavigate, useParams } from 'react-router-dom'
+import PlanningDateBox from './PlanningDateBox'
+import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
 
 const DayTabs = ({ tripInfo }) => {
   const [activeTab, setActiveTab] = useState(0)
   const [dates, setDates] = useState([])
   const [selectedDay, setSelectedDay] = useState(null)
+  const [planningPlaces, setPlanningPlaces] = useState([])
 
   const { tripId } = useParams()
   const { startedAt, endedAt } = tripInfo
@@ -39,6 +42,21 @@ const DayTabs = ({ tripInfo }) => {
 
     setDates(tempDates)
   }, [startedAt, endedAt])
+
+  /**확정 후 전체 일정 불러오기 */
+  const fetchPlanningPlaces = async () => {
+    try {
+      const result = await readPlanningDatePlaceApi(tripId)
+      setPlanningPlaces(result.data)
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  useEffect(() => {
+    if (tripInfo.status === 'SETTING') return
+    fetchPlanningPlaces()
+  }, [tripId])
 
   const handleTabClick = (index) => {
     setActiveTab(index)
@@ -94,24 +112,45 @@ const DayTabs = ({ tripInfo }) => {
       </div>
 
       <div className='mt-4 flex flex-col gap-3'>
-        {activeTab === 0
-          ? dates.map((d, i) => (
-              <DateBox
-                key={i}
-                date={formatDateToDot(d)}
-                dayIndex={i + 1}
-                tripInfo={tripInfo}
-                selected={selectedDay === i}
-                onSelect={() => setSelectedDay(i)}
-              />
-            ))
-          : dates[activeTab - 1] && (
-              <DateBox
-                date={formatDateToDot(dates[activeTab - 1])}
-                dayIndex={activeTab}
-                tripInfo={tripInfo}
-              />
-            )}
+        {tripInfo.status === 'SETTING'
+          ? activeTab === 0
+            ? dates.map((d, i) => (
+                <DateBox
+                  key={i}
+                  date={formatDateToDot(d)}
+                  dayIndex={i + 1}
+                  tripInfo={tripInfo}
+                  selected={selectedDay === i}
+                  onSelect={() => setSelectedDay(i)}
+                />
+              ))
+            : dates[activeTab - 1] && (
+                <DateBox
+                  date={formatDateToDot(dates[activeTab - 1])}
+                  dayIndex={activeTab}
+                  tripInfo={tripInfo}
+                />
+              )
+          : activeTab === 0
+            ? dates.map((d, i) => (
+                <PlanningDateBox
+                  key={i}
+                  date={formatDateToDot(d)}
+                  dayIndex={i + 1}
+                  tripInfo={tripInfo}
+                  selected={selectedDay === i}
+                  onSelect={() => setSelectedDay(i)}
+                  planningPlaces={planningPlaces[i]}
+                />
+              ))
+            : dates[activeTab - 1] && (
+                <PlanningDateBox
+                  date={formatDateToDot(dates[activeTab - 1])}
+                  dayIndex={activeTab}
+                  tripInfo={tripInfo}
+                  planningPlaces={planningPlaces[activeTab - 1]}
+                />
+              )}
       </div>
 
       {/* 일정 확정 버튼 */}
