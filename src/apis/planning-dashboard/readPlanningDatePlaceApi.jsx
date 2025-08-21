@@ -1,5 +1,4 @@
 import api from '@/apis/api'
-import { prodBaseUrl } from '@/config/Env'
 
 /**확정 후 일정 조회 API */
 const readPlanningDatePlaceApi = async (tripId) => {

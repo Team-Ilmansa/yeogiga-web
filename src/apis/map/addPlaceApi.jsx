@@ -1,5 +1,4 @@
 import api from '@/apis/api'
-import { prodBaseUrl } from '@/config/Env'
 
 /**일정에 장소 추가 API */
 const addPlaceApi = async (tripId, day, body) => {
