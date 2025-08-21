@@ -173,7 +173,9 @@ const DayTabs = ({ tripInfo }) => {
             <div className='flex w-4xl items-center justify-center gap-4 rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
               <button
                 className='flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
-                onClick={() => navigate(`map/plan/${selectedDay + 1}`)}
+                onClick={() =>
+                  navigate(`map/plan/${planningPlaces[selectedDay].id}`)
+                }
               >
                 <PlusCalendar size={40} color={'white'} />
                 일정 추가하기
