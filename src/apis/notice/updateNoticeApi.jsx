@@ -1,13 +1,9 @@
 import api from '@/apis/api'
-import { prodBaseUrl } from '@/config/Env'
 
 /**공지사항 수정 API */
 const updateNoticeApi = async (tripId, noticeId, body) => {
   try {
-    const response = await api.put(
-      `${prodBaseUrl}trip/${tripId}/notices/${noticeId}`,
-      body,
-    )
+    const response = await api.put(`trip/${tripId}/notices/${noticeId}`, body)
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {

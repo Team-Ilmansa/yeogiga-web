@@ -1,11 +1,10 @@
 import api from '@/apis/api'
-import { prodBaseUrl } from '@/config/Env'
 
 /**여행 확정 후 일정에 장소 추가 API */
 const addPlanningPlaceApi = async (tripId, tripDayPlaceId, body) => {
   try {
     const response = await api.post(
-      `${prodBaseUrl}trip/${tripId}/day-place/${tripDayPlaceId}/places`,
+      `trip/${tripId}/day-place/${tripDayPlaceId}/places`,
       body,
     )
     return response.data
