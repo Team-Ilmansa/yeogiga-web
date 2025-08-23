@@ -33,7 +33,7 @@ const NaverRedirect = () => {
 
       /**최초 소셜 회원가입 시 게스트 회원등록 페이지로 이동 */
       if (shouldSignup) {
-        navigate('signup/guest')
+        navigate('/signup/guest')
       } else {
         navigate('/')
       }

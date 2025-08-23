@@ -1,8 +1,8 @@
 /**회원가입 절차 표시 */
-const StepIndicator = ({ step }) => {
+const StepIndicator = ({ step, totalSteps }) => {
   return (
     <div className='flex gap-5'>
-      {[1, 2, 3, 4].map((s) => (
+      {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
         <div
           key={s}
           className={`h-4 w-4 rounded-full ${

@@ -1,13 +1,12 @@
 import api from '@/apis/api'
 
-/**장소 키워드 검색 API */
-const searchPlaceApi = async (keyword) => {
+/**확정 후 일자별 목적지 순서 변경 API */
+const updatePlanningPlaceOrderApi = async (tripId, tripDayPlaceId, body) => {
   try {
-    const response = await api.get(`places/search`, {
-      params: {
-        place: keyword,
-      },
-    })
+    const response = await api.put(
+      `trip/${tripId}/day-place/${tripDayPlaceId}/places/order`,
+      body,
+    )
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {
@@ -22,4 +21,4 @@ const searchPlaceApi = async (keyword) => {
   }
 }
 
-export default searchPlaceApi
+export default updatePlanningPlaceOrderApi

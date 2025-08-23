@@ -1,13 +1,9 @@
 import api from '@/apis/api'
-import { prodBaseUrl } from '@/config/Env'
 
 /**여행 일정 확정 API */
 const confirmTripPlaceApi = async (tripId, body) => {
   try {
-    const response = await api.post(
-      `${prodBaseUrl}trip/${tripId}/complete`,
-      body,
-    )
+    const response = await api.post(`trip/${tripId}/complete`, body)
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {

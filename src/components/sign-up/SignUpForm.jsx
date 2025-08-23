@@ -103,7 +103,7 @@ const SignUpForm = () => {
 
       {/* 다음 단계 버튼 */}
       <div className='fixed bottom-0 left-0 flex w-full flex-col items-center gap-[20px]'>
-        {step < 5 && <StepIndicator step={step} />}
+        {step < 5 && <StepIndicator step={step} totalSteps={4} />}
         <div className='flex w-4xl items-center justify-center rounded-t-[20px] p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
           {/* 1, 2단게 인증 완료 시 활성화
           TODO: 나머지 단계에도 적용 */}

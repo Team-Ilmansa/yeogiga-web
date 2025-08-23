@@ -1,10 +1,9 @@
 import api from '@/apis/api'
-import { prodBaseUrl } from '@/config/Env'
 
 /**메인 화면 내 여행 조회 API */
 const readMainTripApi = async () => {
   try {
-    const response = await api.get(`${prodBaseUrl}trip/main`)
+    const response = await api.get(`trip/main`)
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {

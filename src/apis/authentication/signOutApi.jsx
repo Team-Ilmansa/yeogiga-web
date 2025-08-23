@@ -1,9 +1,10 @@
 import api from '@/apis/api'
+import { localBaseUrl } from '@/config/Env'
 
 /**로그아웃 API */
 const signOutApi = async () => {
   try {
-    const response = await api.get('auth/sign-out', {
+    const response = await api.get(`${localBaseUrl}auth/sign-out`, {
       headers: { device: 'WEB' },
     })
     return response.data

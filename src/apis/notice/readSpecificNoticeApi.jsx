@@ -1,12 +1,9 @@
 import api from '@/apis/api'
-import { prodBaseUrl } from '@/config/Env'
 
 /**특정 공지사항 조회 API */
 const readSpecificNoticeApi = async (tripId, noticeId) => {
   try {
-    const response = await api.get(
-      `${prodBaseUrl}trip/${tripId}/notices/${noticeId}`,
-    )
+    const response = await api.get(`trip/${tripId}/notices/${noticeId}`)
     return response.data
   } catch (err) {
     if (err.response?.data?.message) {

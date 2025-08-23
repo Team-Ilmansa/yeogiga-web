@@ -1,9 +1,10 @@
 import api from '@/apis/api'
+import { localBaseUrl } from '@/config/Env'
 
 /**Access Token 재발급 API */
 const reissueAccessTokenApi = async () => {
   try {
-    const response = await api.get('/auth/reissue', {
+    const response = await api.get(`${localBaseUrl}auth/reissue`, {
       headers: { device: 'WEB' },
     })
     return response.data
