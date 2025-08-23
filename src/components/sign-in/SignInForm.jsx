@@ -41,6 +41,8 @@ const SignInForm = () => {
           state: {
             userId: errRes.data.userId,
             deletionDate: errRes.data.deletionExpiration,
+            nickname: errRes.data.nickname,
+            imageUrl: errRes.data.imageUrl,
           },
         })
       } else {
