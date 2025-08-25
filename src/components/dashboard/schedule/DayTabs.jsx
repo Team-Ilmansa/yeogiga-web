@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 import DateBox from './DateBox'
-import { createPortal } from 'react-dom'
 import PlusCalendar from '@/assets/map/PlusCalendar'
 import NoticeIcon from '@/assets/dashboard/NoticeIcon'
 import confirmTripPlaceApi from '@/apis/dashboard/confirmTripPlaceApi'
 import { useNavigate, useParams } from 'react-router-dom'
+import FixedActionBar from '@/components/common/FixedActionBar'
 import PlanningDateBox from './PlanningDateBox'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
-
 const DayTabs = ({ tripInfo }) => {
   const [activeTab, setActiveTab] = useState(0)
   const [dates, setDates] = useState([])
@@ -60,14 +59,6 @@ const DayTabs = ({ tripInfo }) => {
 
   const handleTabClick = (index) => {
     setActiveTab(index)
-  }
-
-  /**버튼 하단 고정을 위한 컴포넌트 */
-  const FixedActionBar = ({ children }) => {
-    return createPortal(
-      <div className='fixed inset-x-0 bottom-0 z-10'>{children}</div>,
-      document.body,
-    )
   }
 
   /**일정 확정 API 호출 */
