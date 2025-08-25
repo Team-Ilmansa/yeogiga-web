@@ -12,6 +12,8 @@ import TrendingPlaces from '@/components/home/TrendingPlaces'
 import useAuth from '@/hooks/useAuth'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import PlannedTrip from '@/components/home/PlannedTrip'
+import PlannedTripSlide from '@/components/home/utils/PlannedTripSlide'
 
 const Home = () => {
   const { user, logout } = useAuth()
@@ -107,7 +109,7 @@ const Home = () => {
   return (
     <div className='flex w-full flex-col gap-15 bg-[var(--Grey-Scale-grey-50)] pt-10 pb-50 pl-10'>
       <HomeTitle user={user} />
-      {/* TODO: PLANNED or PROGRESSED 여행 존재 시 출력 */}
+      <PlannedTripSlide settingTrips={settingTrips || []} />
       <RecommendedPlaces user={user} />
       <TrendingPlaces />
       <PastTrips />
