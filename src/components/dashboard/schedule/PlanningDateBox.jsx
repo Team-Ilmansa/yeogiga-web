@@ -103,6 +103,7 @@ const PlanningDateBox = ({
     }
   }
 
+  /**목적지 방문 여부 체크 함수 */
   const handleVisited = async () => {
     const id = ctxMenu.placeId
     setCtxMenu((prev) => ({ ...prev, visible: false }))
