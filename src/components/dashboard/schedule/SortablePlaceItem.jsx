@@ -1,8 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { Check } from 'lucide-react'
 
 /**Drag & Drop을 적용하기 위한 컴포넌트 */
-const SortablePlaceItem = ({ id, name, onContextMenu }) => {
+const SortablePlaceItem = ({ id, place, onContextMenu }) => {
   const {
     attributes,
     listeners,
@@ -30,8 +31,17 @@ const SortablePlaceItem = ({ id, name, onContextMenu }) => {
       <div className='flex h-10 w-10 cursor-grab items-center justify-center rounded-full bg-[var(--Grey-Scale-grey-100)]'>
         C
       </div>
-      <div className='w-full rounded-2xl bg-[var(--Grey-Scale-grey-100)] p-5 text-base text-[var(--Grey-Scale-grey-300)]'>
-        {name}
+      <div
+        className={`flex w-full justify-between rounded-2xl p-5 text-base ${
+          place.isVisited
+            ? 'bg-[var(--Blue-Scale-blue-100)] text-[var(--Blue-Scale-blue-500)]'
+            : 'bg-[var(--Grey-Scale-grey-100)] text-[var(--Grey-Scale-grey-300)]'
+        }`}
+      >
+        <span>{place.name}</span>
+        {place.isVisited && (
+          <Check className='h-6 w-6 text-[var(--Blue-Scale-blue-500)]' />
+        )}
       </div>
     </li>
   )
