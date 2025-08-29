@@ -20,6 +20,7 @@ import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDate
 import updatePlanningPlaceOrderApi from '@/apis/planning-dashboard/updatePlaceOrderApi'
 import deletePlanningDatePlaceApi from '@/apis/planning-dashboard/deletePlanningDatePlaceApi'
 import { createPortal } from 'react-dom'
+import checkVisitStatusApi from '@/apis/planning-dashboard/checkVisitStatusApi'
 
 /**확정 후 일자별 일정 박스 */
 const PlanningDateBox = ({
@@ -69,6 +70,7 @@ const PlanningDateBox = ({
       y,
       placeId: place.id,
       placeName: place.name,
+      isVisited: place.isVisited,
     })
   }
 
@@ -98,6 +100,35 @@ const PlanningDateBox = ({
     } catch (err) {
       alert(err.message)
       setPlaces(prev) // 롤백
+    }
+  }
+
+  /**목적지 방문 여부 체크 함수 */
+  const handleVisited = async () => {
+    const id = ctxMenu.placeId
+    setCtxMenu((prev) => ({ ...prev, visible: false }))
+
+    const target = places.find((p) => p.id === id)
+    if (!target) return
+
+    const newVisited = !target.isVisited
+
+    const next = places.map((p) =>
+      p.id === id ? { ...p, isVisited: newVisited } : p,
+    )
+    setPlaces(next)
+
+    try {
+      const body = { isVisited: newVisited }
+
+      await checkVisitStatusApi(
+        tripId,
+        planningPlaces.id,
+        ctxMenu.placeId,
+        body,
+      )
+    } catch (err) {
+      alert(err.message)
     }
   }
 
@@ -166,7 +197,7 @@ const PlanningDateBox = ({
                       <SortablePlaceItem
                         key={place.id}
                         id={place.id}
-                        name={place.name}
+                        place={place}
                         onContextMenu={(e) => handleContextMenu(e, place)}
                       />
                     ))}
@@ -195,6 +226,13 @@ const PlanningDateBox = ({
               onClick={handleDelete}
             >
               삭제
+            </button>
+            <button
+              type='button'
+              className='block w-full rounded-lg border-none px-3 py-2 text-left text-sm hover:bg-[var(--Blue-Scale-blue-100)] hover:text-[var(--Blue-Scale-blue-500)]'
+              onClick={handleVisited}
+            >
+              {ctxMenu.isVisited ? '미완료' : '완료'}
             </button>
           </div>,
           document.body,
