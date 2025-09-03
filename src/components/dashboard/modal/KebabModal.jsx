@@ -86,7 +86,7 @@ const KebabModal = ({ onClose, onOpenUpdateModal }) => {
         />
       )}
       <div
-        className='absolute inset-0 z-50 flex items-end justify-center'
+        className='absolute inset-0 z-[60] flex items-end justify-center'
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         onClick={handleBackgroundClick}
       >
