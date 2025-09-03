@@ -22,7 +22,7 @@ import deleteDatePlaceApi from '@/apis/dashboard/deleteDatePlaceApi'
 import recommendDatePlaceOrderApi from '@/apis/dashboard/recommendDatePlaceOrderApi'
 
 /**일자별 일정 박스 */
-const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect }) => {
+const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect, onContentUpdate }) => {
   /**토글 여부 */
   const [isOpen, setIsOpen] = useState(false)
   /**일차별 장소 */
@@ -41,6 +41,11 @@ const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect }) => {
 
   const toggleOpen = () => {
     setIsOpen((prev) => !prev)
+    setTimeout(() => {
+      if (onContentUpdate) {
+        onContentUpdate()
+      }
+    }, 50)
   }
 
   /**일자별 담은 장소 불러오기 */

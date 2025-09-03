@@ -7,8 +7,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import FixedActionBar from '@/components/common/FixedActionBar'
 import PlanningDateBox from './PlanningDateBox'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
-const DayTabs = ({ tripInfo }) => {
-  const [activeTab, setActiveTab] = useState(0)
+const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
+  const [activeDayTab, setActiveDayTab] = useState(0)
   const [dates, setDates] = useState([])
   const [selectedDay, setSelectedDay] = useState(null)
   const [planningPlaces, setPlanningPlaces] = useState([])
@@ -58,7 +58,7 @@ const DayTabs = ({ tripInfo }) => {
   }, [tripId])
 
   const handleTabClick = (index) => {
-    setActiveTab(index)
+    setActiveDayTab(index)
   }
 
   /**일정 확정 API 호출 */
@@ -73,12 +73,12 @@ const DayTabs = ({ tripInfo }) => {
   }
 
   return (
-    <div className='w-full'>
+    <div className='w-full pb-[150px]'>
       {/* 탭 바 */}
       <div className='flex flex-wrap gap-[6px]'>
         <div
           className={`cursor-pointer rounded-full px-4 py-1 text-base ${
-            activeTab === 0
+            activeDayTab === 0
               ? 'bg-[var(--Blue-Scale-blue-500)] text-white'
               : 'border border-gray-300 bg-white text-gray-500'
           }`}
@@ -92,7 +92,7 @@ const DayTabs = ({ tripInfo }) => {
             key={index}
             onClick={() => handleTabClick(index + 1)}
             className={`cursor-pointer rounded-full px-4 py-1 text-base ${
-              activeTab === index + 1
+              activeDayTab === index + 1
                 ? 'bg-[var(--Blue-Scale-blue-500)] text-white'
                 : 'border border-gray-300 bg-white text-gray-500'
             }`}
@@ -104,7 +104,7 @@ const DayTabs = ({ tripInfo }) => {
 
       <div className='mt-4 flex flex-col gap-3'>
         {tripInfo.status === 'SETTING'
-          ? activeTab === 0
+          ? activeDayTab === 0
             ? dates.map((d, i) => (
                 <DateBox
                   key={i}
@@ -113,16 +113,18 @@ const DayTabs = ({ tripInfo }) => {
                   tripInfo={tripInfo}
                   selected={selectedDay === i}
                   onSelect={() => setSelectedDay(i)}
+                  onContentUpdate={onContentUpdate}
                 />
               ))
-            : dates[activeTab - 1] && (
+            : dates[activeDayTab - 1] && (
                 <DateBox
-                  date={formatDateToDot(dates[activeTab - 1])}
-                  dayIndex={activeTab}
+                  date={formatDateToDot(dates[activeDayTab - 1])}
+                  dayIndex={activeDayTab}
                   tripInfo={tripInfo}
+                  onContentUpdate={onContentUpdate}
                 />
               )
-          : activeTab === 0
+          : activeDayTab === 0
             ? dates.map((d, i) => (
                 <PlanningDateBox
                   key={i}
@@ -132,38 +134,38 @@ const DayTabs = ({ tripInfo }) => {
                   selected={selectedDay === i}
                   onSelect={() => setSelectedDay(i)}
                   planningPlaces={planningPlaces[i]}
+                  onContentUpdate={onContentUpdate}
                 />
               ))
-            : dates[activeTab - 1] && (
+            : dates[activeDayTab - 1] && (
                 <PlanningDateBox
-                  date={formatDateToDot(dates[activeTab - 1])}
-                  dayIndex={activeTab}
+                  date={formatDateToDot(dates[activeDayTab - 1])}
+                  dayIndex={activeDayTab}
                   tripInfo={tripInfo}
-                  planningPlaces={planningPlaces[activeTab - 1]}
+                  planningPlaces={planningPlaces[activeDayTab - 1]}
+                  onContentUpdate={onContentUpdate}
                 />
               )}
       </div>
 
       {/* 일정 확정 버튼 */}
-      {tripInfo.status === 'SETTING' ? (
-        <FixedActionBar>
-          <div className='fixed bottom-0 left-0 flex w-full justify-center'>
+      {activeTab === 0 &&
+        (tripInfo.status === 'SETTING' ? (
+          <FixedActionBar className='flex justify-center'>
             <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
               <button
                 onClick={handleConfirmPlace}
-                className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                className='w-full rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
               >
                 여행 일정 확정하기
               </button>
             </div>
-          </div>
-        </FixedActionBar>
-      ) : (
-        <FixedActionBar>
-          <div className='fixed bottom-0 left-0 flex w-full justify-center'>
+          </FixedActionBar>
+        ) : (
+          <FixedActionBar className='flex justify-center'>
             <div className='flex w-4xl items-center justify-center gap-4 rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
               <button
-                className='flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
                 onClick={() =>
                   navigate(`map/plan/${planningPlaces[selectedDay].id}`)
                 }
@@ -171,14 +173,13 @@ const DayTabs = ({ tripInfo }) => {
                 <PlusCalendar size={40} color={'white'} />
                 일정 추가하기
               </button>
-              <button className='flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'>
+              <button className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'>
                 <NoticeIcon size={40} color={'white'} />
                 공지하기
               </button>
             </div>
-          </div>
-        </FixedActionBar>
-      )}
+          </FixedActionBar>
+        ))}
     </div>
   )
 }

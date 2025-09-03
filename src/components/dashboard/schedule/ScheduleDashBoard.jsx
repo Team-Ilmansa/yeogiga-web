@@ -4,7 +4,7 @@ import readTripInfoApi from '@/apis/trip/readTripInfo'
 import DayTabs from './DayTabs'
 import CalendarIcon from '@/assets/dashboard/CalendarIcon'
 
-const ScheduleDashBoard = () => {
+const ScheduleDashBoard = ({ activeTab, onContentUpdate }) => {
   const { tripId } = useParams()
   const [tripInfo, setTripInfo] = useState(null)
 
@@ -21,7 +21,14 @@ const ScheduleDashBoard = () => {
     fetchTrip()
   }, [tripId])
 
-  if (tripInfo?.startedAt) return <DayTabs tripInfo={tripInfo} />
+  if (tripInfo?.startedAt)
+    return (
+      <DayTabs
+        tripInfo={tripInfo}
+        activeTab={activeTab}
+        onContentUpdate={onContentUpdate}
+      />
+    )
   else {
     return (
       <div className='mt-30 flex w-full flex-col items-center justify-center gap-5'>
