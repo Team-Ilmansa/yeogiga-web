@@ -8,6 +8,7 @@ import readMyCalendarApi from '@/apis/calendar/readMyCalendarApi'
 import KebabModal from '@/components/dashboard/modal/KebabModal'
 import UpdateTitleModal from '@/components/dashboard/modal/UpdateTitleModal'
 import Notices from '@/components/notice/Notices'
+import FixedActionBar from '@/components/common/FixedActionBar'
 
 /**여행 정보 대시보드 페이지 */
 const Dashboard = () => {
@@ -82,16 +83,16 @@ const Dashboard = () => {
         </div>
         {/* 여행 날짜 확정 버튼 */}
         {!isScheduleConfirmed && (
-          <div className='fixed bottom-0 left-0 z-10 flex w-full transform flex-col items-center gap-[20px] transition-transform duration-300'>
-            <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
+          <FixedActionBar>
+            <div className='flex w-full items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
               <button
                 onClick={() => navigate('confirmation')}
-                className='w-full border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                className='w-full rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
               >
                 여행 날짜 확정하기
               </button>
             </div>
-          </div>
+          </FixedActionBar>
         )}
       </div>
     </>
