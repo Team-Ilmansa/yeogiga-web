@@ -23,6 +23,12 @@ const SlideTabs = ({ isScheduleConfirmed }) => {
     }
   }
 
+  const updateSwiperHeight = () => {
+    if (contentSwiperRef.current) {
+      contentSwiperRef.current.update()
+    }
+  }
+
   return (
     <div className='w-full overflow-hidden'>
       {/* 탭 바 */}
@@ -65,6 +71,7 @@ const SlideTabs = ({ isScheduleConfirmed }) => {
         })}
       </div>
       <Swiper
+        autoHeight={true}
         onSwiper={(swiper) => (contentSwiperRef.current = swiper)}
         onSlideChange={(swiper) => setActiveTab(swiper.activeIndex)}
         slidesPerView={1}
@@ -77,13 +84,16 @@ const SlideTabs = ({ isScheduleConfirmed }) => {
       >
         <SwiperSlide className='!w-full'>
           <div className='mt-5 w-full'>
-            <ScheduleDashBoard />
+            <ScheduleDashBoard
+              activeTab={activeTab}
+              onContentUpdate={updateSwiperHeight}
+            />
           </div>
         </SwiperSlide>
 
         <SwiperSlide className='!w-full'>
           <div className='mt-5 w-full'>
-            <GalaryDashBoard />
+            <GalaryDashBoard activeTab={activeTab} />
           </div>
         </SwiperSlide>
 

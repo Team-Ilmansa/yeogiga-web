@@ -30,6 +30,7 @@ const PlanningDateBox = ({
   selected,
   onSelect,
   planningPlaces,
+  onContentUpdate,
 }) => {
   /**토글 여부 */
   const [isOpen, setIsOpen] = useState(false)
@@ -53,6 +54,11 @@ const PlanningDateBox = ({
 
   const toggleOpen = () => {
     setIsOpen((prev) => !prev)
+    setTimeout(() => {
+      if (onContentUpdate) {
+        onContentUpdate()
+      }
+    }, 50)
   }
 
   /**우클릭으로 삭제 메뉴 열기 */
