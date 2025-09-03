@@ -4,7 +4,7 @@ import { Scrollbar } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/scrollbar'
 import ScheduleDashBoard from './schedule/ScheduleDashBoard'
-import GalaryDashBoard from './galary/GalaryDashboard'
+import GalleryDashBoard from './gallery/GalleryDashboard'
 
 const SlideTabs = ({ isScheduleConfirmed }) => {
   const [activeTab, setActiveTab] = useState(0)
@@ -93,7 +93,7 @@ const SlideTabs = ({ isScheduleConfirmed }) => {
 
         <SwiperSlide className='!w-full'>
           <div className='mt-5 w-full'>
-            <GalaryDashBoard activeTab={activeTab} />
+            <GalleryDashBoard activeTab={activeTab} />
           </div>
         </SwiperSlide>
 

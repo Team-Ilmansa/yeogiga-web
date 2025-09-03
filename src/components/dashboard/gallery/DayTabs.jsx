@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const DayTabs = ({ startedAt, endedAt }) => {
-  const [activeTab, setActiveTab] = useState(0)
+const DayTabs = ({ startedAt, endedAt, activeDay, onDayChange }) => {
   const [dates, setDates] = useState([])
 
   const formatDateToDot = (dateObj) => {
@@ -28,21 +27,17 @@ const DayTabs = ({ startedAt, endedAt }) => {
     setDates(tempDates)
   }, [startedAt, endedAt])
 
-  const handleTabClick = (index) => {
-    setActiveTab(index)
-  }
-
   return (
     <div className='w-full'>
       {/* 탭 바 */}
       <div className='flex flex-wrap gap-[6px]'>
         <div
           className={`cursor-pointer rounded-full px-4 py-1 text-base ${
-            activeTab === 0
+            activeDay === 0
               ? 'bg-[var(--Blue-Scale-blue-500)] text-white'
               : 'border border-gray-300 bg-white text-gray-500'
           }`}
-          onClick={() => handleTabClick(0)}
+          onClick={() => onDayChange(0)}
         >
           여행 전체
         </div>
@@ -50,9 +45,9 @@ const DayTabs = ({ startedAt, endedAt }) => {
         {dates.map((_, index) => (
           <div
             key={index}
-            onClick={() => handleTabClick(index + 1)}
+            onClick={() => onDayChange(index + 1)}
             className={`cursor-pointer rounded-full px-4 py-1 text-base ${
-              activeTab === index + 1
+              activeDay === index + 1
                 ? 'bg-[var(--Blue-Scale-blue-500)] text-white'
                 : 'border border-gray-300 bg-white text-gray-500'
             }`}
