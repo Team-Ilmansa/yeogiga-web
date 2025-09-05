@@ -1,7 +1,7 @@
 import api from '@/apis/api'
 
 /**이미지 임시 등록 API */
-const uploadImagesAPi = async (tripId, tripDayPlaceId, body) => {
+const uploadImagesApi = async (tripId, tripDayPlaceId, body) => {
   try {
     const response = await api.post(
       `trip/${tripId}/day-place/${tripDayPlaceId}/images`,
@@ -26,4 +26,4 @@ const uploadImagesAPi = async (tripId, tripDayPlaceId, body) => {
   }
 }
 
-export default uploadImagesAPi
+export default uploadImagesApi

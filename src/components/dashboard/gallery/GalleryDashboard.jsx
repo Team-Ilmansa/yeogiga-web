@@ -5,7 +5,7 @@ import DayTabs from './DayTabs'
 import PhotoAlbum from './PhotoAlbum'
 import FixedActionBar from '@/components/common/FixedActionBar'
 import ImageUploadIcon from '@/assets/dashboard/ImageUploadIcon'
-import uploadImagesAPi from '@/apis/image/uploadImagesApi'
+import uploadImagesApi from '@/apis/image/uploadImagesApi'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
 
 const GalleryDashBoard = ({ activeTab }) => {
@@ -56,7 +56,7 @@ const GalleryDashBoard = ({ activeTab }) => {
 
       console.log('Uploading files:', files)
       try {
-        await uploadImagesAPi(tripId, planningPlaces[activeDay].id, formData)
+        await uploadImagesApi(tripId, planningPlaces[activeDay].id, formData)
         alert(`${files.length}개의 사진을 성공적으로 업로드했습니다.`)
       } catch (err) {
         alert(err.message)
