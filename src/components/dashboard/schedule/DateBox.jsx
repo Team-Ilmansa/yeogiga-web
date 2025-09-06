@@ -22,7 +22,14 @@ import deleteDatePlaceApi from '@/apis/dashboard/deleteDatePlaceApi'
 import recommendDatePlaceOrderApi from '@/apis/dashboard/recommendDatePlaceOrderApi'
 
 /**일자별 일정 박스 */
-const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect, onContentUpdate }) => {
+const DateBox = ({
+  date,
+  dayIndex,
+  tripInfo,
+  selected,
+  onSelect,
+  onContentUpdate,
+}) => {
   /**토글 여부 */
   const [isOpen, setIsOpen] = useState(false)
   /**일차별 장소 */
@@ -184,7 +191,7 @@ const DateBox = ({ date, dayIndex, tripInfo, selected, onSelect, onContentUpdate
                       <SortablePlaceItem
                         key={place.id}
                         id={place.id}
-                        name={place.name}
+                        place={place}
                         onContextMenu={(e) => handleContextMenu(e, place)}
                       />
                     ))}
