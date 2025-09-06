@@ -1,16 +1,10 @@
 import api from '@/apis/api'
 
-/**이미지 임시 등록 API */
-const uploadImagesApi = async (tripId, tripDayPlaceId, body) => {
+/**여행 일차 별 임시 저장 이미지 조회 API */
+const readTemporaryImagesApi = async (tripId, tripDayPlaceId) => {
   try {
-    const response = await api.post(
-      `trip/${tripId}/day-place/${tripDayPlaceId}/images`,
-      body,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      },
+    const response = await api.get(
+      `trip/${tripId}/day-place/${tripDayPlaceId}/temp-images`,
     )
     return response.data
   } catch (err) {
@@ -26,4 +20,4 @@ const uploadImagesApi = async (tripId, tripDayPlaceId, body) => {
   }
 }
 
-export default uploadImagesApi
+export default readTemporaryImagesApi

@@ -5,8 +5,9 @@ import DayTabs from './DayTabs'
 import PhotoAlbum from './PhotoAlbum'
 import FixedActionBar from '@/components/common/FixedActionBar'
 import ImageUploadIcon from '@/assets/dashboard/ImageUploadIcon'
-import uploadImagesAPi from '@/apis/image/uploadImagesApi'
+import uploadImagesApi from '@/apis/image/uploadImagesApi'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
+import readTemporaryImagesApi from '@/apis/image/readTemporaryImagesApi'
 
 const GalleryDashBoard = ({ activeTab }) => {
   const { tripId } = useParams()
@@ -14,6 +15,7 @@ const GalleryDashBoard = ({ activeTab }) => {
   const fileInputRef = useRef(null)
   const [activeDay, setActiveDay] = useState(0)
   const [planningPlaces, setPlanningPlaces] = useState([])
+  const [temporaryImages, setTemporaryImages] = useState([])
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -39,6 +41,26 @@ const GalleryDashBoard = ({ activeTab }) => {
     fetchPlanningPlaces()
   }, [tripId])
 
+  /**임시 저장 이미지 불러오기 */
+  const fetchTemporaryImages = async () => {
+    if (activeDay > 0) {
+      try {
+        const tripDayPlaceId = planningPlaces[activeDay - 1].id
+        const result = await readTemporaryImagesApi(tripId, tripDayPlaceId)
+        setTemporaryImages(result.data || [])
+      } catch (err) {
+        console.error('Failed to fetch temporary images:', err)
+        setTemporaryImages([])
+      }
+    } else {
+      setTemporaryImages([])
+    }
+  }
+
+  useEffect(() => {
+    fetchTemporaryImages()
+  }, [activeDay, planningPlaces, tripId])
+
   if (!tripInfo) return null
 
   /**버튼 클릭 시 input 실행 */
@@ -56,8 +78,10 @@ const GalleryDashBoard = ({ activeTab }) => {
 
       console.log('Uploading files:', files)
       try {
-        await uploadImagesAPi(tripId, planningPlaces[activeDay].id, formData)
+        const tripDayPlaceId = planningPlaces[activeDay - 1].id
+        await uploadImagesApi(tripId, tripDayPlaceId, formData)
         alert(`${files.length}개의 사진을 성공적으로 업로드했습니다.`)
+        fetchTemporaryImages()
       } catch (err) {
         alert(err.message)
       }
@@ -72,7 +96,7 @@ const GalleryDashBoard = ({ activeTab }) => {
         activeDay={activeDay}
         onDayChange={setActiveDay}
       />
-      <PhotoAlbum />
+      <PhotoAlbum temporaryImages={temporaryImages} />
 
       <input
         type='file'
