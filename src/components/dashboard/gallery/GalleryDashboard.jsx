@@ -8,6 +8,8 @@ import ImageUploadIcon from '@/assets/dashboard/ImageUploadIcon'
 import uploadImagesApi from '@/apis/image/uploadImagesApi'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
 import readTemporaryImagesApi from '@/apis/image/readTemporaryImagesApi'
+import deleteTemporaryImagesApi from '@/apis/image/deleteTemporaryImagesApi'
+import { Trash2 } from 'lucide-react'
 
 const GalleryDashBoard = ({ activeTab }) => {
   const { tripId } = useParams()
@@ -16,6 +18,11 @@ const GalleryDashBoard = ({ activeTab }) => {
   const [activeDay, setActiveDay] = useState(0)
   const [planningPlaces, setPlanningPlaces] = useState([])
   const [temporaryImages, setTemporaryImages] = useState([])
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [selectedImages, setSelectedImages] = useState({
+    imageIds: [],
+    urls: [],
+  })
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -43,7 +50,7 @@ const GalleryDashBoard = ({ activeTab }) => {
 
   /**임시 저장 이미지 불러오기 */
   const fetchTemporaryImages = async () => {
-    if (activeDay > 0) {
+    if (activeDay > 0 && planningPlaces.length > 0) {
       try {
         const tripDayPlaceId = planningPlaces[activeDay - 1].id
         const result = await readTemporaryImagesApi(tripId, tripDayPlaceId)
@@ -61,6 +68,52 @@ const GalleryDashBoard = ({ activeTab }) => {
     fetchTemporaryImages()
   }, [activeDay, planningPlaces, tripId])
 
+  /**선택 모드 전환 */
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode)
+    setSelectedImages({ imageIds: [], urls: [] })
+  }
+
+  /**이미지 선택 */
+  const handleImageClick = (image) => {
+    if (!isSelectionMode) {
+      setIsSelectionMode(true)
+      setSelectedImages({ imageIds: [image.id], urls: [image.url] })
+      return
+    }
+
+    setSelectedImages((prevSelected) => {
+      const isAlreadySelected = prevSelected.imageIds.includes(image.id)
+      if (isAlreadySelected) {
+        return {
+          imageIds: prevSelected.imageIds.filter((id) => id !== image.id),
+          urls: prevSelected.urls.filter((url) => url !== image.url),
+        }
+      } else {
+        return {
+          imageIds: [...prevSelected.imageIds, image.id],
+          urls: [...prevSelected.urls, image.url],
+        }
+      }
+    })
+  }
+
+  /**선택된 임시 이미지 삭제 */
+  const handleDeleteSelectedTemporaryImages = async () => {
+    try {
+      await deleteTemporaryImagesApi(
+        tripId,
+        planningPlaces[activeDay - 1].id,
+        selectedImages,
+      )
+      alert(`${selectedImages.imageIds.length}개의 이미지를 삭제했습니다.`)
+      fetchTemporaryImages()
+      toggleSelectionMode()
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
   if (!tripInfo) return null
 
   /**버튼 클릭 시 input 실행 */
@@ -76,7 +129,6 @@ const GalleryDashBoard = ({ activeTab }) => {
         formData.append('images', file)
       })
 
-      console.log('Uploading files:', files)
       try {
         const tripDayPlaceId = planningPlaces[activeDay - 1].id
         await uploadImagesApi(tripId, tripDayPlaceId, formData)
@@ -96,7 +148,13 @@ const GalleryDashBoard = ({ activeTab }) => {
         activeDay={activeDay}
         onDayChange={setActiveDay}
       />
-      <PhotoAlbum temporaryImages={temporaryImages} />
+      <PhotoAlbum
+        temporaryImages={temporaryImages}
+        isSelectionMode={isSelectionMode}
+        selectedImages={selectedImages}
+        toggleSelectionMode={toggleSelectionMode}
+        handleImageClick={handleImageClick}
+      />
 
       <input
         type='file'
@@ -110,7 +168,15 @@ const GalleryDashBoard = ({ activeTab }) => {
       {activeTab === 1 && (
         <FixedActionBar className='flex justify-center'>
           <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
-            {activeDay === 0 ? (
+            {selectedImages.imageIds.length > 0 ? (
+              <button
+                onClick={handleDeleteSelectedTemporaryImages}
+                className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+              >
+                <Trash2 className='h-[40px] w-[40px]' />
+                {`${selectedImages.imageIds.length}개의 임시 저장 이미지 삭제`}
+              </button>
+            ) : activeDay === 0 ? (
               <button
                 disabled
                 className='flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg border-none bg-gray-300 p-[20px] text-2xl text-white'

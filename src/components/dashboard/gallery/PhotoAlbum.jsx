@@ -1,21 +1,50 @@
 import NoUploadImage from '@/assets/dashboard/NoUploadImage'
+import { Check } from 'lucide-react'
 
-const PhotoAlbum = ({ temporaryImages }) => {
+const PhotoAlbum = ({
+  temporaryImages,
+  isSelectionMode,
+  selectedImages,
+  toggleSelectionMode,
+  handleImageClick,
+}) => {
   return (
     <div className='relative pb-[100px]'>
       {temporaryImages.length > 0 ? (
         <div className='mt-2'>
-          <p className='py-2 text-[var(--Blue-Scale-blue-500)]'>
-            임시 저장 이미지 ({temporaryImages.length}장)
-          </p>
+          <div className='flex justify-between'>
+            <p className='py-2 text-[var(--Blue-Scale-blue-500)]'>
+              임시 저장 이미지 ({temporaryImages.length}장)
+            </p>
+            <button
+              onClick={toggleSelectionMode}
+              className={`flex items-center gap-1 border-none py-2 ${
+                isSelectionMode || selectedImages.imageIds.length > 0
+                  ? 'text-[var(--Blue-Scale-blue-500)]'
+                  : 'text-[var(--Grey-Scale-grey-200)]'
+              }`}
+            >
+              {selectedImages.imageIds.length > 0
+                ? `${selectedImages.imageIds.length}개 선택됨`
+                : '선택하기'}
+              <Check className='h-4 w-4' />
+            </button>
+          </div>
           <div className='grid grid-cols-5 gap-1'>
-            {temporaryImages.map((image, index) => (
-              <div key={image.id || index} className='aspect-square'>
+            {temporaryImages.map((image) => (
+              <div
+                key={image.id}
+                className='relative aspect-square cursor-pointer'
+                onClick={() => handleImageClick(image)}
+              >
                 <img
                   src={image.url}
-                  alt={`temporary image ${index + 1}`}
-                  className='h-full w-full rounded-2xl object-cover'
+                  alt={`temporary image ${image.id}`}
+                  className={'h-full w-full rounded-2xl object-cover'}
                 />
+                {selectedImages.imageIds.includes(image.id) && (
+                  <div className='absolute inset-0 flex items-center justify-center rounded-2xl bg-[var(--Blue-Scale-blue-500)] opacity-50' />
+                )}
               </div>
             ))}
           </div>
