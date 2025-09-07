@@ -19,6 +19,8 @@ const SortablePlaceItem = ({ id, place, onContextMenu }) => {
     opacity: isDragging ? 0.6 : 1,
   }
 
+  const isVisited = place.isVisited ?? false
+
   return (
     <li
       ref={setNodeRef}
@@ -33,13 +35,13 @@ const SortablePlaceItem = ({ id, place, onContextMenu }) => {
       </div>
       <div
         className={`flex w-full justify-between rounded-2xl p-5 text-base ${
-          place.isVisited
+          isVisited
             ? 'bg-[var(--Blue-Scale-blue-100)] text-[var(--Blue-Scale-blue-500)]'
             : 'bg-[var(--Grey-Scale-grey-100)] text-[var(--Grey-Scale-grey-300)]'
         }`}
       >
         <span>{place.name}</span>
-        {place.isVisited && (
+        {isVisited && (
           <Check className='h-6 w-6 text-[var(--Blue-Scale-blue-500)]' />
         )}
       </div>
