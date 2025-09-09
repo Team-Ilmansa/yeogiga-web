@@ -9,6 +9,7 @@ import uploadImagesApi from '@/apis/image/uploadImagesApi'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
 import readTemporaryImagesApi from '@/apis/image/readTemporaryImagesApi'
 import readMatchedImagesApi from '@/apis/image/readMatchedImagesApi'
+import readUnmatchedImagesApi from '@/apis/image/readUnmatchedImagesApi'
 import deleteTemporaryImagesApi from '@/apis/image/deleteTemporaryImagesApi'
 import matchTemporaryImagesApi from '@/apis/image/matchTemporaryImagesApi'
 import { Link2, Trash2 } from 'lucide-react'
@@ -21,6 +22,7 @@ const GalleryDashBoard = ({ activeTab }) => {
   const [planningPlaces, setPlanningPlaces] = useState([])
   const [temporaryImages, setTemporaryImages] = useState([])
   const [matchedImages, setMatchedImages] = useState([])
+  const [unmatchedImages, setUnmatchedImages] = useState([])
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [selectedImages, setSelectedImages] = useState({
     imageIds: [],
@@ -92,9 +94,26 @@ const GalleryDashBoard = ({ activeTab }) => {
     }
   }
 
+  /**매칭되지 않은 이미지 불러오기 */
+  const fetchUnmatchedImages = async () => {
+    if (activeDay > 0 && planningPlaces.length > 0) {
+      try {
+        const tripDayPlaceId = planningPlaces[activeDay - 1].id
+        const result = await readUnmatchedImagesApi(tripId, tripDayPlaceId)
+        setUnmatchedImages(result.data.images || [])
+      } catch (err) {
+        console.error('Failed to fetch unmatched images:', err)
+        setUnmatchedImages([])
+      }
+    } else {
+      setUnmatchedImages([])
+    }
+  }
+
   useEffect(() => {
     fetchTemporaryImages()
     fetchMatchedImages()
+    fetchUnmatchedImages()
   }, [activeDay, planningPlaces, tripId])
 
   /**선택 모드 전환 */
@@ -194,6 +213,7 @@ const GalleryDashBoard = ({ activeTab }) => {
       <PhotoAlbum
         temporaryImages={temporaryImages}
         matchedImages={matchedImages}
+        unmatchedImages={unmatchedImages}
         isSelectionMode={isSelectionMode}
         selectedImages={selectedImages}
         toggleSelectionMode={toggleSelectionMode}

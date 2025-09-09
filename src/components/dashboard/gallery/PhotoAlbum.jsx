@@ -3,6 +3,7 @@ import { Check } from 'lucide-react'
 
 const PhotoAlbum = ({
   temporaryImages,
+  unmatchedImages,
   matchedImages,
   isSelectionMode,
   selectedImages,
@@ -11,9 +12,12 @@ const PhotoAlbum = ({
 }) => {
   const hasTemporaryImages = temporaryImages && temporaryImages.length > 0
   const hasMatchedImages = matchedImages && matchedImages.length > 0
-  const totalMatchedImages = hasMatchedImages
-    ? matchedImages.reduce((acc, place) => acc + place.images.length, 0)
-    : 0
+  const hasUnmatchedImages = unmatchedImages && unmatchedImages.length > 0
+  const totalImages =
+    hasMatchedImages || hasUnmatchedImages
+      ? matchedImages.reduce((acc, place) => acc + place.images.length, 0) +
+        unmatchedImages.length
+      : 0
 
   return (
     <div className='relative pb-[100px]'>
@@ -58,10 +62,10 @@ const PhotoAlbum = ({
         </div>
       )}
 
-      {totalMatchedImages > 0 && (
+      {totalImages > 0 && (
         <div className={hasTemporaryImages ? 'mt-8' : 'mt-2'}>
           <p className='py-2 text-3xl font-bold text-[var(--Blue-Scale-blue-500)]'>
-            {totalMatchedImages}장
+            {totalImages}장
           </p>
 
           {matchedImages.map((place) => (
@@ -84,10 +88,28 @@ const PhotoAlbum = ({
               </div>
             </div>
           ))}
+          <div>
+            {unmatchedImages.length > 0 && (
+              <div className='py-2 text-[var(--Grey-Scale-grey-300)]'>
+                기타 ({unmatchedImages.length}장)
+              </div>
+            )}
+            <div className='grid grid-cols-5 gap-1'>
+              {unmatchedImages.map((image) => (
+                <div key={image.id} className='relative aspect-square'>
+                  <img
+                    src={image.url}
+                    alt={`matched image ${image.id}`}
+                    className='h-full w-full rounded-2xl object-cover'
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {!hasTemporaryImages && totalMatchedImages === 0 && (
+      {!hasTemporaryImages && totalImages === 0 && (
         <div className='mt-20 flex min-h-[200px] flex-col items-center justify-center gap-5 p-4'>
           <NoUploadImage size={100} />
           <p className='text-center text-2xl text-[var(--Grey-Scale-grey-200)]'>
