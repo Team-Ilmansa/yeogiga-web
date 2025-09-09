@@ -8,6 +8,7 @@ import ImageUploadIcon from '@/assets/dashboard/ImageUploadIcon'
 import uploadImagesApi from '@/apis/image/uploadImagesApi'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
 import readTemporaryImagesApi from '@/apis/image/readTemporaryImagesApi'
+import readMatchedImagesApi from '@/apis/image/readMatchedImagesApi'
 import deleteTemporaryImagesApi from '@/apis/image/deleteTemporaryImagesApi'
 import matchTemporaryImagesApi from '@/apis/image/matchTemporaryImagesApi'
 import { Link2, Trash2 } from 'lucide-react'
@@ -19,6 +20,7 @@ const GalleryDashBoard = ({ activeTab }) => {
   const [activeDay, setActiveDay] = useState(0)
   const [planningPlaces, setPlanningPlaces] = useState([])
   const [temporaryImages, setTemporaryImages] = useState([])
+  const [matchedImages, setMatchedImages] = useState([])
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [selectedImages, setSelectedImages] = useState({
     imageIds: [],
@@ -65,8 +67,34 @@ const GalleryDashBoard = ({ activeTab }) => {
     }
   }
 
+  /**장소별 매칭된 이미지 불러오기 */
+  const fetchMatchedImages = async () => {
+    if (activeDay > 0 && planningPlaces.length > 0) {
+      try {
+        const dayData = planningPlaces[activeDay - 1]
+        const tripDayPlaceId = dayData.id
+        if (dayData.places && dayData.places.length > 0) {
+          const imagePromises = dayData.places.map((place) =>
+            readMatchedImagesApi(tripId, tripDayPlaceId, place.id),
+          )
+          const results = await Promise.all(imagePromises)
+          const allImages = results.flatMap((result) => result.data || [])
+          setMatchedImages(allImages)
+        } else {
+          setMatchedImages([])
+        }
+      } catch (err) {
+        console.error('Failed to fetch matched images:', err)
+        setMatchedImages([])
+      }
+    } else {
+      setMatchedImages([])
+    }
+  }
+
   useEffect(() => {
     fetchTemporaryImages()
+    fetchMatchedImages()
   }, [activeDay, planningPlaces, tripId])
 
   /**선택 모드 전환 */
@@ -165,6 +193,7 @@ const GalleryDashBoard = ({ activeTab }) => {
       />
       <PhotoAlbum
         temporaryImages={temporaryImages}
+        matchedImages={matchedImages}
         isSelectionMode={isSelectionMode}
         selectedImages={selectedImages}
         toggleSelectionMode={toggleSelectionMode}

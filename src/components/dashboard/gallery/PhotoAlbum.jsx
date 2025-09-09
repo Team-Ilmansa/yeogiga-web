@@ -3,14 +3,21 @@ import { Check } from 'lucide-react'
 
 const PhotoAlbum = ({
   temporaryImages,
+  matchedImages,
   isSelectionMode,
   selectedImages,
   toggleSelectionMode,
   handleImageClick,
 }) => {
+  const hasTemporaryImages = temporaryImages && temporaryImages.length > 0
+  const hasMatchedImages = matchedImages && matchedImages.length > 0
+  const totalMatchedImages = hasMatchedImages
+    ? matchedImages.reduce((acc, place) => acc + place.images.length, 0)
+    : 0
+
   return (
     <div className='relative pb-[100px]'>
-      {temporaryImages.length > 0 ? (
+      {hasTemporaryImages && (
         <div className='mt-2'>
           <div className='flex justify-between'>
             <p className='py-2 text-[var(--Blue-Scale-blue-500)]'>
@@ -49,7 +56,38 @@ const PhotoAlbum = ({
             ))}
           </div>
         </div>
-      ) : (
+      )}
+
+      {totalMatchedImages > 0 && (
+        <div className={hasTemporaryImages ? 'mt-8' : 'mt-2'}>
+          <p className='py-2 text-3xl font-bold text-[var(--Blue-Scale-blue-500)]'>
+            {totalMatchedImages}장
+          </p>
+
+          {matchedImages.map((place) => (
+            <div key={place.id}>
+              {place.images.length > 0 && (
+                <div className='py-2 text-[var(--Grey-Scale-grey-300)]'>
+                  {place.name} ({place.images.length}장)
+                </div>
+              )}
+              <div className='grid grid-cols-5 gap-1'>
+                {place.images.map((image) => (
+                  <div key={image.id} className='relative aspect-square'>
+                    <img
+                      src={image.url}
+                      alt={`matched image ${image.id}`}
+                      className='h-full w-full rounded-2xl object-cover'
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!hasTemporaryImages && totalMatchedImages === 0 && (
         <div className='mt-20 flex min-h-[200px] flex-col items-center justify-center gap-5 p-4'>
           <NoUploadImage size={100} />
           <p className='text-center text-2xl text-[var(--Grey-Scale-grey-200)]'>
