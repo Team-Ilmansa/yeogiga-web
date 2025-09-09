@@ -1,5 +1,7 @@
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import NoUploadImage from '@/assets/dashboard/NoUploadImage'
-import { Check } from 'lucide-react'
+import { Check, ArrowLeft, ArrowRight } from 'lucide-react'
 
 const PhotoAlbum = ({
   temporaryImages,
@@ -10,6 +12,7 @@ const PhotoAlbum = ({
   toggleSelectionMode,
   handleImageClick,
 }) => {
+  const [modalImage, setModalImage] = useState(null)
   const hasTemporaryImages = temporaryImages && temporaryImages.length > 0
   const hasMatchedImages = matchedImages && matchedImages.length > 0
   const hasUnmatchedImages = unmatchedImages && unmatchedImages.length > 0
@@ -18,6 +21,40 @@ const PhotoAlbum = ({
       ? matchedImages.reduce((acc, place) => acc + place.images.length, 0) +
         unmatchedImages.length
       : 0
+
+  /**매칭 이미지 + 매칭X(기타) 이미지 */
+  const allImages = matchedImages
+    .flatMap((place) =>
+      place.images.map((image) => ({ ...image, placeName: place.name })),
+    )
+    .concat(unmatchedImages.map((image) => ({ ...image, placeName: '기타' })))
+
+  /**모달 열기 */
+  const openModal = (image) => {
+    const imageWithPlace = allImages.find((img) => img.id === image.id)
+    setModalImage(imageWithPlace)
+  }
+
+  /**모달 닫기 */
+  const closeModal = () => {
+    setModalImage(null)
+  }
+
+  /**다음 이미지 보기 */
+  const showNextImage = (e) => {
+    e.stopPropagation()
+    const currentIndex = allImages.findIndex((img) => img.id === modalImage.id)
+    const nextIndex = (currentIndex + 1) % allImages.length
+    setModalImage(allImages[nextIndex])
+  }
+
+  /**이전 이미지 보기 */
+  const showPrevImage = (e) => {
+    e.stopPropagation()
+    const currentIndex = allImages.findIndex((img) => img.id === modalImage.id)
+    const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length
+    setModalImage(allImages[prevIndex])
+  }
 
   return (
     <div className='relative pb-[100px]'>
@@ -77,7 +114,11 @@ const PhotoAlbum = ({
               )}
               <div className='grid grid-cols-5 gap-1'>
                 {place.images.map((image) => (
-                  <div key={image.id} className='relative aspect-square'>
+                  <div
+                    key={image.id}
+                    className='relative aspect-square cursor-pointer'
+                    onClick={() => openModal(image)}
+                  >
                     <img
                       src={image.url}
                       alt={`matched image ${image.id}`}
@@ -96,7 +137,11 @@ const PhotoAlbum = ({
             )}
             <div className='grid grid-cols-5 gap-1'>
               {unmatchedImages.map((image) => (
-                <div key={image.id} className='relative aspect-square'>
+                <div
+                  key={image.id}
+                  className='relative aspect-square cursor-pointer'
+                  onClick={() => openModal(image)}
+                >
                   <img
                     src={image.url}
                     alt={`matched image ${image.id}`}
@@ -117,6 +162,38 @@ const PhotoAlbum = ({
           </p>
         </div>
       )}
+
+      {modalImage &&
+        createPortal(
+          <div
+            className='bg-opacity-50 fixed inset-0 z-100 flex items-center justify-between bg-black/90 p-10'
+            onClick={closeModal}
+          >
+            <button
+              className='left-4 border-none text-white'
+              onClick={showPrevImage}
+            >
+              <ArrowLeft size={48} />
+            </button>
+            <div className='flex flex-col px-30'>
+              <div className='p-2 text-white'>{modalImage.placeName}</div>
+              <img
+                src={modalImage.url}
+                alt='enlarged'
+                className='max-h-full max-w-full'
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+
+            <button
+              className='right-4 border-none text-white'
+              onClick={showNextImage}
+            >
+              <ArrowRight size={48} />
+            </button>
+          </div>,
+          document.getElementById('root'),
+        )}
     </div>
   )
 }
