@@ -10,10 +10,56 @@ import MapPin from '@/assets/map/MapPin'
 import Trash from '@/assets/map/Trash'
 import addPlaceApi from '@/apis/map/addPlaceApi'
 import createPinApi from '@/apis/pin/createPinApi'
+import TouristIcon from '@/assets/map/category/TouristIcon'
+import SelTouristIcon from '@/assets/map/category/SelTouristIcon'
+import LodgingIcon from '@/assets/map/category/LodgingIcon'
+import SelLodgingIcon from '@/assets/map/category/SelLodgingIcon'
+import MealIcon from '@/assets/map/category/MealIcon'
+import SelMealIcon from '@/assets/map/category/SelMealIcon'
+import TransportIcon from '@/assets/map/category/TransportIcon'
+import SelTransportIcon from '@/assets/map/category/SelTransportIcon'
+import EtcIcon from '@/assets/map/category/EtcIcon'
+import SelEtcIcon from '@/assets/map/category/SelEtcIcon'
 
 /**목적지 검색을 위한 지도 화면 */
 const PlaceMap = () => {
   const navigate = useNavigate()
+  /** 선택된 카테고리 */
+  const [placeType, setPlaceType] = useState('ETC')
+
+  /** 카테고리 라벨 설정 */
+  const CATEGORY_OPTIONS = [
+    {
+      key: 'TOURISM',
+      label: '관광지',
+      Icon: TouristIcon,
+      SelIcon: SelTouristIcon,
+    },
+    {
+      key: 'LODGING',
+      label: '숙소',
+      Icon: LodgingIcon,
+      SelIcon: SelLodgingIcon,
+    },
+    {
+      key: 'RESTAURANT',
+      label: '식사',
+      Icon: MealIcon,
+      SelIcon: SelMealIcon,
+    },
+    {
+      key: 'TRANSPORT',
+      label: '이동수단',
+      Icon: TransportIcon,
+      SelIcon: SelTransportIcon,
+    },
+    {
+      key: 'ETC',
+      label: '기타',
+      Icon: EtcIcon,
+      SelIcon: SelEtcIcon,
+    },
+  ]
 
   /**검색어 */
   const [keyword, setKeyword] = useState('')
@@ -173,7 +219,18 @@ const PlaceMap = () => {
         place.latitude === selectedPlace.latitude &&
         place.longitude === selectedPlace.longitude,
     )
-    if (!alreadySaved) setSavedPlaces((prev) => [...prev, selectedPlace])
+    if (!alreadySaved) {
+      setSavedPlaces((prev) => [
+        ...prev,
+        {
+          ...selectedPlace,
+          chosenType: placeType === 'TRANSPORT' ? 'ETC' : placeType || 'ETC',
+        },
+      ])
+      if (!noticeAsPin) {
+        alert('목적지가 임시 저장되었습니다.')
+      }
+    }
 
     if (noticeAsPin) {
       if (!noticeTime) {
@@ -181,11 +238,9 @@ const PlaceMap = () => {
         return
       }
 
-      /** 버퍼 몇 초 추가(서버-클라이언트 시간차/전송지연 대응) */
       const now = new Date()
       const chosen = new Date(noticeTime)
-      const bufferedNow = new Date(now.getTime() + 5000) // 5초 버퍼
-
+      const bufferedNow = new Date(now.getTime() + 5000)
       if (chosen < bufferedNow) {
         alert(
           '집결 시간은 현재 시각 이후여야 합니다. (몇 분 뒤로 설정해 주세요)',
@@ -214,27 +269,26 @@ const PlaceMap = () => {
     }
   }
 
-  /**일정에 장소 등록을 위한 함수 */
+  /**일정에 장소 등록 */
   const handleConfirm = async () => {
     let successCount = 0
 
     for (const place of savedPlaces) {
       const body = {
-        name: place.title,
+        name: place.title || place.name,
         latitude: place.latitude,
         longitude: place.longitude,
-        // 임시 구현
-        placeType: 'ETC',
+        placeType:
+          place.chosenType === 'TRANSPORT' ? 'ETC' : place.chosenType || 'ETC',
       }
 
       try {
-        const result = await addPlaceApi(tripId, day, body)
-
-        // 등록 성공 시 해당 place 제거
+        await addPlaceApi(tripId, day, body)
         setSavedPlaces((prev) => prev.filter((p) => p !== place))
         successCount += 1
       } catch (err) {
-        if (err.code == 'T002') alert(`${place.title}: ${err.message}`)
+        if (err.code == 'T002')
+          alert(`${place.title || place.name}: ${err.message}`)
         else alert(err.message)
       }
     }
@@ -405,6 +459,39 @@ const PlaceMap = () => {
                   <p className='text-base text-gray-600'>
                     {selectedPlace?.roadAddress || selectedPlace?.address}
                   </p>
+                </div>
+
+                {/* 카테고리 선택 */}
+                <div className='mt-5'>
+                  <p className='mb-3 text-base text-gray-600'>
+                    카테고리를 선택해주세요
+                  </p>
+
+                  <div className='flex items-center gap-1'>
+                    {CATEGORY_OPTIONS.map(({ key, label, Icon, SelIcon }) => {
+                      const selected = placeType === key
+                      const Comp = selected ? SelIcon : Icon
+                      return (
+                        <button
+                          key={key}
+                          type='button'
+                          onClick={() => setPlaceType(key)}
+                          className={`flex flex-col items-center justify-center border-none bg-transparent px-1 py-1 shadow-none transition outline-none hover:shadow-none focus:shadow-none focus:ring-0 focus:outline-none active:shadow-none`}
+                        >
+                          <Comp size={50} />
+                          <span
+                            className={`text-s mt-1 ${
+                              selected
+                                ? 'text-[var(--Grey-Scale-grey-400)]'
+                                : 'text-[var(--Grey-Scale-grey-300)]'
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
 
                 {/* 집결지 공지하기 체크박스 */}
