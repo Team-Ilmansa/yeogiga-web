@@ -20,6 +20,7 @@ import RestoreAccount from './pages/RestoreAccount'
 import GuestSignUp from './components/sign-up/GuestSignUp'
 import PlanningPlaceMap from './pages/PlanningPlaceMap'
 import AccountBook from './pages/AccountBook'
+import AccountAdd from './pages/AccountAdd'
 
 const App = () => {
   return (
@@ -48,10 +49,11 @@ const App = () => {
                 <Route path='participation' element={<Participation />} />
                 {/**가계부 페이지 */}
                 <Route path='accountbook' element={<AccountBook />} />
+                {/** TODO: 정산내역 추가 페이지 경로 변경 예정 */}
+                <Route path='account/add' element={<AccountAdd />} />
                 {/* TODO: 추후 Notice 페이지와 결합 */}
                 <Route path='post/notice' element={<CreateNotices />} />
 
-                {/* TODO: 추후 Notice 페이지와 결합 */}
                 {/* 지난 여행 전체보기 페이지 */}
                 <Route path='past/notices' element={<PastNotices />} />
                 <Route path='map/:day' element={<PlaceMap />} />
