@@ -10,56 +10,13 @@ import MapPin from '@/assets/map/MapPin'
 import Trash from '@/assets/map/Trash'
 import addPlaceApi from '@/apis/map/addPlaceApi'
 import createPinApi from '@/apis/pin/createPinApi'
-import TouristIcon from '@/assets/map/category/TouristIcon'
-import SelTouristIcon from '@/assets/map/category/SelTouristIcon'
-import LodgingIcon from '@/assets/map/category/LodgingIcon'
-import SelLodgingIcon from '@/assets/map/category/SelLodgingIcon'
-import MealIcon from '@/assets/map/category/MealIcon'
-import SelMealIcon from '@/assets/map/category/SelMealIcon'
-import TransportIcon from '@/assets/map/category/TransportIcon'
-import SelTransportIcon from '@/assets/map/category/SelTransportIcon'
-import EtcIcon from '@/assets/map/category/EtcIcon'
-import SelEtcIcon from '@/assets/map/category/SelEtcIcon'
+import CategorySelector from '@/components/common/CategorySelector'
 
 /**목적지 검색을 위한 지도 화면 */
 const PlaceMap = () => {
   const navigate = useNavigate()
   /** 선택된 카테고리 */
   const [placeType, setPlaceType] = useState('ETC')
-
-  /** 카테고리 라벨 설정 */
-  const CATEGORY_OPTIONS = [
-    {
-      key: 'TOURISM',
-      label: '관광지',
-      Icon: TouristIcon,
-      SelIcon: SelTouristIcon,
-    },
-    {
-      key: 'LODGING',
-      label: '숙소',
-      Icon: LodgingIcon,
-      SelIcon: SelLodgingIcon,
-    },
-    {
-      key: 'RESTAURANT',
-      label: '식사',
-      Icon: MealIcon,
-      SelIcon: SelMealIcon,
-    },
-    {
-      key: 'TRANSPORT',
-      label: '이동수단',
-      Icon: TransportIcon,
-      SelIcon: SelTransportIcon,
-    },
-    {
-      key: 'ETC',
-      label: '기타',
-      Icon: EtcIcon,
-      SelIcon: SelEtcIcon,
-    },
-  ]
 
   /**검색어 */
   const [keyword, setKeyword] = useState('')
@@ -90,7 +47,7 @@ const PlaceMap = () => {
     return localDatetime.length === 16 ? `${localDatetime}:00` : localDatetime
   }
 
-  // 주소에서 여행 번호, 일차 가져오기
+  /**주소에서 여행 번호, 일차 가져오기*/
   const { tripId, day } = useParams()
   useEffect(() => {
     /**지도 생성 함수 */
@@ -466,32 +423,11 @@ const PlaceMap = () => {
                   <p className='mb-3 text-base text-gray-600'>
                     카테고리를 선택해주세요
                   </p>
-
-                  <div className='flex items-center gap-1'>
-                    {CATEGORY_OPTIONS.map(({ key, label, Icon, SelIcon }) => {
-                      const selected = placeType === key
-                      const Comp = selected ? SelIcon : Icon
-                      return (
-                        <button
-                          key={key}
-                          type='button'
-                          onClick={() => setPlaceType(key)}
-                          className={`flex flex-col items-center justify-center border-none bg-transparent px-1 py-1 shadow-none transition outline-none hover:shadow-none focus:shadow-none focus:ring-0 focus:outline-none active:shadow-none`}
-                        >
-                          <Comp size={50} />
-                          <span
-                            className={`text-s mt-1 ${
-                              selected
-                                ? 'text-[var(--Grey-Scale-grey-400)]'
-                                : 'text-[var(--Grey-Scale-grey-300)]'
-                            }`}
-                          >
-                            {label}
-                          </span>
-                        </button>
-                      )
-                    })}
-                  </div>
+                  <CategorySelector
+                    value={placeType}
+                    onChange={setPlaceType}
+                    size={50}
+                  />
                 </div>
 
                 {/* 집결지 공지하기 체크박스 */}
