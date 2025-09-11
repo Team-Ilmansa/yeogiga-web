@@ -9,6 +9,7 @@ import KebabModal from '@/components/dashboard/modal/KebabModal'
 import UpdateTitleModal from '@/components/dashboard/modal/UpdateTitleModal'
 import Notices from '@/components/notice/Notices'
 import FixedActionBar from '@/components/common/FixedActionBar'
+import PigIcon from '@/assets/accountbook/PigIcon'
 
 /**여행 정보 대시보드 페이지 */
 const Dashboard = () => {
@@ -65,13 +66,24 @@ const Dashboard = () => {
           <button className='border-none' onClick={handleBack}>
             <GoBack />
           </button>
-          {/** 케밥 버튼 클릭 시 모달창 열기 */}
-          <button
-            onClick={() => setIsKebabOpen(true)}
-            className='border-none bg-transparent p-0 outline-none focus:outline-none'
-          >
-            <KebabIcon />
-          </button>
+          {/** 오른쪽 상단 컴포넌트 */}
+          <div className='flex items-center gap-10'>
+            {/** 돼지 아이콘 클릭 시 가계부 페이지로 이동 */}
+            <button
+              onClick={() => navigate(`/trip/${tripId}/accountbook`)}
+              className='border-none bg-transparent p-0 outline-none focus:outline-none'
+            >
+              <PigIcon />
+            </button>
+            {/** TODO: 추후 지도 아이콘 추가 예정 */}
+            {/** 케밥 버튼 클릭 시 모달창 열기 */}
+            <button
+              onClick={() => setIsKebabOpen(true)}
+              className='border-none bg-transparent p-0 outline-none focus:outline-none'
+            >
+              <KebabIcon />
+            </button>
+          </div>
         </div>
         <div className='flex w-full flex-col gap-15 px-10'>
           <TripTitle
