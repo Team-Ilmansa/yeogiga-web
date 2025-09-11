@@ -19,6 +19,7 @@ import PlaceMap from './pages/PlaceMap'
 import RestoreAccount from './pages/RestoreAccount'
 import GuestSignUp from './components/sign-up/GuestSignUp'
 import PlanningPlaceMap from './pages/PlanningPlaceMap'
+import AccountBook from './pages/AccountBook'
 
 const App = () => {
   return (
@@ -45,6 +46,8 @@ const App = () => {
                 <Route path='update' element={<UpdateCalendar />} />
                 <Route path='confirmation' element={<ConfirmCalendar />} />
                 <Route path='participation' element={<Participation />} />
+                {/**가계부 페이지 */}
+                <Route path='accountbook' element={<AccountBook />} />
                 {/* TODO: 추후 Notice 페이지와 결합 */}
                 <Route path='post/notice' element={<CreateNotices />} />
 
