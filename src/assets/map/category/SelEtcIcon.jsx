@@ -1,0 +1,47 @@
+/** 선택된 기타 아이콘 */
+const SelEtcIcon = ({
+  size = 24, // 아이콘 크기(px)
+  color = 'white', // 점 3개 색상
+  bg = '#C161EE', // 배경 색상
+  className,
+  ...rest
+}) => {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox='0 0 24 24'
+      fill='none'
+      xmlns='http://www.w3.org/2000/svg'
+      className={className}
+      aria-hidden='true'
+      focusable='false'
+      {...rest}
+    >
+      <rect width='24' height='24' rx='12' fill={bg} />
+      <path
+        d='M11.334 11.9997C11.334 12.3679 11.6325 12.6663 12.0007 12.6663C12.3688 12.6663 12.6673 12.3679 12.6673 11.9997C12.6673 11.6315 12.3688 11.333 12.0007 11.333C11.6325 11.333 11.334 11.6315 11.334 11.9997Z'
+        stroke={color}
+        strokeWidth='1.33333'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <path
+        d='M16.0007 11.9997C16.0007 12.3679 16.2991 12.6663 16.6673 12.6663C17.0355 12.6663 17.334 12.3679 17.334 11.9997C17.334 11.6315 17.0355 11.333 16.6673 11.333C16.2991 11.333 16.0007 11.6315 16.0007 11.9997Z'
+        stroke={color}
+        strokeWidth='1.33333'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+      <path
+        d='M6.66732 11.9997C6.66732 12.3679 6.96579 12.6663 7.33398 12.6663C7.70217 12.6663 8.00065 12.3679 8.00065 11.9997C8.00065 11.6315 7.70217 11.333 7.33398 11.333C6.96579 11.333 6.66732 11.6315 6.66732 11.9997Z'
+        stroke={color}
+        strokeWidth='1.33333'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      />
+    </svg>
+  )
+}
+
+export default SelEtcIcon

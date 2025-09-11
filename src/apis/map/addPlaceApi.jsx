@@ -1,6 +1,6 @@
 import api from '@/apis/api'
 
-/**일정에 장소 추가 API */
+/**일차에 목적지 넣기 API */
 const addPlaceApi = async (tripId, day, body) => {
   try {
     const response = await api.post(`trip/${tripId}/days/${day}/places`, body)
