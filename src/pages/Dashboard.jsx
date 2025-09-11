@@ -9,7 +9,7 @@ import KebabModal from '@/components/dashboard/modal/KebabModal'
 import UpdateTitleModal from '@/components/dashboard/modal/UpdateTitleModal'
 import Notices from '@/components/notice/Notices'
 import FixedActionBar from '@/components/common/FixedActionBar'
-import PigIcon from '@/assets/accountbook/pigIcon'
+import PigIcon from '@/assets/accountbook/PigIcon'
 
 /**여행 정보 대시보드 페이지 */
 const Dashboard = () => {
