@@ -18,7 +18,9 @@ const AccountBook = () => {
         </button>
       </div>
       <div className='flex w-full flex-col gap-15 pt-10 pb-50 pl-10'>
-        <h1 className='text-4xl leading-normal font-bold'>마이페이지</h1>
+        <h1 className='text-4xl leading-normal font-bold'>
+          가계부 이름 들어갈 예정
+        </h1>
       </div>
     </div>
   )
