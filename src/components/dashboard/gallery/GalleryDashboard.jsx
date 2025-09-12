@@ -211,6 +211,12 @@ const GalleryDashBoard = ({ activeTab }) => {
         onDayChange={setActiveDay}
       />
       <PhotoAlbum
+        tripId={tripId}
+        tripDayPlaceId={
+          activeDay > 0 && planningPlaces.length >= activeDay
+            ? planningPlaces[activeDay - 1].id
+            : undefined
+        }
         temporaryImages={temporaryImages}
         matchedImages={matchedImages}
         unmatchedImages={unmatchedImages}
