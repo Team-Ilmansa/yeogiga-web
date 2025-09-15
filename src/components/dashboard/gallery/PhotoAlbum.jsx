@@ -1,9 +1,19 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import NoUploadImage from '@/assets/dashboard/NoUploadImage'
-import { Check, ArrowLeft, ArrowRight } from 'lucide-react'
+import updateFavoriteImageApi from '@/apis/image/updateFavoriteImageApi'
+import {
+  Check,
+  ArrowLeft,
+  ArrowRight,
+  Download,
+  Trash2,
+  Heart,
+} from 'lucide-react'
 
 const PhotoAlbum = ({
+  tripId,
+  tripDayPlaceId,
   temporaryImages,
   unmatchedImages,
   matchedImages,
@@ -25,7 +35,11 @@ const PhotoAlbum = ({
   /**매칭 이미지 + 매칭X(기타) 이미지 */
   const allImages = matchedImages
     .flatMap((place) =>
-      place.images.map((image) => ({ ...image, placeName: place.name })),
+      place.images.map((image) => ({
+        ...image,
+        placeName: place.name,
+        placeId: place.id,
+      })),
     )
     .concat(unmatchedImages.map((image) => ({ ...image, placeName: '기타' })))
 
@@ -54,6 +68,58 @@ const PhotoAlbum = ({
     const currentIndex = allImages.findIndex((img) => img.id === modalImage.id)
     const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length
     setModalImage(allImages[prevIndex])
+  }
+
+  /**다운로드 함수 */
+  const handleDownload = async (e) => {
+    e.stopPropagation()
+    if (!modalImage) return
+
+    try {
+      const response = await fetch(modalImage.url)
+      if (!response.ok) throw new Error('네트워크가 응답하지 않습니다.')
+      const blob = await response.blob()
+
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      const filename = modalImage.url.substring(
+        modalImage.url.lastIndexOf('/') + 1,
+      )
+      link.download = filename || 'download'
+
+      document.body.appendChild(link)
+      link.click()
+
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('다운로드 실패: ', err)
+      alert('이미지 다운로드에 실패했습니다.')
+    }
+  }
+
+  /**즐겨찾기 상태 변경 함수 */
+  const handleFavoriteClick = async (e) => {
+    e.stopPropagation()
+    if (!modalImage) return
+
+    const newIsFavorite = !modalImage.isFavorite
+    const body = modalImage.placeId
+      ? { placeId: modalImage.placeId, favorite: newIsFavorite }
+      : { favorite: newIsFavorite }
+
+    try {
+      await updateFavoriteImageApi(tripId, tripDayPlaceId, modalImage.id, body)
+      alert(
+        newIsFavorite
+          ? '즐겨찾기에 추가되었습니다.'
+          : '즐겨찾기에서 해제되었습니다.',
+      )
+      setModalImage({ ...modalImage, isFavorite: newIsFavorite })
+    } catch (err) {
+      alert(err.message || '즐겨찾기 처리에 실패했습니다.')
+    }
   }
 
   return (
@@ -166,31 +232,58 @@ const PhotoAlbum = ({
       {modalImage &&
         createPortal(
           <div
-            className='bg-opacity-50 fixed inset-0 z-100 flex items-center justify-between bg-black/90 p-10'
+            className='bg-opacity-50 fixed inset-0 z-100 flex flex-col gap-5 bg-black/90 p-10'
             onClick={closeModal}
           >
-            <button
-              className='left-4 border-none text-white'
-              onClick={showPrevImage}
-            >
-              <ArrowLeft size={48} />
-            </button>
-            <div className='flex flex-col px-30'>
-              <div className='p-2 text-white'>{modalImage.placeName}</div>
-              <img
-                src={modalImage.url}
-                alt='enlarged'
-                className='max-h-full max-w-full'
-                onClick={(e) => e.stopPropagation()}
-              />
+            <div className='flex h-9/10 w-full items-center justify-between'>
+              <button
+                className='border-none text-white'
+                onClick={showPrevImage}
+              >
+                <ArrowLeft size={48} />
+              </button>
+              <div className='flex h-full flex-col items-center justify-center p-10'>
+                <div className='p-2 text-white'>{modalImage.placeName}</div>
+                <img
+                  src={modalImage.url}
+                  alt='enlarged'
+                  className='max-h-full max-w-full object-contain'
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              <button
+                className='border-none text-white'
+                onClick={showNextImage}
+              >
+                <ArrowRight size={48} />
+              </button>
             </div>
-
-            <button
-              className='right-4 border-none text-white'
-              onClick={showNextImage}
-            >
-              <ArrowRight size={48} />
-            </button>
+            <div className='flex items-center justify-center text-white'>
+              <button className='flex w-70 flex-col items-center justify-center gap-2 border-none'>
+                <Trash2 size={48} />
+                <span>삭제</span>
+              </button>
+              <div className='h-10 border-2 border-l border-white' />
+              <button
+                className='flex w-70 flex-col items-center justify-center gap-2 border-none'
+                onClick={handleFavoriteClick}
+              >
+                <Heart
+                  size={48}
+                  fill={modalImage.favorite ? 'red' : 'none'}
+                  color={modalImage.favorite ? 'red' : 'white'}
+                />
+                <span>즐겨찾기</span>
+              </button>
+              <div className='h-10 border-2 border-l border-white' />
+              <button
+                className='flex w-70 flex-col items-center justify-center gap-2 border-none'
+                onClick={handleDownload}
+              >
+                <Download size={48} />
+                <span>내 PC에 다운로드</span>
+              </button>
+            </div>
           </div>,
           document.getElementById('root'),
         )}
