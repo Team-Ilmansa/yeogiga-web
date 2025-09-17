@@ -14,7 +14,7 @@ const TrendingPlaces = () => {
   ]
 
   return (
-    <div className='w-full'>
+    <div className='w-full pl-10'>
       <div className='pb-3 text-2xl font-bold text-[var(--Grey-Scale-grey-400)]'>
         인기 급상승 여행스팟
       </div>

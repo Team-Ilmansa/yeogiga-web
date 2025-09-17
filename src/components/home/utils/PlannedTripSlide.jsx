@@ -10,7 +10,7 @@ const PlannedTripSlide = ({ settingTrips = [] }) => {
   const swiperRef = useRef(null)
 
   return (
-    <section className='mt-6 w-full'>
+    <section className='w-full pl-10'>
       <div className='mb-3 flex items-center justify-between px-1'>
         <h2 className='text-2xl font-bold text-gray-900'>
           {settingTrips.length}개의 준비중인 여행

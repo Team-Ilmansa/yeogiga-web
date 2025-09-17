@@ -26,19 +26,8 @@ const Home = () => {
 
   const [isReadMainTripListOpen, setIsReadMainTripListOpen] = useState(false)
   const [isReadTripListOpen, setIsReadTripListOpen] = useState(false)
-  const [mainTrip, setMainTrip] = useState(null)
   const [settingTrips, setSettingTrips] = useState(null)
   const [trips, setTrips] = useState(null)
-
-  /**버튼 클릭 시 로그아웃 */
-  const handleSignOut = async () => {
-    try {
-      const result = await signOutApi()
-      logout()
-    } catch (error) {
-      console.error('로그아웃 중 오류 발생: ', error.message)
-    }
-  }
 
   /**여행 생성 API 호출 */
   const createTrip = async (e) => {
@@ -59,16 +48,6 @@ const Home = () => {
   }
 
   useEffect(() => {
-    /**메인 화면 내 여행 조회 API 호출 */
-    const fetchMainTrip = async () => {
-      try {
-        const result = await readMainTripApi()
-        setMainTrip(result)
-      } catch (err) {
-        alert(err.message)
-      }
-    }
-
     /**준비 중 여행 조회 API 호출 */
     const fetchSettingTrip = async () => {
       try {
@@ -79,7 +58,6 @@ const Home = () => {
       }
     }
 
-    fetchMainTrip()
     fetchSettingTrip()
   }, [])
 
@@ -107,18 +85,13 @@ const Home = () => {
   }
 
   return (
-    <div className='flex w-full flex-col gap-15 bg-[var(--Grey-Scale-grey-50)] pt-10 pb-50 pl-10'>
+    <div className='flex w-full flex-col gap-15 bg-[var(--Grey-Scale-grey-50)] pb-50'>
       <HomeTitle user={user} />
       <PlannedTripSlide settingTrips={settingTrips || []} />
       <RecommendedPlaces user={user} />
       <TrendingPlaces />
       <PastTrips />
       <nav className='flex flex-col gap-2'>
-        <button onClick={handleSignOut}>로그아웃</button>
-        <Link to='/mypage' className='link'>
-          마이 페이지
-        </Link>
-        <button onClick={toggleReadMainTripList}>여행 읽기</button>
         <button onClick={toggleReadTripList}>사용자가 속한 여행 읽기</button>
       </nav>
 
@@ -199,16 +172,7 @@ const Home = () => {
           )}
         </fieldset>
       )}
-      {settingTrips && (
-        <fieldset className='rounded-2xl border p-4'>
-          <legend className='p-2'>준비 중인 여행</legend>
-          {settingTrips.map((settingTrip) => (
-            <Link key={settingTrip.tripId} to={`trip/${settingTrip.tripId}`}>
-              {settingTrip.title}
-            </Link>
-          ))}
-        </fieldset>
-      )}
+
       <HomeButton
         urrentPage='/'
         toggleCreateTripModal={toggleCreateTripModal}
