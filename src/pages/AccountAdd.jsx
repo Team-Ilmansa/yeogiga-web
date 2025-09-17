@@ -1,9 +1,12 @@
 import GoBack from '@/assets/sign-up/GoBack'
-import CategorySelector from '@/components/common/CategorySelector'
 import FixedActionBar from '@/components/common/FixedActionBar'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import readMemberApi from '@/apis/member/readMemberApi'
+import createSettlementApi from '@/apis/account-book/createSettlementApi'
+import CategorySelector, {
+  toServerType,
+} from '@/components/common/CategorySelector'
 
 const pad = (v, len = 2) => String(v).padStart(len, '0')
 
@@ -19,6 +22,7 @@ const AccountAdd = () => {
   const [members, setMembers] = useState([])
   const [loadingMembers, setLoadingMembers] = useState(false)
   const [selected, setSelected] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const meId = Number(userId)
 
@@ -40,9 +44,7 @@ const AccountAdd = () => {
         setMembers(sorted)
 
         const sel = {}
-        sorted.forEach((member) => {
-          sel[member.userId] = true
-        })
+        sorted.forEach((m) => (sel[m.userId] = true))
         setSelected(sel)
       } catch (e) {
         alert(e.message || '여행 멤버를 불러오지 못했습니다.')
@@ -60,11 +62,66 @@ const AccountAdd = () => {
     const basicOk =
       !!title.trim() && !!amount && !!date.y && !!date.m && !!date.d
     if (!basicOk) return false
-    const hasAnySelected = members.some((member) => selected[member.userId])
+    const hasAnySelected = members.some((m) => selected[m.userId])
     return hasAnySelected
   }, [title, amount, date, members, selected])
 
   const handleBack = () => navigate(-1)
+
+  const handleConfirm = useCallback(async () => {
+    if (!tripId || isSubmitting) return
+    const name = title.trim()
+    const y = date.y.trim()
+    const m = date.m.trim()
+    const d = date.d.trim()
+
+    if (!name) return alert('내역 이름을 입력해주세요.')
+    if (!/^\d+$/.test(amount)) return alert('금액은 숫자만 입력해주세요.')
+
+    const totalPrice = Number(amount)
+    if (totalPrice <= 0) return alert('금액은 1원 이상이어야 합니다.')
+    if (!(y.length === 4 && m.length >= 1 && d.length >= 1)) {
+      return alert('날짜 형식을 확인해주세요. (YYYY.MM.DD)')
+    }
+
+    const yyyyMMdd = `${y}-${pad(m, 2)}-${pad(d, 2)}`
+    const selectedMembers = members.filter((m) => selected[m.userId])
+    if (selectedMembers.length === 0) return alert('정산 인원을 선택해주세요.')
+
+    const n = selectedMembers.length
+    const base = Math.floor(totalPrice / n)
+    let remainder = totalPrice - base * n
+
+    const payers = selectedMembers.map((mItem) => {
+      const price = base + (remainder > 0 ? 1 : 0)
+      if (remainder > 0) remainder -= 1
+      return { userId: mItem.userId, price, isCompleted: true }
+    })
+
+    const serverType = toServerType(category)
+    if (!serverType) {
+      return alert('지원하지 않는 카테고리입니다.')
+    }
+
+    const body = {
+      name,
+      totalPrice,
+      date: yyyyMMdd,
+      type: serverType,
+      payers,
+    }
+    /**정산 내역 생성하기 API 호출*/
+    try {
+      setIsSubmitting(true)
+      const response = await createSettlementApi(tripId, body)
+      console.log(response)
+      alert('정산 내역이 등록되었습니다.')
+    } catch (err) {
+      alert(err.message || '정산 내역 등록에 실패했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [tripId, title, amount, date, category, members, selected, isSubmitting])
 
   const inputStyle =
     'h-18 w-full rounded-2xl bg-gray-100 px-4 pr-12 text-xl placeholder:text-gray-400 border-none outline-none'
@@ -76,15 +133,13 @@ const AccountAdd = () => {
   const MemberRow = ({ member }) => {
     const isMe = member.userId === meId
     const isSelected = !!selected[member.userId]
-
     const toggleSelect = () =>
-      setSelected((prev) => ({
-        ...prev,
-        [member.userId]: !prev[member.userId],
+      setSelected((prevSelected) => ({
+        ...prevSelected,
+        [member.userId]: !prevSelected[member.userId],
       }))
 
     return (
-      /** 정산 인원 프로필, 닉네임*/
       <div
         className='flex items-center justify-between rounded-xl px-1 py-3'
         key={member.userId}
@@ -108,7 +163,7 @@ const AccountAdd = () => {
           </div>
         </div>
 
-        {/* 체크박스 */}
+        {/* 체크 버튼 */}
         <button
           onClick={toggleSelect}
           className={`relative flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
@@ -188,8 +243,8 @@ const AccountAdd = () => {
               placeholder='YYYY'
               value={date.y}
               onChange={(e) =>
-                setDate((p) => ({
-                  ...p,
+                setDate((prevDate) => ({
+                  ...prevDate,
                   y: e.target.value.replace(/[^0-9]/g, ''),
                 }))
               }
@@ -203,8 +258,8 @@ const AccountAdd = () => {
               placeholder='MM'
               value={date.m}
               onChange={(e) =>
-                setDate((p) => ({
-                  ...p,
+                setDate((prevDate) => ({
+                  ...prevDate,
                   m: e.target.value.replace(/[^0-9]/g, ''),
                 }))
               }
@@ -218,8 +273,8 @@ const AccountAdd = () => {
               placeholder='DD'
               value={date.d}
               onChange={(e) =>
-                setDate((p) => ({
-                  ...p,
+                setDate((prevDate) => ({
+                  ...prevDate,
                   d: e.target.value.replace(/[^0-9]/g, ''),
                 }))
               }
@@ -270,18 +325,19 @@ const AccountAdd = () => {
         </div>
       </div>
 
-      {/** 확인 버튼 */}
+      {/* 확인 버튼 */}
       <FixedActionBar className='flex justify-center'>
         <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
           <button
-            disabled={!isConfirmEnabled}
+            disabled={!isConfirmEnabled || isSubmitting}
+            onClick={handleConfirm}
             className={`w-full rounded-lg border-none p-[20px] text-2xl text-white ${
               isConfirmEnabled
                 ? 'bg-[var(--Blue-Scale-blue-500)]'
                 : 'cursor-not-allowed bg-gray-300'
             }`}
           >
-            확인
+            {isSubmitting ? '저장 중…' : '확인'}
           </button>
         </div>
       </FixedActionBar>

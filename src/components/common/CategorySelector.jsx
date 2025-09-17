@@ -8,8 +8,9 @@ import TransportIcon from '@/assets/map/category/TransportIcon'
 import SelTransportIcon from '@/assets/map/category/SelTransportIcon'
 import EtcIcon from '@/assets/map/category/EtcIcon'
 import SelEtcIcon from '@/assets/map/category/SelEtcIcon'
+import React, { useMemo } from 'react'
 
-/**카테고리 라벨 설정 */
+/** 카테고리 라벨/아이콘 정의 */
 export const CATEGORY = {
   TOURISM: {
     key: 'TOURISM',
@@ -45,7 +46,23 @@ export const CATEGORY_ORDER = [
   'TRANSPORT',
   'ETC',
 ]
+
 export const getCategoryLabel = (key) => CATEGORY[key]?.label ?? ''
+
+/** UI -> 서버 변환 테이블 */
+export const SETTLEMENT_TYPE = {
+  TOURISM: 'ATTRACTION',
+  LODGING: 'LODGING',
+  RESTAURANT: 'MEAL',
+  TRANSPORT: 'TRANSPORTATION',
+  ETC: 'ETC',
+}
+
+/** 변환 함수 */
+export const toServerType = (uiType) => {
+  const key = String(uiType || '').toUpperCase()
+  return SETTLEMENT_TYPE[key] || null
+}
 
 const CategorySelector = ({
   value,
@@ -55,6 +72,8 @@ const CategorySelector = ({
   showLabels = true,
   disabledKeys = [],
 }) => {
+  const disabledSet = useMemo(() => new Set(disabledKeys), [disabledKeys])
+
   return (
     <div
       className={`flex items-center gap-1 ${className}`}
@@ -65,7 +84,7 @@ const CategorySelector = ({
         const { label, Icon, SelIcon } = CATEGORY[key]
         const selected = value === key
         const Comp = selected ? SelIcon : Icon
-        const disabled = disabledKeys.includes(key)
+        const disabled = disabledSet.has(key)
 
         return (
           <button
@@ -80,11 +99,7 @@ const CategorySelector = ({
             <Comp size={size} />
             {showLabels && (
               <span
-                className={`mt-1 text-sm ${
-                  selected
-                    ? 'text-[var(--Grey-Scale-grey-400)]'
-                    : 'text-[var(--Grey-Scale-grey-300)]'
-                }`}
+                className={`mt-1 text-sm ${selected ? 'text-[var(--Grey-Scale-grey-400)]' : 'text-[var(--Grey-Scale-grey-300)]'}`}
               >
                 {label}
               </span>
