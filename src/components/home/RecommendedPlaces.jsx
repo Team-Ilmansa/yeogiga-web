@@ -9,7 +9,7 @@ const RecommendedPlaces = ({ user }) => {
   ]
 
   return (
-    <div className='w-full'>
+    <div className='w-full pl-10'>
       <div className='pb-3 text-2xl font-bold text-[var(--Grey-Scale-grey-400)]'>
         {user?.nickname}님께 딱 맞을 것 같은 스팟
       </div>

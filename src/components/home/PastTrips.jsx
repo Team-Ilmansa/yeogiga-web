@@ -9,7 +9,7 @@ const PastTrips = () => {
   ]
 
   return (
-    <div className='w-full'>
+    <div className='w-full pl-10'>
       <div className='pb-3 text-2xl font-bold text-[var(--Grey-Scale-grey-400)]'>
         지난여행 돌아보기
       </div>
