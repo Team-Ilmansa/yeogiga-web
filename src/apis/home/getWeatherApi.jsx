@@ -58,7 +58,6 @@ const getWeatherApi = async (latitude, longitude) => {
     let base_date
     let base_time
 
-    // API 발표 시간을 감안하여, 새벽 3시 이전에는 전날 23시 예보를 사용합니다.
     if (hours < 3) {
       const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
       const year = yesterday.getFullYear()
@@ -73,7 +72,6 @@ const getWeatherApi = async (latitude, longitude) => {
       base_date = `${year}${month}${day}`
 
       const availableTimes = [2, 5, 8, 11, 14, 17, 20, 23]
-      // 현재 시간보다 작거나 같은 예보 시간 중 가장 가까운 시간을 찾습니다.
       const closestTime = availableTimes
         .slice()
         .reverse()
@@ -84,7 +82,7 @@ const getWeatherApi = async (latitude, longitude) => {
     const { x, y } = dfs_xy_conv('toXY', latitude, longitude)
 
     const response = await axios.get(
-      'https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst',
+      'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst',
       {
         params: {
           serviceKey: weatherApiKey,
@@ -101,32 +99,44 @@ const getWeatherApi = async (latitude, longitude) => {
     console.log('Full API Response:', response.data)
 
     const items = response.data.response.body.items.item
-    const currentHourStr = String(now.getHours()).padStart(2, '0') + '00'
-    const currentDateStr = `${now.getFullYear()}${String(
-      now.getMonth() + 1,
-    ).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
 
-    const forecastForCurrentHour = items.filter(
+    let earliestFcstDate = ''
+    let earliestFcstTime = ''
+
+    if (items && items.length > 0) {
+      earliestFcstDate = items[0].fcstDate
+      earliestFcstTime = items[0].fcstTime
+
+      for (const item of items) {
+        if (
+          item.fcstDate < earliestFcstDate ||
+          (item.fcstDate === earliestFcstDate &&
+            item.fcstTime < earliestFcstTime)
+        ) {
+          earliestFcstDate = item.fcstDate
+          earliestFcstTime = item.fcstTime
+        }
+      }
+    }
+
+    const forecastForEarliestHour = items.filter(
       (item) =>
-        item.fcstDate === currentDateStr && item.fcstTime === currentHourStr,
+        item.fcstDate === earliestFcstDate &&
+        item.fcstTime === earliestFcstTime,
     )
 
-    // 현재 시간에 대한 예보 데이터가 없는 경우, 빈 객체를 반환합니다.
-    if (forecastForCurrentHour.length === 0) {
-      console.warn(
-        `No forecast data found for ${currentDateStr} ${currentHourStr}.`,
-      )
+    if (forecastForEarliestHour.length === 0) {
+      console.warn(`No forecast data found for the earliest time slot.`)
       return {}
     }
 
-    // 찾은 예보들을 카테고리별로 정리된 객체 하나로 만듭니다.
     const weatherData = {}
-    forecastForCurrentHour.forEach((item) => {
+    forecastForEarliestHour.forEach((item) => {
       weatherData[item.category] = item.fcstValue
     })
-    weatherData.fcstTime = currentHourStr // 예보 시간 정보 추가
+    weatherData.fcstTime = earliestFcstTime
 
-    console.log(`Filtered weather for ${currentHourStr}:`, weatherData)
+    console.log(`Filtered weather for ${earliestFcstTime}:`, weatherData)
     return weatherData
   } catch (err) {
     if (err.response?.data?.message) {
