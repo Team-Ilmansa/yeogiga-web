@@ -29,7 +29,8 @@ jobs:
           VITE_NAVER_REDIRECT_URI: ${{ secrets.VITE_NAVER_REDIRECT_URI }}
           VITE_SERVER_BASE_URL: ${{ secrets.VITE_SERVER_BASE_URL }}
           VITE_LOCAL_SERVER_BASE_URL: ${{ secrets.VITE_LOCAL_SERVER_BASE_URL }}
-          VITE_NAVER_MAP_KEY: ${{ secrets.VITE_NAVER_MAP_KEY}}
+          VITE_NAVER_MAP_KEY: ${{ secrets.VITE_NAVER_MAP_KEY }}
+          VITE_WEATHER_API_KEY: ${{ secrets.VITE_WEATHER_API_KEY }}
 
         run: |
           npm install
