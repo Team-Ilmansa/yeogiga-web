@@ -19,8 +19,8 @@ import PlaceMap from './pages/PlaceMap'
 import RestoreAccount from './pages/RestoreAccount'
 import GuestSignUp from './components/sign-up/GuestSignUp'
 import PlanningPlaceMap from './pages/PlanningPlaceMap'
-import AccountBook from './pages/AccountBook'
-import AccountAdd from './pages/AccountAdd'
+import SettlementAdd from './pages/SettlementAdd'
+import SettlementBook from './pages/SettlementBook'
 
 const App = () => {
   return (
@@ -48,9 +48,9 @@ const App = () => {
                 <Route path='confirmation' element={<ConfirmCalendar />} />
                 <Route path='participation' element={<Participation />} />
                 {/**가계부 페이지 */}
-                <Route path='accountbook' element={<AccountBook />} />
+                <Route path='settlementbook' element={<SettlementBook />} />
                 {/** TODO: 정산내역 추가 페이지 경로 변경 예정 */}
-                <Route path='account/add' element={<AccountAdd />} />
+                <Route path='settlement/add' element={<SettlementAdd />} />
                 {/* TODO: 추후 Notice 페이지와 결합 */}
                 <Route path='post/notice' element={<CreateNotices />} />
 
