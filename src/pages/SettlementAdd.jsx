@@ -6,10 +6,34 @@ import readMemberApi from '@/apis/member/readMemberApi'
 import createSettlementApi from '@/apis/settlement/createSettlementApi'
 import CategorySelector from '@/components/common/CategorySelector'
 
-/**정산 내역 추가 페이지 */
-const pad2 = (v) => String(v).toString().padStart(2, '0')
+const pad2 = (v) => String(v).padStart(2, '0')
+const onlyDigits = (v) => String(v).replace(/[^0-9]/g, '')
+
+/** 원, 천단위 콤마 표시 */
 const formatWon = (n) => Number(n).toLocaleString('ko-KR')
 
+/** 날짜 입력 상태를 YYYY-MM-DD 문자열로 변환 */
+const formatDate = ({ year, month, day }) =>
+  `${year}-${pad2(month)}-${pad2(day)}`
+
+/** 날짜 입력 최소 형식 검증 */
+const isValidDateInputs = ({ year, month, day }) =>
+  year.length === 4 && month.length >= 1 && day.length >= 1
+
+/** 선택된 멤버에게 total을 균등 분배(앞에서부터 1원씩 나머지 분배) */
+const computeEvenAllocation = (total, selectedMembers) => {
+  if (!selectedMembers.length) return {}
+  const base = Math.floor(total / selectedMembers.length)
+  let remainder = total - base * selectedMembers.length
+  const allocationByUserId = {}
+  for (const member of selectedMembers) {
+    allocationByUserId[member.userId] = base + (remainder > 0 ? 1 : 0)
+    if (remainder > 0) remainder -= 1
+  }
+  return allocationByUserId
+}
+
+/** 스타일 변수 */
 const amountAndTitleInputClass =
   'h-18 w-full rounded-2xl bg-gray-100 px-4 pr-12 text-xl placeholder:text-gray-400 border-none outline-none'
 const dateInputClass =
@@ -17,27 +41,33 @@ const dateInputClass =
 const sectionTitleClass = 'mb-2 text-xl text-gray-800'
 const dateDotClass = 'self-end text-4xl text-gray-500'
 
+/** 정산 내역 추가 페이지 */
 const SettlementAdd = () => {
   const navigate = useNavigate()
   const { tripId, userId } = useParams()
 
+  /** 상단 폼 입력 상태 */
   const [amountInput, setAmountInput] = useState('')
   const [settlementTitle, setSettlementTitle] = useState('')
   const [dateInput, setDateInput] = useState({ year: '', month: '', day: '' })
   const [category, setCategory] = useState('ETC')
 
+  /** 멤버/분배 관련 상태 */
   const [memberList, setMemberList] = useState([])
   const [isLoadingMembers, setIsLoadingMembers] = useState(false)
-  const [selectedPayersByUserId, setSelectedPayersByUserId] = useState({})
-  const [allocatedByUserId, setAllocatedByUserId] = useState({}) // 1/n 분배 결과
-  const [isManualInput, setIsManualInput] = useState(false) // 수동입력 모드
-  const [manualAmountByUserId, setManualAmountByUserId] = useState({}) // 수동 금액
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isEvenSplitActive, setIsEvenSplitActive] = useState(false) // ✅ 1/n 분배 활성 상태
 
+  const [selectedPayersByUserId, setSelectedPayersByUserId] = useState({})
+  const [allocatedByUserId, setAllocatedByUserId] = useState({})
+  const [isManualInput, setIsManualInput] = useState(false)
+  const [manualAmountByUserId, setManualAmountByUserId] = useState({})
+  const [isEvenSplitActive, setIsEvenSplitActive] = useState(false)
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  /** 현재 페이지 URL 파라미터에서 내 userId */
   const currentUserId = userId ? Number(userId) : null
 
-  // 여행 멤버 조회
+  /** 여행 멤버 조회 */
   useEffect(() => {
     let isMounted = true
     const fetchTripMembers = async () => {
@@ -57,7 +87,9 @@ const SettlementAdd = () => {
         })
         setMemberList(sortedMembers)
         setSelectedPayersByUserId(
-          Object.fromEntries(sortedMembers.map((m) => [m.userId, true])),
+          Object.fromEntries(
+            sortedMembers.map((member) => [member.userId, true]),
+          ),
         )
       } catch (error) {
         alert(error.message || '여행 멤버를 불러오지 못했습니다.')
@@ -65,168 +97,123 @@ const SettlementAdd = () => {
         setIsLoadingMembers(false)
       }
     }
-
     fetchTripMembers()
     return () => {
       isMounted = false
     }
   }, [tripId, currentUserId])
 
-  // 선택 인원 수
-  const selectedCount = useMemo(
-    () =>
-      memberList.reduce(
-        (acc, m) => acc + (selectedPayersByUserId[m.userId] ? 1 : 0),
-        0,
-      ),
+  /** 선택된 멤버 & 인원 수 */
+  const selectedMembers = useMemo(
+    () => memberList.filter((member) => selectedPayersByUserId[member.userId]),
     [memberList, selectedPayersByUserId],
   )
+  const selectedCount = selectedMembers.length
 
-  // 확인 버튼 활성화 조건
+  /** 확인 버튼 활성화 */
   const isConfirmEnabled = useMemo(() => {
     const hasTitle = !!settlementTitle.trim()
     const hasAmount = !!amountInput
     const hasDate = !!dateInput.year && !!dateInput.month && !!dateInput.day
-    const hasAnyPayer = selectedCount > 0
-    return hasTitle && hasAmount && hasDate && hasAnyPayer
+    return hasTitle && hasAmount && hasDate && selectedCount > 0
   }, [settlementTitle, amountInput, dateInput, selectedCount])
 
+  /** 뒤로 가기 */
   const handleBack = () => navigate(-1)
 
-  const formatDate = ({ year, month, day }) =>
-    `${year}-${pad2(month)}-${pad2(day)}`
-  const isValidDateInputs = ({ year, month, day }) =>
-    year.length === 4 && month.length >= 1 && day.length >= 1
-
-  // 균등분배 계산(선택된 멤버만)
-  const computeEvenAllocation = useCallback((total, members, selectedMap) => {
-    const selected = members.filter((m) => selectedMap[m.userId])
-    if (selected.length === 0) return {}
-    const base = Math.floor(total / selected.length)
-    let remainder = total - base * selected.length
-    const map = {}
-    for (const m of selected) {
-      map[m.userId] = base + (remainder > 0 ? 1 : 0)
-      if (remainder > 0) remainder -= 1
-    }
-    return map
-  }, [])
-
-  // 1/n 정산하기: 수동 모드 해제 + 분배 활성화 + 분배 갱신
+  /** 1/n 정산하기 */
   const handleSplitEvenly = useCallback(() => {
     if (!/^\d+$/.test(amountInput))
       return alert('정산 비용에 숫자를 입력해주세요.')
     const total = Number(amountInput)
     if (total <= 0) return alert('정산 비용은 1원 이상이어야 합니다.')
-    if (selectedCount === 0) return alert('정산 인원을 선택해주세요.')
+    if (!selectedCount) return alert('정산 인원을 선택해주세요.')
 
     setIsManualInput(false)
-    setIsEvenSplitActive(true) // ✅ 분배 모드 on
-    setAllocatedByUserId(
-      computeEvenAllocation(total, memberList, selectedPayersByUserId),
-    )
-  }, [
-    amountInput,
-    selectedCount,
-    memberList,
-    selectedPayersByUserId,
-    computeEvenAllocation,
-  ])
+    setIsEvenSplitActive(true)
+    setAllocatedByUserId(computeEvenAllocation(total, selectedMembers))
+  }, [amountInput, selectedCount, selectedMembers])
 
-  // 직접입력: 수동 모드 ON, 1/n 모드 OFF, 현재 1/n 결과를 초기값으로 사용(없으면 빈 값)
+  /** 직접입력 모드 */
   const handleManualInputMode = useCallback(() => {
     setIsManualInput(true)
-    setIsEvenSplitActive(false) // ✅ 분배 모드 off
-    setManualAmountByUserId((prev) => {
-      const source = Object.keys(allocatedByUserId).length
+    setIsEvenSplitActive(false)
+    setManualAmountByUserId((prevManualAmounts) => {
+      const base = Object.keys(allocatedByUserId).length
         ? allocatedByUserId
         : {}
-      const map = { ...prev }
-      memberList.forEach((m) => {
-        if (selectedPayersByUserId[m.userId]) {
-          map[m.userId] = source[m.userId] ?? map[m.userId] ?? ''
-        }
+      const nextManualAmounts = { ...prevManualAmounts }
+      selectedMembers.forEach((member) => {
+        nextManualAmounts[member.userId] =
+          base[member.userId] ?? nextManualAmounts[member.userId] ?? ''
       })
-      return map
+      return nextManualAmounts
     })
-  }, [allocatedByUserId, memberList, selectedPayersByUserId])
+  }, [allocatedByUserId, selectedMembers])
 
-  // 선택 토글
+  /** 멤버 선택 토글 */
   const toggleSelectPayer = useCallback(
     (toggleUserId) => {
-      setSelectedPayersByUserId((prev) => {
-        const next = { ...prev, [toggleUserId]: !prev[toggleUserId] }
+      setSelectedPayersByUserId((prevSelectionMap) => {
+        const nextSelectionMap = {
+          ...prevSelectionMap,
+          [toggleUserId]: !prevSelectionMap[toggleUserId],
+        }
 
-        // ✅ 1/n 활성 상태라면, 현재 선택 상태(next) 기준으로 즉시 재분배
         if (
           isEvenSplitActive &&
           /^\d+$/.test(amountInput) &&
           Number(amountInput) > 0
         ) {
-          const nextAlloc = computeEvenAllocation(
-            Number(amountInput),
-            memberList,
-            next,
+          const nextSelectedMembers = memberList.filter(
+            (member) => nextSelectionMap[member.userId],
           )
-          setAllocatedByUserId(nextAlloc) // 선택 전원이 해제되면 {}가 들어가며, 모드는 유지
+          setAllocatedByUserId(
+            computeEvenAllocation(Number(amountInput), nextSelectedMembers),
+          )
         }
 
-        // 수동 모드에서는 금액 유지(표시만 토글). 새로 체크되면 빈 값으로 시작
         if (
           isManualInput &&
-          next[toggleUserId] &&
+          nextSelectionMap[toggleUserId] &&
           manualAmountByUserId[toggleUserId] == null
         ) {
-          setManualAmountByUserId((prevManual) => ({
-            ...prevManual,
+          setManualAmountByUserId((prevManualAmounts) => ({
+            ...prevManualAmounts,
             [toggleUserId]: '',
           }))
         }
-        return next
+
+        return nextSelectionMap
       })
     },
     [
       isEvenSplitActive,
       amountInput,
       memberList,
-      computeEvenAllocation,
       isManualInput,
       manualAmountByUserId,
     ],
   )
 
-  // 총액 변경 시, 1/n 활성 상태면 재분배 (수동 모드 제외)
+  /** 총액 변경 시 1/n 활성 상태면 재분배 */
   useEffect(() => {
-    if (isManualInput) return
-    if (!isEvenSplitActive) return
-    if (!/^\d+$/.test(amountInput)) {
-      setAllocatedByUserId({})
-      return
-    }
+    if (!isEvenSplitActive || isManualInput) return
+    if (!/^\d+$/.test(amountInput)) return setAllocatedByUserId({})
     const total = Number(amountInput)
-    if (total <= 0) {
-      setAllocatedByUserId({})
-      return
-    }
-    setAllocatedByUserId(
-      computeEvenAllocation(total, memberList, selectedPayersByUserId),
-    )
-  }, [
-    amountInput,
-    memberList,
-    selectedPayersByUserId,
-    computeEvenAllocation,
-    isManualInput,
-    isEvenSplitActive,
-  ])
+    if (total <= 0) return setAllocatedByUserId({})
+    setAllocatedByUserId(computeEvenAllocation(total, selectedMembers))
+  }, [amountInput, selectedMembers, isManualInput, isEvenSplitActive])
 
-  // 수동 입력값 변경
+  /** 수동 입력값 변경 */
   const handleChangeManualAmount = useCallback((userId, value) => {
-    const onlyDigits = value.replace(/[^0-9]/g, '')
-    setManualAmountByUserId((prev) => ({ ...prev, [userId]: onlyDigits }))
+    setManualAmountByUserId((prevManualAmounts) => ({
+      ...prevManualAmounts,
+      [userId]: onlyDigits(value),
+    }))
   }, [])
 
-  // 정산 생성 제출
+  /** 제출 */
   const handleSubmitSettlement = useCallback(async () => {
     if (!tripId || isSubmitting) return
 
@@ -238,39 +225,33 @@ const SettlementAdd = () => {
     if (totalPrice <= 0) return alert('금액은 1원 이상이어야 합니다.')
     if (!isValidDateInputs(dateInput))
       return alert('날짜 형식을 확인해주세요. (YYYY.MM.DD)')
-
-    const selectedMembers = memberList.filter(
-      (m) => selectedPayersByUserId[m.userId],
-    )
-    if (selectedMembers.length === 0) return alert('정산 인원을 선택해주세요.')
+    if (!selectedMembers.length) return alert('정산 인원을 선택해주세요.')
 
     let payers
     if (isManualInput) {
       const anyInvalid = selectedMembers.some(
-        (m) => !/^\d+$/.test(String(manualAmountByUserId[m.userId] ?? '')),
+        (member) =>
+          !/^\d+$/.test(String(manualAmountByUserId[member.userId] ?? '')),
       )
       if (anyInvalid) return alert('직접 입력한 금액에 숫자만 입력해주세요.')
-      payers = selectedMembers.map((m) => ({
-        userId: m.userId,
-        price: Number(manualAmountByUserId[m.userId] || 0),
+      payers = selectedMembers.map((member) => ({
+        userId: member.userId,
+        price: Number(manualAmountByUserId[member.userId] || 0),
         isCompleted: true,
       }))
     } else if (isEvenSplitActive) {
-      // 1/n 활성 상태 기준 사용 (선택이 0이면 여기까지 오기 전에 가드됨)
-      payers = selectedMembers.map((m) => ({
-        userId: m.userId,
-        price: allocatedByUserId[m.userId] ?? 0,
+      payers = selectedMembers.map((member) => ({
+        userId: member.userId,
+        price: allocatedByUserId[member.userId] ?? 0,
         isCompleted: true,
       }))
     } else {
-      // 즉시 균등 계산
-      const base = Math.floor(totalPrice / selectedMembers.length)
-      let remainder = totalPrice - base * selectedMembers.length
-      payers = selectedMembers.map((m) => {
-        const price = base + (remainder > 0 ? 1 : 0)
-        if (remainder > 0) remainder -= 1
-        return { userId: m.userId, price, isCompleted: true }
-      })
+      const even = computeEvenAllocation(totalPrice, selectedMembers)
+      payers = selectedMembers.map((member) => ({
+        userId: member.userId,
+        price: even[member.userId],
+        isCompleted: true,
+      }))
     }
 
     const requestBody = {
@@ -297,12 +278,11 @@ const SettlementAdd = () => {
     amountInput,
     dateInput,
     category,
-    memberList,
-    selectedPayersByUserId,
-    allocatedByUserId,
+    selectedMembers,
     isManualInput,
     manualAmountByUserId,
     isEvenSplitActive,
+    allocatedByUserId,
   ])
 
   const MemberSelectRow = React.memo(function MemberSelectRow({ member }) {
@@ -310,7 +290,7 @@ const SettlementAdd = () => {
       currentUserId != null && member.userId === currentUserId
     const isSelected = !!selectedPayersByUserId[member.userId]
     const allocated = allocatedByUserId[member.userId]
-    const hasAllocation = Object.keys(allocatedByUserId).length > 0
+    const showEvenAmount = isEvenSplitActive && isSelected && allocated != null
 
     return (
       <div className='flex items-center justify-between rounded-xl px-1 py-3'>
@@ -321,9 +301,7 @@ const SettlementAdd = () => {
                 src={member.imageUrl}
                 alt={`${member.nickname} 프로필 이미지`}
                 className='h-full w-full object-cover'
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                }}
+                onError={(e) => (e.currentTarget.style.display = 'none')}
               />
             ) : null}
           </div>
@@ -333,33 +311,32 @@ const SettlementAdd = () => {
           </div>
         </div>
 
+        {/* 오른쪽: 금액 또는 체크 버튼 */}
         <div className='flex items-center gap-3'>
-          {/* 오른쪽 영역 */}
           <div className='min-w-[120px] text-right text-gray-800'>
             {isManualInput && isSelected ? (
               <div className='relative'>
                 <input
                   type='text'
                   inputMode='numeric'
-                  value={manualAmountByUserId[member.userId]}
+                  value={manualAmountByUserId[member.userId] ?? ''}
                   onChange={(e) =>
                     handleChangeManualAmount(member.userId, e.target.value)
                   }
                   placeholder='금액입력'
-                  className='w-[110px] appearance-none rounded-none border-none bg-transparent px-0 py-1 pr-6 text-right text-sm outline-none focus:ring-0 focus:outline-none'
+                  className='w-[110px] appearance-none rounded-none border-none bg-transparent px-0 py-1 pr-6 text-right text-sm outline-none focus:ring-0'
                 />
                 <span className='pointer-events-none absolute top-1/2 right-1 -translate-y-1/2 text-sm text-gray-500'>
                   원
                 </span>
               </div>
-            ) : hasAllocation && isSelected && allocated != null ? (
+            ) : showEvenAmount ? (
               `${formatWon(allocated)}원`
             ) : (
               ''
             )}
           </div>
 
-          {/* 체크 버튼 */}
           <button
             onClick={() => toggleSelectPayer(member.userId)}
             className={`relative flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
@@ -407,9 +384,7 @@ const SettlementAdd = () => {
               type='text'
               inputMode='numeric'
               value={amountInput}
-              onChange={(e) =>
-                setAmountInput(e.target.value.replace(/[^0-9]/g, ''))
-              }
+              onChange={(e) => setAmountInput(onlyDigits(e.target.value))}
               placeholder='금액을 입력해주세요'
               className={amountAndTitleInputClass}
             />
@@ -444,7 +419,7 @@ const SettlementAdd = () => {
               onChange={(e) =>
                 setDateInput((prev) => ({
                   ...prev,
-                  year: e.target.value.replace(/[^0-9]/g, ''),
+                  year: onlyDigits(e.target.value),
                 }))
               }
               className={`${dateInputClass} w-28`}
@@ -459,7 +434,7 @@ const SettlementAdd = () => {
               onChange={(e) =>
                 setDateInput((prev) => ({
                   ...prev,
-                  month: e.target.value.replace(/[^0-9]/g, ''),
+                  month: onlyDigits(e.target.value),
                 }))
               }
               className={`${dateInputClass} w-20`}
@@ -474,7 +449,7 @@ const SettlementAdd = () => {
               onChange={(e) =>
                 setDateInput((prev) => ({
                   ...prev,
-                  day: e.target.value.replace(/[^0-9]/g, ''),
+                  day: onlyDigits(e.target.value),
                 }))
               }
               className={`${dateInputClass} w-20`}
@@ -512,7 +487,7 @@ const SettlementAdd = () => {
               </button>
             </div>
           </div>
-
+          {/* 여행 멤버 보이기 */}
           <div className='px-3 py-1'>
             {isLoadingMembers ? (
               <div className='px-2 py-6 text-center text-gray-500'>
