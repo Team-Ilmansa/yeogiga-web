@@ -1,4 +1,4 @@
-import { weatherApiKey } from '@/config/Env'
+import { weatherApiKey, weatherApiUrl } from '@/config/Env'
 import axios from 'axios'
 
 /**위경도 -> 격자 좌표 변경 함수*/
@@ -82,7 +82,7 @@ const getWeatherApi = async (latitude, longitude) => {
     const { x, y } = dfs_xy_conv('toXY', latitude, longitude)
 
     const response = await axios.get(
-      'http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst',
+      weatherApiUrl,
       {
         params: {
           serviceKey: weatherApiKey,
