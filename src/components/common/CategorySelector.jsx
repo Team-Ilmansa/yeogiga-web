@@ -1,3 +1,4 @@
+import React, { useMemo } from 'react'
 import TouristIcon from '@/assets/map/category/TouristIcon'
 import SelTouristIcon from '@/assets/map/category/SelTouristIcon'
 import LodgingIcon from '@/assets/map/category/LodgingIcon'
@@ -8,61 +9,20 @@ import TransportIcon from '@/assets/map/category/TransportIcon'
 import SelTransportIcon from '@/assets/map/category/SelTransportIcon'
 import EtcIcon from '@/assets/map/category/EtcIcon'
 import SelEtcIcon from '@/assets/map/category/SelEtcIcon'
-import React, { useMemo } from 'react'
 
-/** 카테고리 라벨/아이콘 정의 */
-export const CATEGORY = {
-  TOURISM: {
-    key: 'TOURISM',
-    label: '관광지',
-    Icon: TouristIcon,
-    SelIcon: SelTouristIcon,
-  },
-  LODGING: {
-    key: 'LODGING',
-    label: '숙소',
-    Icon: LodgingIcon,
-    SelIcon: SelLodgingIcon,
-  },
-  RESTAURANT: {
-    key: 'RESTAURANT',
-    label: '식사',
-    Icon: MealIcon,
-    SelIcon: SelMealIcon,
-  },
+const CATEGORY = {
+  TOURISM: { label: '관광지', Icon: TouristIcon, SelIcon: SelTouristIcon },
+  LODGING: { label: '숙소', Icon: LodgingIcon, SelIcon: SelLodgingIcon },
+  RESTAURANT: { label: '식사', Icon: MealIcon, SelIcon: SelMealIcon },
   TRANSPORT: {
-    key: 'TRANSPORT',
     label: '이동수단',
     Icon: TransportIcon,
     SelIcon: SelTransportIcon,
   },
-  ETC: { key: 'ETC', label: '기타', Icon: EtcIcon, SelIcon: SelEtcIcon },
+  ETC: { label: '기타', Icon: EtcIcon, SelIcon: SelEtcIcon },
 }
 
-export const CATEGORY_ORDER = [
-  'TOURISM',
-  'LODGING',
-  'RESTAURANT',
-  'TRANSPORT',
-  'ETC',
-]
-
-export const getCategoryLabel = (key) => CATEGORY[key]?.label ?? ''
-
-/** UI -> 서버 변환 테이블 */
-export const SETTLEMENT_TYPE = {
-  TOURISM: 'ATTRACTION',
-  LODGING: 'LODGING',
-  RESTAURANT: 'MEAL',
-  TRANSPORT: 'TRANSPORTATION',
-  ETC: 'ETC',
-}
-
-/** 변환 함수 */
-export const toServerType = (uiType) => {
-  const key = String(uiType || '').toUpperCase()
-  return SETTLEMENT_TYPE[key] || null
-}
+const CATEGORY_ORDER = ['TOURISM', 'LODGING', 'RESTAURANT', 'TRANSPORT', 'ETC']
 
 const CategorySelector = ({
   value,
