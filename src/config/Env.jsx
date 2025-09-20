@@ -5,3 +5,4 @@ export const naverClientId = import.meta.env.VITE_NAVER_REST_API_KEY
 export const naverRedirectUri = import.meta.env.VITE_NAVER_REDIRECT_URI
 export const localBaseUrl = import.meta.env.VITE_LOCAL_SERVER_BASE_URL
 export const weatherApiKey = import.meta.env.VITE_WEATHER_API_KEY
+export const weatherApiUrl = import.meta.env.VITE_WEATHER_API_URL
