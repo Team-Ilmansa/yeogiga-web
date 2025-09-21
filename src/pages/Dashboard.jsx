@@ -70,7 +70,7 @@ const Dashboard = () => {
           <div className='flex items-center gap-10'>
             {/** 돼지 아이콘 클릭 시 가계부 페이지로 이동 */}
             <button
-              onClick={() => navigate(`/trip/${tripId}/accountbook`)}
+              onClick={() => navigate(`/trip/${tripId}/settlementbook`)}
               className='border-none bg-transparent p-0 outline-none focus:outline-none'
             >
               <PigIcon />
