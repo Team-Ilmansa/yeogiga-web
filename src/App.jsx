@@ -19,8 +19,8 @@ import PlaceMap from './pages/PlaceMap'
 import RestoreAccount from './pages/RestoreAccount'
 import GuestSignUp from './components/sign-up/GuestSignUp'
 import PlanningPlaceMap from './pages/PlanningPlaceMap'
-import SettlementBook from './pages/SettlementBook'
 import SettlementAdd from './pages/SettlementAdd'
+import SettlementBook from './pages/SettlementBook'
 
 const App = () => {
   return (

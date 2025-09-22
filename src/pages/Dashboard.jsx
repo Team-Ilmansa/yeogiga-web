@@ -8,8 +8,8 @@ import readMyCalendarApi from '@/apis/calendar/readMyCalendarApi'
 import KebabModal from '@/components/dashboard/modal/KebabModal'
 import UpdateTitleModal from '@/components/dashboard/modal/UpdateTitleModal'
 import Notices from '@/components/notice/Notices'
-
-import PigIcon from '@/assets/accountbook/PigIcon'
+import FixedActionBar from '@/components/common/FixedActionBar'
+import PigIcon from '@/assets/settlement/PigIcon'
 
 /**여행 정보 대시보드 페이지 */
 const Dashboard = () => {
