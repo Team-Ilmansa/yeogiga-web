@@ -59,6 +59,7 @@ const SettlementAdd = () => {
               }}
               placeholder='금액을 입력해주세요'
               className={inputStyle}
+
             />
             <span className='pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-xl text-gray-500'>
               원
@@ -75,6 +76,7 @@ const SettlementAdd = () => {
             onChange={(e) => setTitle(e.target.value)}
             placeholder='내역 이름을 입력해주세요'
             className={inputStyle}
+
           />
         </div>
 
@@ -83,11 +85,13 @@ const SettlementAdd = () => {
           <div className={titleStyle}>날짜</div>
           <div className='flex items-center gap-2'>
             {/* YYYY */}
+
             <input
               type='text'
               inputMode='numeric'
               maxLength={4}
               placeholder='YYYY'
+
               value={date.y}
               onChange={(e) =>
                 setDate((prev) => ({
@@ -105,6 +109,7 @@ const SettlementAdd = () => {
               inputMode='numeric'
               maxLength={2}
               placeholder='MM'
+
               value={date.m}
               onChange={(e) =>
                 setDate((prev) => ({

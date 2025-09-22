@@ -95,16 +95,14 @@ const Dashboard = () => {
         </div>
         {/* 여행 날짜 확정 버튼 */}
         {!isScheduleConfirmed && (
-          <FixedActionBar>
-            <div className='flex w-full items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
-              <button
-                onClick={() => navigate('confirmation')}
-                className='w-full rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
-              >
-                여행 날짜 확정하기
-              </button>
-            </div>
-          </FixedActionBar>
+          <div className='mt-auto flex w-full items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
+            <button
+              onClick={() => navigate('confirmation')}
+              className='w-full rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+            >
+              여행 날짜 확정하기
+            </button>
+          </div>
         )}
       </div>
     </>

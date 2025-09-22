@@ -19,8 +19,7 @@ const HomeTitle = ({ user }) => {
     const fetchWeather = async (latitude, longitude) => {
       try {
         const result = await getWeatherApi(latitude, longitude)
-        setWeather(result)
-        console.log('Weather data:', result)
+        setWeather(result.data)
       } catch (err) {
         alert('날씨 정보를 가져오는 데 실패했습니다: ' + err.message)
       }
@@ -48,12 +47,20 @@ const HomeTitle = ({ user }) => {
     }
   }, [])
 
+  /**카테고리 별 값 읽어오기 */
+  const getWeatherValue = (category) => {
+    if (!weather) return null
+    const item = weather.find((item) => item.category === category)
+    return item ? item.fcstValue : null
+  }
+
+  /**날씨 종류 판단 */
   const getWeatherCondition = () => {
     if (!weather) return null
 
-    const pty = weather.PTY
-    const sky = weather.SKY
-    const wsd = weather.WSD
+    const pty = getWeatherValue('PTY')
+    const sky = getWeatherValue('SKY')
+    const wsd = getWeatherValue('WSD')
 
     if (pty === '3')
       return { text: '눈', Icon: SnowIcon, background: SnowBackground }
@@ -66,12 +73,14 @@ const HomeTitle = ({ user }) => {
     if (parseFloat(wsd) > 4)
       return { text: '바람', Icon: WindIcon, background: WindBackground }
 
-    return null
+    return { text: '맑음', Icon: ClearIcon, background: ClearBackground }
   }
 
   const weatherCondition = getWeatherCondition()
   const WeatherIcon = weatherCondition?.Icon
   const iconColor = weatherCondition?.text === '비' ? 'white' : 'black'
+  const tmp = getWeatherValue('TMP')
+  const wsd = getWeatherValue('WSD')
 
   const backgroundStyle = weatherCondition
     ? {
@@ -93,12 +102,12 @@ const HomeTitle = ({ user }) => {
         {weatherCondition && (
           <div
             className='flex items-center gap-1 rounded-full pb-10 text-lg'
-            title={`풍속: ${weather.WSD} m/s`}
+            title={`풍속: ${wsd} m/s`}
           >
             <WeatherIcon color={iconColor} />
-            {weather && weather.TMP && (
+            {tmp && (
               <span className={`text-${iconColor} px-1 text-2xl font-medium`}>
-                {weather.TMP}°
+                {tmp}°
               </span>
             )}
           </div>
