@@ -9,7 +9,7 @@ import KebabModal from '@/components/dashboard/modal/KebabModal'
 import UpdateTitleModal from '@/components/dashboard/modal/UpdateTitleModal'
 import Notices from '@/components/notice/Notices'
 import FixedActionBar from '@/components/common/FixedActionBar'
-import PigIcon from '@/assets/accountbook/PigIcon'
+import PigIcon from '@/assets/settlement/PigIcon'
 
 /**여행 정보 대시보드 페이지 */
 const Dashboard = () => {
@@ -70,7 +70,7 @@ const Dashboard = () => {
           <div className='flex items-center gap-10'>
             {/** 돼지 아이콘 클릭 시 가계부 페이지로 이동 */}
             <button
-              onClick={() => navigate(`/trip/${tripId}/accountbook`)}
+              onClick={() => navigate(`/trip/${tripId}/settlementbook`)}
               className='border-none bg-transparent p-0 outline-none focus:outline-none'
             >
               <PigIcon />
