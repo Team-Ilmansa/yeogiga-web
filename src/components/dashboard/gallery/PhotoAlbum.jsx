@@ -10,6 +10,7 @@ import {
   Trash2,
   Heart,
 } from 'lucide-react'
+import deleteSingleImageApi from '@/apis/image/deleteSingleImageApi'
 
 const PhotoAlbum = ({
   tripId,
@@ -21,6 +22,7 @@ const PhotoAlbum = ({
   selectedImages,
   toggleSelectionMode,
   handleImageClick,
+  onImageAction,
 }) => {
   const [modalImage, setModalImage] = useState(null)
   const hasTemporaryImages = temporaryImages && temporaryImages.length > 0
@@ -56,7 +58,7 @@ const PhotoAlbum = ({
 
   /**다음 이미지 보기 */
   const showNextImage = (e) => {
-    e.stopPropagation()
+    if (e) e.stopPropagation()
     const currentIndex = allImages.findIndex((img) => img.id === modalImage.id)
     const nextIndex = (currentIndex + 1) % allImages.length
     setModalImage(allImages[nextIndex])
@@ -64,7 +66,7 @@ const PhotoAlbum = ({
 
   /**이전 이미지 보기 */
   const showPrevImage = (e) => {
-    e.stopPropagation()
+    if (e) e.stopPropagation()
     const currentIndex = allImages.findIndex((img) => img.id === modalImage.id)
     const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length
     setModalImage(allImages[prevIndex])
@@ -119,6 +121,29 @@ const PhotoAlbum = ({
       setModalImage({ ...modalImage, isFavorite: newIsFavorite })
     } catch (err) {
       alert(err.message || '즐겨찾기 처리에 실패했습니다.')
+    }
+  }
+
+  /**단일 삭제 함수 */
+  const handleSingleDelete = async (e) => {
+    e.stopPropagation()
+    if (!modalImage) return
+
+    const body = modalImage.placeId
+      ? {
+          url: modalImage.url,
+          placeId: modalImage.placeId,
+          deleteType: 'PLACE',
+        }
+      : { url: modalImage.url, deleteType: 'UNMATCHED' }
+
+    try {
+      await deleteSingleImageApi(tripId, tripDayPlaceId, modalImage.id, body)
+      alert('삭제되었습니다')
+      showNextImage()
+      onImageAction()
+    } catch (err) {
+      alert(err.message || '사진 삭제에 실패했습니다.')
     }
   }
 
@@ -259,7 +284,10 @@ const PhotoAlbum = ({
               </button>
             </div>
             <div className='flex items-center justify-center text-white'>
-              <button className='flex w-70 flex-col items-center justify-center gap-2 border-none'>
+              <button
+                className='flex w-70 flex-col items-center justify-center gap-2 border-none'
+                onClick={handleSingleDelete}
+              >
                 <Trash2 size={48} />
                 <span>삭제</span>
               </button>
