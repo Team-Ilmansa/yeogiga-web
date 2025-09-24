@@ -196,10 +196,18 @@ const GalleryDashBoard = ({ activeTab }) => {
         await matchTemporaryImagesApi(tripId, tripDayPlaceId)
         alert('이미지 매칭이 완료되었습니다.')
         fetchTemporaryImages()
+        onImageAction()
       } catch (err) {
         alert(err.message || '이미지 매칭에 실패했습니다.')
       }
     }
+  }
+
+  /**전체 데이터 새로고침 */
+  const onImageAction = () => {
+    fetchMatchedImages()
+    fetchUnmatchedImages()
+    fetchTemporaryImages()
   }
 
   return (
@@ -224,6 +232,7 @@ const GalleryDashBoard = ({ activeTab }) => {
         selectedImages={selectedImages}
         toggleSelectionMode={toggleSelectionMode}
         handleImageClick={handleImageClick}
+        onImageAction={onImageAction}
       />
 
       <input
