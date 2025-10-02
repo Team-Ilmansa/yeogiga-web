@@ -10,6 +10,7 @@ import UpdateTitleModal from '@/components/dashboard/modal/UpdateTitleModal'
 import Notices from '@/components/notice/Notices'
 import FixedActionBar from '@/components/common/FixedActionBar'
 import PigIcon from '@/assets/settlement/PigIcon'
+import MapIcon from '@/assets/map/MapIcon'
 
 /**여행 정보 대시보드 페이지 */
 const Dashboard = () => {
@@ -73,9 +74,15 @@ const Dashboard = () => {
               onClick={() => navigate(`/trip/${tripId}/settlementbook`)}
               className='border-none bg-transparent p-0 outline-none focus:outline-none'
             >
-              <PigIcon />
+              <PigIcon size={24} color={'var(--Grey-Scale-grey-400)'} />
             </button>
-            {/** TODO: 추후 지도 아이콘 추가 예정 */}
+            {/* 지도 아이콘 클릭 시 해당 여행 지도 페이지로 이동 */}
+            <button
+              onClick={() => navigate(`/trip/${tripId}/map`)}
+              className='border-none bg-transparent p-0 outline-none focus:outline-none'
+            >
+              <MapIcon size={24} color={'var(--Grey-Scale-grey-400)'} />
+            </button>
             {/** 케밥 버튼 클릭 시 모달창 열기 */}
             <button
               onClick={() => setIsKebabOpen(true)}
