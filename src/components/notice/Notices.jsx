@@ -10,7 +10,7 @@ import readPinApi from '@/apis/pin/readPinApi'
 
 const Notices = () => {
   const { user } = useAuth()
-  const { tripId, noticeId } = useParams()
+  const { tripId, noticeId, day } = useParams()
   const navigate = useNavigate()
   const [notices, setNotices] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -137,8 +137,15 @@ const Notices = () => {
 
       {/**현재 공지 리스트 */}
       <div className='space-y-3'>
-        {/** TODO: 집결지 생성 API 연동 후 확인 */}
-        <div className={containerStyle}>
+        <div
+          className={containerStyle + ' cursor-pointer'}
+          onClick={() => {
+            if (hasPin && pinData)
+              navigate(
+                `/trip/${tripId}/map/${day}?lat=${pinData.latitude}&lng=${pinData.longitude}`,
+              )
+          }}
+        >
           <PlaceIcon className='h-6 w-6' />
           <div className='flex items-baseline gap-2'>
             {hasPin && pinData ? (
