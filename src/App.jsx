@@ -21,6 +21,7 @@ import GuestSignUp from './components/sign-up/GuestSignUp'
 import PlanningPlaceMap from './pages/PlanningPlaceMap'
 import SettlementAdd from './pages/SettlementAdd'
 import SettlementBook from './pages/SettlementBook'
+import TripPlaceMap from './pages/TripPlaceMap'
 
 const App = () => {
   return (
@@ -56,6 +57,7 @@ const App = () => {
 
                 {/* 지난 여행 전체보기 페이지 */}
                 <Route path='past/notices' element={<PastNotices />} />
+                <Route path='map' element={<TripPlaceMap />} />
                 <Route path='map/:day' element={<PlaceMap />} />
                 <Route path='map/plan/:day' element={<PlanningPlaceMap />} />
               </Route>
