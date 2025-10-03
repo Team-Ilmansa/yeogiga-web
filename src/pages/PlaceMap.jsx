@@ -11,6 +11,9 @@ import Trash from '@/assets/map/Trash'
 import addPlaceApi from '@/apis/map/addPlaceApi'
 import createPinApi from '@/apis/pin/createPinApi'
 import CategorySelector from '@/components/common/CategorySelector'
+import ReactDOMServer from 'react-dom/server'
+import readPinApi from '@/apis/pin/readPinApi'
+import PointPin from '@/assets/map/PointPin'
 
 /**목적지 검색을 위한 지도 화면 */
 const PlaceMap = () => {
@@ -36,6 +39,8 @@ const PlaceMap = () => {
   /**집결지 공지 체크박스*/
   const [noticeAsPin, setNoticeAsPin] = useState(false)
 
+  const [rallyPin, setRallyPin] = useState(null)
+
   /**집결 시간 설정 */
   const [noticeTime, setNoticeTime] = useState(() => {
     const pad = (n) => String(n).padStart(2, '0')
@@ -49,6 +54,23 @@ const PlaceMap = () => {
 
   /**주소에서 여행 번호, 일차 가져오기*/
   const { tripId, day } = useParams()
+
+  useEffect(() => {
+    const fetchRallyPin = async () => {
+      try {
+        const result = await readPinApi(tripId)
+        if (result && result.data) {
+          console.log('기존 집결지 정보:', result.data)
+          setRallyPin(result.data)
+        }
+      } catch (error) {
+        console.warn('기존 집결지를 불러오는 데 실패했습니다:', error.message)
+      }
+    }
+
+    fetchRallyPin()
+  }, [tripId])
+
   useEffect(() => {
     /**지도 생성 함수 */
     const initMap = (lat, lng) => {
@@ -97,6 +119,41 @@ const PlaceMap = () => {
       initMap(37.5665, 126.978)
     }
   }, [])
+
+  useEffect(() => {
+    if (map && rallyPin) {
+      const pinHTML = ReactDOMServer.renderToString(<PointPin />)
+
+      const rallyPointMarker = new naver.maps.Marker({
+        position: new naver.maps.LatLng(rallyPin.latitude, rallyPin.longitude),
+        map: map,
+        icon: {
+          content: pinHTML,
+
+          anchor: new naver.maps.Point(12, 25),
+        },
+
+        zIndex: 999,
+      })
+
+      const infoWindow = new naver.maps.InfoWindow({
+        content: `
+        <div style="padding: 10px; font-size: 14px; border-radius: 5px;">
+          <b>${rallyPin.place}</b><br/>
+          집결 시간: ${new Date(rallyPin.time).toLocaleString('ko-KR')}
+        </div>
+      `,
+      })
+
+      naver.maps.Event.addListener(rallyPointMarker, 'click', () => {
+        if (infoWindow.getMap()) {
+          infoWindow.close()
+        } else {
+          infoWindow.open(map, rallyPointMarker)
+        }
+      })
+    }
+  }, [map, rallyPin])
 
   // 지도 누르면 정보창 꺼지도록
   useEffect(() => {
