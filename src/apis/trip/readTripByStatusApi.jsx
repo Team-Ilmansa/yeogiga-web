@@ -1,11 +1,11 @@
 import api from '@/apis/api'
 
 /**사용자가 속한 여행 조회 API */
-const readTripApi = async () => {
+const readTripByStatusApi = async ({ status }) => {
   try {
     const response = await api.get('trip', {
       params: {
-        status: 'ALL',
+        status: status,
       },
     })
     return response.data
@@ -22,4 +22,4 @@ const readTripApi = async () => {
   }
 }
 
-export default readTripApi
+export default readTripByStatusApi
