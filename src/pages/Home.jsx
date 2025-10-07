@@ -1,8 +1,7 @@
 import signOutApi from '@/apis/authentication/signOutApi'
 import createTripApi from '@/apis/trip/createTripApi'
 import readMainTripApi from '@/apis/trip/readMainApi'
-import readSettingTripApi from '@/apis/trip/readSettingTripApi'
-import readTripApi from '@/apis/trip/readTripApi'
+import readTripByStatusApi from '@/apis/trip/readTripByStatusApi'
 import CreateTripModal from '@/components/home/CreateTripModal'
 import HomeButton from '@/components/home/HomeButton'
 import HomeTitle from '@/components/home/HomeTitle'
@@ -12,7 +11,6 @@ import TrendingPlaces from '@/components/home/TrendingPlaces'
 import useAuth from '@/hooks/useAuth'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import PlannedTrip from '@/components/home/PlannedTrip'
 import PlannedTripSlide from '@/components/home/utils/PlannedTripSlide'
 
 const Home = () => {
@@ -27,6 +25,7 @@ const Home = () => {
   const [isReadMainTripListOpen, setIsReadMainTripListOpen] = useState(false)
   const [isReadTripListOpen, setIsReadTripListOpen] = useState(false)
   const [settingTrips, setSettingTrips] = useState(null)
+  const [pastTrips, setPastTrips] = useState(null)
   const [trips, setTrips] = useState(null)
 
   /**여행 생성 API 호출 */
@@ -47,37 +46,49 @@ const Home = () => {
     setTripTitle('')
   }
 
-  useEffect(() => {
-    /**준비 중 여행 조회 API 호출 */
-    const fetchSettingTrip = async () => {
-      try {
-        const result = await readSettingTripApi()
-        setSettingTrips(result.data)
-      } catch (err) {
-        alert(err.message)
-      }
+  /**준비 중 여행 조회 API 호출 */
+  const fetchSettingTrip = async () => {
+    try {
+      const result = await readTripByStatusApi({ status: 'SETTING' })
+      const sortedTrips = result.data.content.sort(
+        (a, b) => b.tripId - a.tripId,
+      )
+      setSettingTrips(sortedTrips)
+    } catch (err) {
+      alert(err.message)
     }
+  }
 
+  /**이전 여행 조회 API 호출 */
+  const fetchPastTrip = async () => {
+    try {
+      const result = await readTripByStatusApi({ status: 'COMPLETED' })
+      setPastTrips(result.data.content)
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  /**사용자가 속한 여행 조회 API 호출 */
+  const fetchMyTrip = async () => {
+    try {
+      const result = await readTripByStatusApi({ status: 'ALL' })
+      setTrips(result.data.content)
+    } catch (err) {
+      alert(err.message)
+    }
+  }
+
+  useEffect(() => {
     fetchSettingTrip()
+    fetchPastTrip()
+    fetchMyTrip()
   }, [])
 
   /**메인 화면 내 여행 출력 상태 토글 */
   const toggleReadMainTripList = () => {
     setIsReadMainTripListOpen((prev) => !prev)
   }
-
-  /**사용자가 속한 여행 조회 API 호출 */
-  useEffect(() => {
-    const fetchTrip = async () => {
-      try {
-        const result = await readTripApi()
-        setTrips(result.data.content)
-      } catch (err) {
-        alert(err.message)
-      }
-    }
-    if (user) fetchTrip()
-  }, [])
 
   /**사용자가 속한 여행 출력 상태 토글 */
   const toggleReadTripList = () => {
@@ -90,7 +101,7 @@ const Home = () => {
       <PlannedTripSlide settingTrips={settingTrips || []} />
       <RecommendedPlaces user={user} />
       <TrendingPlaces />
-      <PastTrips />
+      <PastTrips pastTrips={pastTrips || []} />
       <nav className='flex flex-col gap-2'>
         <button onClick={toggleReadTripList}>사용자가 속한 여행 읽기</button>
       </nav>

@@ -1,5 +1,4 @@
 import { MapPin, Calendar } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 
 /**날짜 형식 설정을 위한 함수 */
 const formatDate = (d) =>
@@ -27,7 +26,6 @@ const getDday = (start) => {
 
 /**준비중인 여행을 렌더링하기 위한 카드 */
 const TripPreviewCard = ({ trip }) => {
-  const navigate = useNavigate()
   const dday = getDday(trip.startedAt || trip.startDate)
 
   /** 디데이 함수 */

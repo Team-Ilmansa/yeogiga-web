@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useRef } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { A11y } from 'swiper/modules'
@@ -21,7 +22,7 @@ const PlannedTripSlide = ({ settingTrips = [] }) => {
         modules={[A11y]}
         onSwiper={(s) => (swiperRef.current = s)}
         onBeforeDestroy={() => (swiperRef.current = null)}
-        slidesPerView={1.08}
+        slidesPerView={1.8}
         spaceBetween={16}
         slidesOffsetBefore={8}
         slidesOffsetAfter={8}
@@ -30,9 +31,11 @@ const PlannedTripSlide = ({ settingTrips = [] }) => {
       >
         {settingTrips.map((trip) => (
           <SwiperSlide key={trip.tripId} className='!h-auto'>
-            <div className='h-full'>
-              <TripPreviewCard trip={trip} />
-            </div>
+            <Link to={`/trip/${trip.tripId}`}>
+              <div className='h-full'>
+                <TripPreviewCard trip={trip} />
+              </div>
+            </Link>
           </SwiperSlide>
         ))}
       </Swiper>
