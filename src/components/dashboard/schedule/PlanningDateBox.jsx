@@ -1,14 +1,12 @@
 import ArrowUp from '@/assets/dashboard/ArrowUp'
 import ArrowDown from '@/assets/dashboard/ArrowDown'
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
   DndContext,
   MouseSensor,
   TouchSensor,
   closestCenter,
-  useSensor,
-  useSensors,
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -16,7 +14,6 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import SortablePlaceItem from './SortablePlaceItem'
-import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
 import updatePlanningPlaceOrderApi from '@/apis/planning-dashboard/updatePlaceOrderApi'
 import deletePlanningDatePlaceApi from '@/apis/planning-dashboard/deletePlanningDatePlaceApi'
 import { createPortal } from 'react-dom'
@@ -25,8 +22,6 @@ import checkVisitStatusApi from '@/apis/planning-dashboard/checkVisitStatusApi'
 /**확정 후 일자별 일정 박스 */
 const PlanningDateBox = ({
   date,
-  dayIndex,
-  tripInfo,
   selected,
   onSelect,
   planningPlaces,
@@ -45,7 +40,6 @@ const PlanningDateBox = ({
     placeName: '',
   })
 
-  const navigate = useNavigate()
   const { tripId } = useParams()
 
   useEffect(() => {

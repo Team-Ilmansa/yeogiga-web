@@ -1,6 +1,4 @@
-import signOutApi from '@/apis/authentication/signOutApi'
 import createTripApi from '@/apis/trip/createTripApi'
-import readMainTripApi from '@/apis/trip/readMainApi'
 import readTripByStatusApi from '@/apis/trip/readTripByStatusApi'
 import CreateTripModal from '@/components/home/CreateTripModal'
 import HomeButton from '@/components/home/HomeButton'
@@ -14,7 +12,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import PlannedTripSlide from '@/components/home/utils/PlannedTripSlide'
 
 const Home = () => {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   /**여행 생성 모달창 토글 */
@@ -22,7 +20,6 @@ const Home = () => {
   /**여행 이름 */
   const [tripTitle, setTripTitle] = useState('')
 
-  const [isReadMainTripListOpen, setIsReadMainTripListOpen] = useState(false)
   const [isReadTripListOpen, setIsReadTripListOpen] = useState(false)
   const [settingTrips, setSettingTrips] = useState(null)
   const [pastTrips, setPastTrips] = useState(null)
@@ -32,7 +29,7 @@ const Home = () => {
   const createTrip = async (e) => {
     e.preventDefault()
     try {
-      const result = await createTripApi({ title: tripTitle })
+      await createTripApi({ title: tripTitle })
       alert('여행이 성공적으로 생성되었습니다!')
       setIsCreateTripModalOpen(false)
     } catch (err) {
@@ -85,11 +82,6 @@ const Home = () => {
     fetchMyTrip()
   }, [])
 
-  /**메인 화면 내 여행 출력 상태 토글 */
-  const toggleReadMainTripList = () => {
-    setIsReadMainTripListOpen((prev) => !prev)
-  }
-
   /**사용자가 속한 여행 출력 상태 토글 */
   const toggleReadTripList = () => {
     setIsReadTripListOpen((prev) => !prev)
@@ -115,36 +107,6 @@ const Home = () => {
         />
       )}
 
-      {isReadMainTripListOpen && (
-        <fieldset className='rounded-2xl border p-4'>
-          <legend className='p-2'>여행 목록</legend>
-          {mainTrip ? (
-            <ul>
-              <li key={mainTrip.tripId}>
-                <h3>{mainTrip.title}</h3>
-                <p>시작일: {mainTrip.staredAt}</p>
-                <p>상태: {mainTrip.travelStatus}</p>
-                <p>일차: {mainTrip.day}</p>
-                <ul>
-                  {Array.isArray(mainTrip.places) &&
-                  mainTrip.places.length > 0 ? (
-                    mainTrip.places.map((place) => (
-                      <li key={place.id}>
-                        - {place.name} ({place.placeType}) / 방문여부:{' '}
-                        {place.isVisited ? 'O' : 'X'}
-                      </li>
-                    ))
-                  ) : (
-                    <li>장소 정보가 없습니다.</li>
-                  )}
-                </ul>
-              </li>
-            </ul>
-          ) : (
-            <p>여행 정보가 없습니다.</p>
-          )}
-        </fieldset>
-      )}
       {isReadTripListOpen && (
         <fieldset className='rounded-2xl border p-4'>
           <legend className='p-2'>내가 속한 여행 목록</legend>

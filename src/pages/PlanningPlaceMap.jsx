@@ -8,7 +8,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import PlusCalendar from '@/assets/map/PlusCalendar'
 import MapPin from '@/assets/map/MapPin'
 import Trash from '@/assets/map/Trash'
-import addPlaceApi from '@/apis/map/addPlaceApi'
 import createPinApi from '@/apis/pin/createPinApi'
 import addPlanningPlaceApi from '@/apis/map/addPlanningPlaceApi'
 
@@ -24,8 +23,7 @@ const PlanningPlaceMap = () => {
   const [markers, setMarkers] = useState([])
   /**마커가 클릭된 장소 */
   const [selectedPlace, setSelectedPlace] = useState(null)
-  /**정보창 내용 변경(선택된 장소 or 저장된 장소 목록) */
-  const [panelChanging, setPanelChanging] = useState(false)
+
   /**집결지 공지 체크박스 상태 */
   /**집결지 공지 체크박스*/
   const [noticeAsPin, setNoticeAsPin] = useState(false)
@@ -45,51 +43,60 @@ const PlanningPlaceMap = () => {
   const { tripId, day } = useParams()
 
   useEffect(() => {
-    /**지도 생성 함수 */
+    const scriptId = 'naver-maps-script'
+    let mapScript = document.getElementById(scriptId)
+
     const initMap = (lat, lng) => {
-      /**지도 옵션 설정 */
       const mapOptions = {
-        center: new naver.maps.LatLng(lat, lng),
+        center: new window.naver.maps.LatLng(lat, lng),
         zoom: 13,
         minZoom: 7,
         zoomControl: true,
         zoomControlOptions: {
-          position: naver.maps.Position.TOP_RIGHT,
+          position: window.naver.maps.Position.TOP_RIGHT,
         },
         mapTypeControl: true,
         mapTypeControlOptions: {
-          style: naver.maps.MapTypeControlStyle.BUTTON,
-          position: naver.maps.Position.TOP_RIGHT,
+          style: window.naver.maps.MapTypeControlStyle.BUTTON,
+          position: window.naver.maps.Position.TOP_RIGHT,
         },
-        mapTypeId: naver.maps.MapTypeId.NORMAL,
+        mapTypeId: window.naver.maps.MapTypeId.NORMAL,
       }
-
-      /**지도 객체 생성 및 저장 */
-      const map = new naver.maps.Map('map', mapOptions)
+      const map = new window.naver.maps.Map('map', mapOptions)
       setMap(map)
-
-      /**마커 생성 */
-      const location = new naver.maps.LatLng(lat, lng)
-      new naver.maps.Marker({
+      const location = new window.naver.maps.LatLng(lat, lng)
+      new window.naver.maps.Marker({
         position: location,
         map,
       })
     }
 
-    // 현위치 가져오기
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords
-          initMap(latitude, longitude)
-        },
-        (error) => {
-          console.error('위치 정보 가져오기 실패:', error)
-          initMap(37.5665, 126.978) // 실패 시 서울 시청 좌표
-        },
-      )
-    } else {
-      initMap(37.5665, 126.978)
+    const startMapInit = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords
+            initMap(latitude, longitude)
+          },
+          (error) => {
+            console.error('위치 정보 가져오기 실패:', error)
+            initMap(37.5665, 126.978) // 실패 시 서울 시청 좌표
+          },
+        )
+      } else {
+        initMap(37.5665, 126.978)
+      }
+    }
+
+    if (!mapScript) {
+      mapScript = document.createElement('script')
+      mapScript.id = scriptId
+      mapScript.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${import.meta.env.VITE_NAVER_MAP_KEY}`
+      mapScript.async = true
+      mapScript.onload = startMapInit
+      document.head.appendChild(mapScript)
+    } else if (window.naver && window.naver.maps) {
+      startMapInit()
     }
   }, [])
 
@@ -97,13 +104,13 @@ const PlanningPlaceMap = () => {
   useEffect(() => {
     if (!map) return
 
-    const listener = naver.maps.Event.addListener(map, 'click', () => {
+    const listener = window.naver.maps.Event.addListener(map, 'click', () => {
       setSelectedPlace(null)
     })
 
     // 컴포넌트 언마운트 시 이벤트 제거
     return () => {
-      naver.maps.Event.removeListener(listener)
+      window.naver.maps.Event.removeListener(listener)
     }
   }, [map])
 
@@ -119,12 +126,15 @@ const PlanningPlaceMap = () => {
 
       // 새 마커 생성
       const newMarkers = result.data.map((place) => {
-        const marker = new naver.maps.Marker({
-          position: new naver.maps.LatLng(place.latitude, place.longitude),
+        const marker = new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(
+            place.latitude,
+            place.longitude,
+          ),
           map,
         })
 
-        naver.maps.Event.addListener(marker, 'click', () => {
+        window.naver.maps.Event.addListener(marker, 'click', () => {
           setSelectedPlace(place)
         })
 
@@ -134,7 +144,9 @@ const PlanningPlaceMap = () => {
       // 검색된 첫 장소로 지도 중심 옮기기
       if (result.data.length > 0) {
         const first = result.data[0]
-        map.setCenter(new naver.maps.LatLng(first.latitude, first.longitude))
+        map.setCenter(
+          new window.naver.maps.LatLng(first.latitude, first.longitude),
+        )
         map.setZoom(16)
       }
 
@@ -214,29 +226,6 @@ const PlanningPlaceMap = () => {
     )
   }, [selectedPlace])
 
-  /**집결지 공지 시간 관련 함수 */
-  const toOffsetISO = (localDatetime) => {
-    const toLocalDateTimeString = (localDatetime) => {
-      return localDatetime.length === 16 ? `${localDatetime}:00` : localDatetime
-    }
-
-    const d = new Date(localDatetime)
-    const pad = (n) => String(Math.trunc(Math.abs(n))).padStart(2, '0')
-    const y = d.getFullYear()
-    const m = pad(d.getMonth() + 1)
-    const day = pad(d.getDate())
-    const hh = pad(d.getHours())
-    const mm = pad(d.getMinutes())
-    const ss = pad(d.getSeconds())
-
-    const tzMin = -d.getTimezoneOffset()
-    const sign = tzMin >= 0 ? '+' : '-'
-    const tzH = pad(Math.trunc(tzMin / 60))
-    const tzM = pad(tzMin % 60)
-
-    return `${y}-${m}-${day}T${hh}:${mm}:${ss}${sign}${tzH}:${tzM}`
-  }
-
   return (
     <div className='relative h-full w-full'>
       <div className='absolute top-4 left-4 z-10 flex items-center'>
@@ -272,7 +261,7 @@ const PlanningPlaceMap = () => {
 
       {/**정보창 컨테이너 */}
       <div
-        className={`fixed bottom-0 left-0 z-10 flex w-full justify-center transition-all duration-300 ${selectedPlace ? 'translate-y-0' : 'translate-y-full'} ${panelChanging ? 'pointer-events-none translate-y-[100%]' : 'opacity-100'} `}
+        className={`fixed bottom-0 left-0 z-10 flex w-full justify-center transition-all duration-300 ${selectedPlace ? 'translate-y-0' : 'translate-y-full'} `}
       >
         <div className='flex flex-col gap-3 rounded-t-2xl border-t border-gray-300 bg-white p-10'>
           <div className='relative w-4xl'>

@@ -50,7 +50,7 @@ const SignUpForm = () => {
         nickname: nickname,
       }
       try {
-        const result = await signUpApi(body)
+        await signUpApi(body)
         setStep((prev) => prev + 1)
       } catch (err) {
         alert(err.message)

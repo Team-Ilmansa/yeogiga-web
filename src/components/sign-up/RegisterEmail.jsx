@@ -11,12 +11,7 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
   const [emailError, setEmailError] = useState('')
 
   /**useForm */
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm()
+  const { register, handleSubmit, watch } = useForm()
 
   /**이메일 형식 검사 */
   const email = watch('email')
@@ -31,7 +26,7 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
     if (emailError) {
       setEmailError('')
     }
-  }, [email])
+  }, [emailError])
 
   /**이메일 인증 번호 발송 요청 */
   const handleRequestCode = async (data) => {
@@ -40,7 +35,7 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
       email: data.email,
     }
     try {
-      const result = await emailRequestApi(body)
+      await emailRequestApi(body)
       setHasRequested(true)
     } catch (err) {
       /**이미 가입된 이메일인 경우 처리 */
@@ -57,7 +52,7 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
       code: data.code,
     }
     try {
-      const result = await verifyCodeApi(body)
+      await verifyCodeApi(body)
       setIsEmailVerified(true)
       setEmail(data.email)
     } catch (err) {

@@ -1,6 +1,6 @@
 import ArrowUp from '@/assets/dashboard/ArrowUp'
 import ArrowDown from '@/assets/dashboard/ArrowDown'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import readDatePlaceApi from '@/apis/dashboard/readDatePlaceApi'
 import {
@@ -8,8 +8,6 @@ import {
   MouseSensor,
   TouchSensor,
   closestCenter,
-  useSensor,
-  useSensors,
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -20,16 +18,10 @@ import SortablePlaceItem from './SortablePlaceItem'
 import updatePlaceOrderApi from '@/apis/dashboard/updatePlaceOrderApi'
 import deleteDatePlaceApi from '@/apis/dashboard/deleteDatePlaceApi'
 import recommendDatePlaceOrderApi from '@/apis/dashboard/recommendDatePlaceOrderApi'
+import { createPortal } from 'react-dom'
 
 /**일자별 일정 박스 */
-const DateBox = ({
-  date,
-  dayIndex,
-  tripInfo,
-  selected,
-  onSelect,
-  onContentUpdate,
-}) => {
+const DateBox = ({ date, dayIndex, selected, onSelect, onContentUpdate }) => {
   /**토글 여부 */
   const [isOpen, setIsOpen] = useState(false)
   /**일차별 장소 */
@@ -56,18 +48,18 @@ const DateBox = ({
   }
 
   /**일자별 담은 장소 불러오기 */
-  const fetchDatePlaces = async () => {
+  const fetchDatePlaces = useCallback(async () => {
     try {
       const result = await readDatePlaceApi(tripId, dayIndex)
       setPlaces(result.data)
     } catch (err) {
       alert(err.message)
     }
-  }
+  }, [tripId, dayIndex])
 
   useEffect(() => {
     fetchDatePlaces()
-  }, [dayIndex, tripId])
+  }, [fetchDatePlaces])
 
   /**우클릭으로 삭제 메뉴 열기 */
   const handleContextMenu = (e, place) => {
@@ -145,7 +137,7 @@ const DateBox = ({
   /**일정 추천받기 함수 */
   const handleRecommend = async () => {
     try {
-      const result = await recommendDatePlaceOrderApi(tripId, dayIndex)
+      await recommendDatePlaceOrderApi(tripId, dayIndex)
       fetchDatePlaces()
     } catch (err) {
       alert(err.message)

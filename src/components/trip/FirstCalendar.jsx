@@ -59,7 +59,7 @@ const FirstCalendar = ({ tripInfo }) => {
   const createCalendar = async () => {
     const body = { availableDates: selectedDates }
     try {
-      const result = await createCalendarApi(tripInfo.tripId, body)
+      await createCalendarApi(tripInfo.tripId, body)
       alert('일정이 등록되었습니다!')
       navigate('..')
     } catch (err) {

@@ -38,7 +38,7 @@ const KebabModal = ({ onClose, onOpenUpdateModal }) => {
   const deleteTrip = async () => {
     if (window.confirm('정말로 삭제하시겠습니까?')) {
       try {
-        const result = await deleteTripApi(tripId)
+        await deleteTripApi(tripId)
         alert('정상적으로 삭제되었습니다')
         navigate('/')
       } catch (err) {
@@ -53,21 +53,6 @@ const KebabModal = ({ onClose, onOpenUpdateModal }) => {
       const currentUrl = window.location.origin + window.location.pathname
       await navigator.clipboard.writeText(`${currentUrl}/participation`)
       alert('초대 링크가 복사되었습니다!')
-    } catch (error) {
-      alert('복사 실패')
-    }
-  }
-
-  /** 여행 이름 변경 API 호출 */
-  const updateTitle = async (e) => {
-    e.preventDefault()
-    try {
-      const result = await updateTripTitleApi(tripInfo.tripId, {
-        title: newTitle,
-      })
-      alert('여행 이름이 성공적으로 변경되었습니다!')
-      setIsUpdateTitleInputOpen(false)
-      window.location.reload()
     } catch (err) {
       alert(err.message)
     }

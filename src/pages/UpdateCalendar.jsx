@@ -20,7 +20,7 @@ const UpdateCalendar = () => {
     }
 
     if (tripId) fetchTripInfo()
-  }, [])
+  }, [tripId])
 
   return <TripUpdateCalendar tripInfo={tripInfo} />
 }

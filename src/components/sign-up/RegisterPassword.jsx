@@ -14,12 +14,7 @@ const RegisterPassword = ({
   const [usernameMessage, setUsernameMessage] = useState('')
 
   /**useForm */
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm()
+  const { register, watch } = useForm()
 
   /**아이디 입력값 검사 */
   const username = watch('username')
@@ -30,15 +25,16 @@ const RegisterPassword = ({
       setUsernameMessage('')
       setUsernameError('')
     }
-  }, [username])
+  }, [usernameError, usernameMessage])
 
   /**아이디 중복 확인 API 호출 */
   const handleDupCheckUsername = async () => {
     try {
-      const result = await usernameDupCheckApi(username)
+      await usernameDupCheckApi(username)
       setUsernameMessage('사용 가능한 아이디에요')
     } catch (err) {
       setUsernameError('이미 사용중인 아이디에요')
+      console.error(err)
     }
   }
 
@@ -71,7 +67,14 @@ const RegisterPassword = ({
       setUsername(username)
       setPassword(password)
     }
-  }, [isFormValid])
+  }, [
+    isFormValid,
+    password,
+    setIsPasswordVerified,
+    setPassword,
+    setUsername,
+    username,
+  ])
 
   return (
     <div>

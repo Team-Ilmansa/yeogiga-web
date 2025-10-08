@@ -4,13 +4,12 @@ import { useEffect, useState } from 'react'
 import useAuth from '@/hooks/useAuth'
 import readNoticeApi from '@/apis/notice/readNoticeApi'
 import { useNavigate, useParams } from 'react-router-dom'
-import deleteNoticeApi from '@/apis/notice/deleteNoticeApi'
 import readSpecificNoticeApi from '@/apis/notice/readSpecificNoticeApi'
 import readPinApi from '@/apis/pin/readPinApi'
 
 const Notices = () => {
   const { user } = useAuth()
-  const { tripId, noticeId, day } = useParams()
+  const { tripId, day } = useParams()
   const navigate = useNavigate()
   const [notices, setNotices] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -71,9 +70,6 @@ const Notices = () => {
     'flex items-center gap-3 rounded-2xl bg-[var(--Blue-Scale-blue-100)]  px-4 py-5'
   /**폰트 스타일링 지정 */
   const fontStyle = 'text-base font-medium text-gray-700'
-  /**모달 버튼 스타일링 지정 */
-  const modalButtonStyle =
-    'rounded-xl bg-gray-100 text-m font-semibold text-gray-600 border-none w-1/2'
 
   return (
     <div className='space-y-2'>

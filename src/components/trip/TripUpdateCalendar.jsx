@@ -18,20 +18,20 @@ const TripUpdateCalendar = ({ tripInfo }) => {
   const formatDateKey = (year, month, day) =>
     `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 
-  /**나의 W2M 조회 함수*/
-  const fetchMyCalendar = async () => {
-    try {
-      const result = await readMyCalendarApi(tripInfo.tripId)
-      setSelectedDates(result.data.availableDates)
-    } catch (err) {
-      alert(err.message)
-    }
-  }
-
   useEffect(() => {
     /**캘린더 생성 함수 호출 */
     const allCalendars = generateCalendar()
     setCalendarList(allCalendars)
+
+    /**나의 W2M 조회 함수*/
+    const fetchMyCalendar = async () => {
+      try {
+        const result = await readMyCalendarApi(tripInfo.tripId)
+        setSelectedDates(result.data.availableDates)
+      } catch (err) {
+        alert(err.message)
+      }
+    }
 
     if (tripInfo?.tripId) fetchMyCalendar()
   }, [tripInfo])
@@ -72,7 +72,7 @@ const TripUpdateCalendar = ({ tripInfo }) => {
   const updateMyCalendar = async () => {
     const body = { availableDates: selectedDates }
     try {
-      const result = await updateMyCalendarApi(tripInfo.tripId, body)
+      await updateMyCalendarApi(tripInfo.tripId, body)
       alert('일정이 수정되었습니다!')
       navigate('..')
     } catch (err) {

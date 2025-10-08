@@ -61,20 +61,20 @@ const TripConfirmCalendar = ({ tripInfo }) => {
     return acc
   }, {})
 
-  /**팀 전체 W2M 조회 함수*/
-  const fetchTeamCalendar = async () => {
-    try {
-      const result = await readCalendarApi(tripInfo.tripId)
-      setAvailabilities(result.data.availabilities)
-    } catch (err) {
-      alert(err.message)
-    }
-  }
-
   useEffect(() => {
     // 캘린더 생성 함수 호출
     const allCalendars = generateCalendar()
     setCalendarList(allCalendars)
+
+    /**팀 전체 W2M 조회 함수*/
+    const fetchTeamCalendar = async () => {
+      try {
+        const result = await readCalendarApi(tripInfo.tripId)
+        setAvailabilities(result.data.availabilities)
+      } catch (err) {
+        alert(err.message)
+      }
+    }
 
     // 팀 전체 W2M 조회 함수 호출
     if (tripInfo?.tripId) fetchTeamCalendar()
@@ -102,7 +102,7 @@ const TripConfirmCalendar = ({ tripInfo }) => {
 
     try {
       // 여행 일정 확정 API 호출
-      const result = await updateTripTimeApi(tripInfo.tripId, {
+      await updateTripTimeApi(tripInfo.tripId, {
         start: newStartTime,
         end: newEndTime,
       })
