@@ -11,7 +11,7 @@ const CreateNotices = () => {
   /**공지사항 생성 API 호출 */
   const createNotice = async () => {
     try {
-      const result = await createNoticeApi(tripId, {
+      await createNoticeApi(tripId, {
         title: titleNotices,
         description: descNotices,
       })

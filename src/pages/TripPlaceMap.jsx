@@ -51,36 +51,52 @@ const TripPlaceMap = () => {
 
   // 지도 초기화
   useEffect(() => {
+    const scriptId = 'naver-maps-script'
+    let mapScript = document.getElementById(scriptId)
+
     const initMap = (lat, lng) => {
       const mapOptions = {
-        center: new naver.maps.LatLng(lat, lng),
+        center: new window.naver.maps.LatLng(lat, lng),
         zoom: 16,
         minZoom: 7,
         zoomControl: true,
         zoomControlOptions: {
-          position: naver.maps.Position.TOP_RIGHT,
+          position: window.naver.maps.Position.TOP_RIGHT,
         },
       }
-      const mapInstance = new naver.maps.Map('map', mapOptions)
+      const mapInstance = new window.naver.maps.Map('map', mapOptions)
       setMap(mapInstance)
     }
 
-    if (!isLoading) {
-      if (places.length > 0) {
-        const firstPlace = places[0]
-        initMap(firstPlace.latitude, firstPlace.longitude)
-      } else {
-        // Fallback if no places
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) =>
-              initMap(position.coords.latitude, position.coords.longitude),
-            () => initMap(37.5665, 126.978), // Seoul
-          )
+    const startMapInit = () => {
+      if (!isLoading) {
+        if (places.length > 0) {
+          const firstPlace = places[0]
+          initMap(firstPlace.latitude, firstPlace.longitude)
         } else {
-          initMap(37.5665, 126.978) // Seoul
+          // Fallback if no places
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) =>
+                initMap(position.coords.latitude, position.coords.longitude),
+              () => initMap(37.5665, 126.978), // Seoul
+            )
+          } else {
+            initMap(37.5665, 126.978) // Seoul
+          }
         }
       }
+    }
+
+    if (!mapScript) {
+      mapScript = document.createElement('script')
+      mapScript.id = scriptId
+      mapScript.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${import.meta.env.VITE_NAVER_MAP_KEY}`
+      mapScript.async = true
+      mapScript.onload = startMapInit
+      document.head.appendChild(mapScript)
+    } else if (window.naver && window.naver.maps) {
+      startMapInit()
     }
   }, [places, isLoading])
 
@@ -110,12 +126,12 @@ const TripPlaceMap = () => {
     }
 
     const newMarkers = filteredPlaces.map((place) => {
-      const marker = new naver.maps.Marker({
-        position: new naver.maps.LatLng(place.latitude, place.longitude),
+      const marker = new window.naver.maps.Marker({
+        position: new window.naver.maps.LatLng(place.latitude, place.longitude),
         map: map,
       })
 
-      naver.maps.Event.addListener(marker, 'click', () => {
+      window.naver.maps.Event.addListener(marker, 'click', () => {
         setSelectedPlace(place)
         const placeIndex = filteredPlaces.findIndex((p) => p.id === place.id)
         if (placeIndex !== -1) {
@@ -127,13 +143,16 @@ const TripPlaceMap = () => {
     })
 
     setMarkers(newMarkers)
-  }, [map, filteredPlaces])
+  }, [map, filteredPlaces, markers])
 
   // 지도 뷰 조정
   useEffect(() => {
     if (map && selectedPlace) {
       map.panTo(
-        new naver.maps.LatLng(selectedPlace.latitude, selectedPlace.longitude),
+        new window.naver.maps.LatLng(
+          selectedPlace.latitude,
+          selectedPlace.longitude,
+        ),
       )
       map.setZoom(16, true)
     }

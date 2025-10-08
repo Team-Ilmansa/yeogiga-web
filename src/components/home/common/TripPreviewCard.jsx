@@ -11,23 +11,8 @@ const formatDate = (d) =>
     .replaceAll('. ', '. ')
     .replace('.', '. ')
 
-/**시작일 기준으로 D-day 문자열 생성 함수 */
-const getDday = (start) => {
-  if (!start) return null
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const s = new Date(start)
-  s.setHours(0, 0, 0, 0)
-  const diff = Math.ceil((s - today) / (1000 * 60 * 60 * 24))
-  if (diff > 0) return `D-${diff}`
-  if (diff === 0) return 'D-Day'
-  return `D+${Math.abs(diff)}`
-}
-
 /**준비중인 여행을 렌더링하기 위한 카드 */
 const TripPreviewCard = ({ trip }) => {
-  const dday = getDday(trip.startedAt || trip.startDate)
-
   /** 디데이 함수 */
   const calculateDday = (startDateString) => {
     if (!startDateString) return 'D-??'
@@ -44,9 +29,6 @@ const TripPreviewCard = ({ trip }) => {
     if (diffDays === 0) return 'D-Day'
     return `D+${Math.abs(diffDays)}`
   }
-
-  const containerStyle =
-    'flex items-center gap-3 rounded-2xl bg-[var(--Blue-Scale-blue-100)]  px-4 py-5'
 
   return (
     <div className='w-full rounded-2xl bg-[var(--Blue-Scale-blue-100)] px-4 py-5 text-left shadow-sm transition'>

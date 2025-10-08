@@ -23,8 +23,7 @@ const MyPage = () => {
   const { logout, user } = useAuth()
   const loginType = user?.loginType
   const navigate = useNavigate()
-  const [selectedFile, setSelectedFile] = useState(null)
-  const [previewUrl, setPreviewUrl] = useState('')
+
   const fileInputRef = useRef()
 
   /**회원 정보 조회 API 호출 */
@@ -41,7 +40,7 @@ const MyPage = () => {
   const updateNickname = async (e) => {
     e.preventDefault()
     try {
-      const result = await updateNicknameApi({ nickname: newNickname })
+      await updateNicknameApi({ nickname: newNickname })
       alert('닉네임이 성공적으로 변경되었습니다!')
       fetchUserInfo()
       setIsNicknameInputOpen(false)
@@ -55,7 +54,7 @@ const MyPage = () => {
   const updatePassword = async (e) => {
     e.preventDefault()
     try {
-      const result = await updatePasswordApi({
+      await updatePasswordApi({
         originalPassword: originalPassword,
         newPassword: newPassword,
       })
@@ -85,13 +84,11 @@ const MyPage = () => {
   const updateProfileUpload = async (e) => {
     const profileImage = e.target.files[0]
     if (!profileImage) return
-    setSelectedFile(profileImage)
-    setPreviewUrl(URL.createObjectURL(profileImage))
 
     const formData = new FormData()
     formData.append('image', profileImage)
     try {
-      const result = await updateProfileApi(formData)
+      await updateProfileApi(formData)
       fetchUserInfo()
       alert('프로필 사진이 성공적으로 업로드되었습니다.')
     } catch (err) {

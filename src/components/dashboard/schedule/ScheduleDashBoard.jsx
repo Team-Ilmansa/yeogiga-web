@@ -14,7 +14,7 @@ const ScheduleDashBoard = ({ activeTab, onContentUpdate }) => {
         const result = await readTripInfoApi(tripId)
         setTripInfo(result.data)
       } catch (err) {
-        alert('여행 정보를 불러오지 못했습니다.')
+        alert(err.message)
       }
     }
 

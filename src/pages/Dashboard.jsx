@@ -39,7 +39,7 @@ const Dashboard = () => {
       }
     }
     fetchMyCalendar()
-  }, [])
+  }, [navigate, tripId])
 
   return (
     <>
@@ -57,7 +57,7 @@ const Dashboard = () => {
       {isUpdateTitleOpen && (
         <UpdateTitleModal
           onClose={() => setIsUpdateTitleOpen(false)}
-          onConfirm={(title) => {
+          onConfirm={() => {
             setIsUpdateTitleOpen(false)
           }}
         />

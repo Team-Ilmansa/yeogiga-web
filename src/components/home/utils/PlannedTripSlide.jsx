@@ -7,8 +7,8 @@ import TripPreviewCard from '@/components/home/common/TripPreviewCard'
 
 /**준비 중인 여행 목록 가로 슬라이드 */
 const PlannedTripSlide = ({ settingTrips = [] }) => {
-  if (!Array.isArray(settingTrips) || settingTrips.length === 0) return null
   const swiperRef = useRef(null)
+  if (!Array.isArray(settingTrips) || settingTrips.length === 0) return null
 
   return (
     <section className='w-full pl-10'>

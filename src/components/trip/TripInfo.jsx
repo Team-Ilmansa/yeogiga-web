@@ -19,7 +19,6 @@ function toDatetimeLocalFormat(dateString) {
 const TripInfo = ({ tripInfo }) => {
   const [newTitle, setNewTitle] = useState('')
   const [isUpdateTitleInputOpen, setIsUpdateTitleInputOpen] = useState(false)
-  const [newTime, setNewTime] = useState('')
   const [newStartTime, setNewStartTime] = useState('')
   const [newEndTime, setNewEndTime] = useState('')
   const [isUpdateTimeInputOpen, setIsUpdateTimeInputOpen] = useState(false)
@@ -33,8 +32,8 @@ const TripInfo = ({ tripInfo }) => {
       const currentUrl = window.location.origin + window.location.pathname
       await navigator.clipboard.writeText(`${currentUrl}/participation`)
       alert('초대 링크가 복사되었습니다!')
-    } catch (error) {
-      alert('복사 실패')
+    } catch (err) {
+      alert(err.message)
     }
   }
 
@@ -48,7 +47,7 @@ const TripInfo = ({ tripInfo }) => {
   const updateTitle = async (e) => {
     e.preventDefault()
     try {
-      const result = await updateTripTitleApi(tripInfo.tripId, {
+      await updateTripTitleApi(tripInfo.tripId, {
         title: newTitle,
       })
       alert('여행 이름이 성공적으로 변경되었습니다!')
@@ -62,7 +61,6 @@ const TripInfo = ({ tripInfo }) => {
   /**여행 시간 변경 창 출력 상태 토글 */
   const toggleUpdateTimeInput = () => {
     setIsUpdateTimeInputOpen((prev) => !prev)
-    setNewTime('')
   }
 
   /**여행 멤버 더 보기 화면 출력 상태 토글 */
@@ -82,7 +80,7 @@ const TripInfo = ({ tripInfo }) => {
   const updateTime = async (e) => {
     e.preventDefault()
     try {
-      const result = await updateTripTimeApi(tripInfo.tripId, {
+      await updateTripTimeApi(tripInfo.tripId, {
         start: newStartTime,
         end: newEndTime,
       })
@@ -98,7 +96,7 @@ const TripInfo = ({ tripInfo }) => {
   const deleteTrip = async () => {
     if (window.confirm('정말로 삭제하시겠습니까?')) {
       try {
-        const result = await deleteTripApi(tripInfo.tripId)
+        await deleteTripApi(tripInfo.tripId)
         alert('정상적으로 삭제되었습니다')
         navigate('/')
       } catch (err) {
@@ -111,7 +109,7 @@ const TripInfo = ({ tripInfo }) => {
   const deleteMember = async () => {
     if (window.confirm(`${tripInfo.title} 정말로 삭제하시겠습니까?`)) {
       try {
-        const result = await deleteMemberApi(tripInfo.tripId)
+        await deleteMemberApi(tripInfo.tripId)
         alert('정상적으로 탈퇴되었습니다')
         navigate('/')
       } catch (err) {
@@ -124,7 +122,7 @@ const TripInfo = ({ tripInfo }) => {
   const deleteTripMember = async (member) => {
     if (window.confirm(`${member.nickname} 멤버를 추방하시겠습니까?`)) {
       try {
-        const result = await deleteTripMemberApi(tripInfo.tripId, member.userId)
+        await deleteTripMemberApi(tripInfo.tripId, member.userId)
         alert(`${member.nickname} 멤버를 추방 완료하였습니다`)
         window.location.reload()
       } catch (err) {

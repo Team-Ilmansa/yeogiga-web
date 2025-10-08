@@ -1,17 +1,15 @@
 import { ChevronRight } from 'lucide-react'
-import { useState } from 'react'
 import kakaoLogoImg from '@/assets/mypage/kakaoIcon.png'
 import naverLogoImg from '@/assets/mypage/naverIcon.png'
 
 const ProfileCard = ({ userInfo }) => {
-  const [previewUrl, setPreviewUrl] = useState('')
   const provider = localStorage.getItem('provider')
 
   return (
     <div className='flex h-[160px] w-[800px] items-center rounded-[20px] border border-gray-100 bg-white px-10 shadow-sm'>
       <div className='mr-8 aspect-square w-35 overflow-hidden rounded-full bg-gray-100'>
         <img
-          src={previewUrl || '/images/default_profile.png'}
+          src='/images/default_profile.png'
           alt='프로필'
           className='h-full w-full rounded-full object-cover'
         />

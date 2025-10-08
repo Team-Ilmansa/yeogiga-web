@@ -10,7 +10,6 @@ const Participation = () => {
   const { tripId } = useParams()
   const navigate = useNavigate()
   const [tripInfo, setTripInfo] = useState()
-  const [isScheduleConfirmed, setIsScheduleConfirmed] = useState(false)
 
   useEffect(() => {
     /**여행 정보 조회 API 호출 */
@@ -24,23 +23,18 @@ const Participation = () => {
     }
 
     if (tripId) fetchTripInfo()
-  }, [])
+  }, [tripId])
 
   /**여행 멤버 참가 API 호출 */
   const createMember = async () => {
     try {
-      const result = await createMemberApi(tripId)
+      await createMemberApi(tripId)
       alert('여행에 참가하였습니다!')
       navigate(`/trip/${tripId}`)
     } catch (err) {
       alert(err.message)
     }
   }
-
-  /** 리더 닉네임 */
-  const leaderNickname =
-    tripInfo?.members.find((member) => member.userId === tripInfo.leaderId)
-      ?.nickname ?? tripInfo?.leaderId
 
   /** 디데이 함수 */
   const calculateDday = (startDateString) => {
@@ -91,11 +85,6 @@ const Participation = () => {
 
                 <div className='flex items-center gap-2'>
                   <CalendarIcon className='h-5 w-5' />
-                  <span>
-                    {isScheduleConfirmed
-                      ? `${formatDate(tripInfo.startedAt)} - ${formatDate(tripInfo.endedAt)}`
-                      : '아직 정해지지 않았어요'}
-                  </span>
                 </div>
                 <div className='flex items-center gap-2'>
                   <UserIcon className='h-5 w-5' />

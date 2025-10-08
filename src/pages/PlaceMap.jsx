@@ -72,51 +72,60 @@ const PlaceMap = () => {
   }, [tripId])
 
   useEffect(() => {
-    /**지도 생성 함수 */
+    const scriptId = 'naver-maps-script'
+    let mapScript = document.getElementById(scriptId)
+
     const initMap = (lat, lng) => {
-      /**지도 옵션 설정 */
       const mapOptions = {
-        center: new naver.maps.LatLng(lat, lng),
+        center: new window.naver.maps.LatLng(lat, lng),
         zoom: 13,
         minZoom: 7,
         zoomControl: true,
         zoomControlOptions: {
-          position: naver.maps.Position.TOP_RIGHT,
+          position: window.naver.maps.Position.TOP_RIGHT,
         },
         mapTypeControl: true,
         mapTypeControlOptions: {
-          style: naver.maps.MapTypeControlStyle.BUTTON,
-          position: naver.maps.Position.TOP_RIGHT,
+          style: window.naver.maps.MapTypeControlStyle.BUTTON,
+          position: window.naver.maps.Position.TOP_RIGHT,
         },
-        mapTypeId: naver.maps.MapTypeId.NORMAL,
+        mapTypeId: window.naver.maps.MapTypeId.NORMAL,
       }
-
-      /**지도 객체 생성 및 저장 */
-      const map = new naver.maps.Map('map', mapOptions)
+      const map = new window.naver.maps.Map('map', mapOptions)
       setMap(map)
-
-      /**마커 생성 */
-      const location = new naver.maps.LatLng(lat, lng)
-      new naver.maps.Marker({
+      const location = new window.naver.maps.LatLng(lat, lng)
+      new window.naver.maps.Marker({
         position: location,
         map,
       })
     }
 
-    // 현위치 가져오기
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords
-          initMap(latitude, longitude)
-        },
-        (error) => {
-          console.error('위치 정보 가져오기 실패:', error)
-          initMap(37.5665, 126.978) // 실패 시 서울 시청 좌표
-        },
-      )
-    } else {
-      initMap(37.5665, 126.978)
+    const startMapInit = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords
+            initMap(latitude, longitude)
+          },
+          (error) => {
+            console.error('위치 정보 가져오기 실패:', error)
+            initMap(37.5665, 126.978) // 실패 시 서울 시청 좌표
+          },
+        )
+      } else {
+        initMap(37.5665, 126.978)
+      }
+    }
+
+    if (!mapScript) {
+      mapScript = document.createElement('script')
+      mapScript.id = scriptId
+      mapScript.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${import.meta.env.VITE_NAVER_MAP_KEY}`
+      mapScript.async = true
+      mapScript.onload = startMapInit
+      document.head.appendChild(mapScript)
+    } else if (window.naver && window.naver.maps) {
+      startMapInit()
     }
   }, [])
 
@@ -124,19 +133,22 @@ const PlaceMap = () => {
     if (map && rallyPin) {
       const pinHTML = ReactDOMServer.renderToString(<PointPin />)
 
-      const rallyPointMarker = new naver.maps.Marker({
-        position: new naver.maps.LatLng(rallyPin.latitude, rallyPin.longitude),
+      const rallyPointMarker = new window.naver.maps.Marker({
+        position: new window.naver.maps.LatLng(
+          rallyPin.latitude,
+          rallyPin.longitude,
+        ),
         map: map,
         icon: {
           content: pinHTML,
 
-          anchor: new naver.maps.Point(12, 25),
+          anchor: new window.naver.maps.Point(12, 25),
         },
 
         zIndex: 999,
       })
 
-      const infoWindow = new naver.maps.InfoWindow({
+      const infoWindow = new window.naver.maps.InfoWindow({
         content: `
         <div style="padding: 10px; font-size: 14px; border-radius: 5px;">
           <b>${rallyPin.place}</b><br/>
@@ -145,7 +157,7 @@ const PlaceMap = () => {
       `,
       })
 
-      naver.maps.Event.addListener(rallyPointMarker, 'click', () => {
+      window.naver.maps.Event.addListener(rallyPointMarker, 'click', () => {
         if (infoWindow.getMap()) {
           infoWindow.close()
         } else {
@@ -159,13 +171,13 @@ const PlaceMap = () => {
   useEffect(() => {
     if (!map) return
 
-    const listener = naver.maps.Event.addListener(map, 'click', () => {
+    const listener = window.naver.maps.Event.addListener(map, 'click', () => {
       setSelectedPlace(null)
     })
 
     // 컴포넌트 언마운트 시 이벤트 제거
     return () => {
-      naver.maps.Event.removeListener(listener)
+      window.naver.maps.Event.removeListener(listener)
     }
   }, [map])
 
@@ -196,12 +208,15 @@ const PlaceMap = () => {
 
       // 새 마커 생성
       const newMarkers = result.data.map((place) => {
-        const marker = new naver.maps.Marker({
-          position: new naver.maps.LatLng(place.latitude, place.longitude),
+        const marker = new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(
+            place.latitude,
+            place.longitude,
+          ),
           map,
         })
 
-        naver.maps.Event.addListener(marker, 'click', () => {
+        window.naver.maps.Event.addListener(marker, 'click', () => {
           switchPanelContent('selected') // ↓ 내려갔다가 ↑ 다시 올라옴
           setSelectedPlace(place)
         })
@@ -212,7 +227,9 @@ const PlaceMap = () => {
       // 검색된 첫 장소로 지도 중심 옮기기
       if (result.data.length > 0) {
         const first = result.data[0]
-        map.setCenter(new naver.maps.LatLng(first.latitude, first.longitude))
+        map.setCenter(
+          new window.naver.maps.LatLng(first.latitude, first.longitude),
+        )
         map.setZoom(16)
       }
 
@@ -319,29 +336,6 @@ const PlaceMap = () => {
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
     )
   }, [selectedPlace])
-
-  /**집결지 공지 시간 관련 함수 */
-  const toOffsetISO = (localDatetime) => {
-    const toLocalDateTimeString = (localDatetime) => {
-      return localDatetime.length === 16 ? `${localDatetime}:00` : localDatetime
-    }
-
-    const d = new Date(localDatetime)
-    const pad = (n) => String(Math.trunc(Math.abs(n))).padStart(2, '0')
-    const y = d.getFullYear()
-    const m = pad(d.getMonth() + 1)
-    const day = pad(d.getDate())
-    const hh = pad(d.getHours())
-    const mm = pad(d.getMinutes())
-    const ss = pad(d.getSeconds())
-
-    const tzMin = -d.getTimezoneOffset()
-    const sign = tzMin >= 0 ? '+' : '-'
-    const tzH = pad(Math.trunc(tzMin / 60))
-    const tzM = pad(tzMin % 60)
-
-    return `${y}-${m}-${day}T${hh}:${mm}:${ss}${sign}${tzH}:${tzM}`
-  }
 
   return (
     <div className='relative h-full w-full'>

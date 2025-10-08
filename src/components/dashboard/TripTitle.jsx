@@ -17,12 +17,12 @@ const TripTitle = ({ isScheduleConfirmed, setIsScheduleConfirmed }) => {
 
         if (result.data.startedAt) setIsScheduleConfirmed(true)
       } catch (err) {
-        alert('여행 정보를 불러오지 못했습니다.')
+        alert(err.message)
       }
     }
 
     fetchTrip()
-  }, [tripId])
+  }, [tripId, setIsScheduleConfirmed])
 
   const statusTextMap = useMemo(
     () => ({

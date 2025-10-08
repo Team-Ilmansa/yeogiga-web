@@ -12,7 +12,6 @@ const PastNotices = () => {
   const [notices, setNotices] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedNoticeId, setSelectedNoticeId] = useState(null)
-  const [selectedNotice, setSelectedNotice] = useState(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
 
@@ -60,7 +59,6 @@ const PastNotices = () => {
       setNotices(result.data.content)
       setIsModalOpen(false)
       setSelectedNoticeId(null)
-      setSelectedNotice(null)
     } catch (err) {
       alert(err.message)
     }
@@ -71,7 +69,6 @@ const PastNotices = () => {
     if (!notice) return
 
     setSelectedNoticeId(id)
-    setSelectedNotice(notice)
     setEditTitle(notice.title || '')
     setEditDesc(notice.description || '')
     setIsModalOpen(true)
@@ -137,7 +134,6 @@ const PastNotices = () => {
                 onClick={() => {
                   setIsModalOpen(false)
                   setSelectedNoticeId(null)
-                  setSelectedNotice(null)
                 }}
               >
                 취소

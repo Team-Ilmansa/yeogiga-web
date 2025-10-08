@@ -10,7 +10,7 @@ const UpdateTitleModal = ({ onClose }) => {
   const updateTitle = async (e) => {
     e.preventDefault()
     try {
-      const result = await updateTripTitleApi(tripId, {
+      await updateTripTitleApi(tripId, {
         title,
       })
       alert('여행 이름이 성공적으로 변경되었습니다!')

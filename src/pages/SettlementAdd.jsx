@@ -2,11 +2,10 @@ import GoBack from '@/assets/sign-up/GoBack'
 import CategorySelector from '@/components/common/CategorySelector'
 import FixedActionBar from '@/components/common/FixedActionBar'
 import React, { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 const SettlementAdd = () => {
   const navigate = useNavigate()
-  const { tripId, userId } = useParams()
 
   const [amount, setAmount] = useState('')
   const [title, setTitle] = useState('')
@@ -59,7 +58,6 @@ const SettlementAdd = () => {
               }}
               placeholder='금액을 입력해주세요'
               className={inputStyle}
-
             />
             <span className='pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-xl text-gray-500'>
               원
@@ -76,7 +74,6 @@ const SettlementAdd = () => {
             onChange={(e) => setTitle(e.target.value)}
             placeholder='내역 이름을 입력해주세요'
             className={inputStyle}
-
           />
         </div>
 
@@ -91,7 +88,6 @@ const SettlementAdd = () => {
               inputMode='numeric'
               maxLength={4}
               placeholder='YYYY'
-
               value={date.y}
               onChange={(e) =>
                 setDate((prev) => ({
@@ -109,7 +105,6 @@ const SettlementAdd = () => {
               inputMode='numeric'
               maxLength={2}
               placeholder='MM'
-
               value={date.m}
               onChange={(e) =>
                 setDate((prev) => ({
