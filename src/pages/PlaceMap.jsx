@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Search from '../assets/map/Search'
 import searchPlaceApi from '@/apis/map/searchPlaceApi'
 import { ExternalLink } from 'lucide-react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import PlusCalendar from '@/assets/map/PlusCalendar'
 import MapPin from '@/assets/map/MapPin'
 import Trash from '@/assets/map/Trash'
@@ -54,6 +54,7 @@ const PlaceMap = () => {
 
   /**주소에서 여행 번호, 일차 가져오기*/
   const { tripId, day } = useParams()
+  const [searchParams] = useSearchParams()
 
   useEffect(() => {
     const fetchRallyPin = async () => {
@@ -72,12 +73,10 @@ const PlaceMap = () => {
   }, [tripId])
 
   useEffect(() => {
-    /**지도 생성 함수 */
     const initMap = (lat, lng) => {
-      /**지도 옵션 설정 */
       const mapOptions = {
         center: new naver.maps.LatLng(lat, lng),
-        zoom: 13,
+        zoom: 15,
         minZoom: 7,
         zoomControl: true,
         zoomControlOptions: {
@@ -90,35 +89,32 @@ const PlaceMap = () => {
         },
         mapTypeId: naver.maps.MapTypeId.NORMAL,
       }
-
-      /**지도 객체 생성 및 저장 */
       const map = new naver.maps.Map('map', mapOptions)
       setMap(map)
-
-      /**마커 생성 */
-      const location = new naver.maps.LatLng(lat, lng)
-      new naver.maps.Marker({
-        position: location,
-        map,
-      })
     }
 
-    // 현위치 가져오기
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords
-          initMap(latitude, longitude)
-        },
-        (error) => {
-          console.error('위치 정보 가져오기 실패:', error)
-          initMap(37.5665, 126.978) // 실패 시 서울 시청 좌표
-        },
-      )
+    const latFromQuery = searchParams.get('lat')
+    const lngFromQuery = searchParams.get('lng')
+
+    if (latFromQuery && lngFromQuery) {
+      initMap(parseFloat(latFromQuery), parseFloat(lngFromQuery))
     } else {
-      initMap(37.5665, 126.978)
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords
+            initMap(latitude, longitude)
+          },
+          (error) => {
+            console.error('위치 정보 가져오기 실패:', error)
+            initMap(37.5665, 126.978)
+          },
+        )
+      } else {
+        initMap(37.5665, 126.978)
+      }
     }
-  }, [])
+  }, [searchParams])
 
   useEffect(() => {
     if (map && rallyPin) {
@@ -155,7 +151,6 @@ const PlaceMap = () => {
     }
   }, [map, rallyPin])
 
-  // 지도 누르면 정보창 꺼지도록
   useEffect(() => {
     if (!map) return
 
@@ -163,7 +158,6 @@ const PlaceMap = () => {
       setSelectedPlace(null)
     })
 
-    // 컴포넌트 언마운트 시 이벤트 제거
     return () => {
       naver.maps.Event.removeListener(listener)
     }
@@ -191,10 +185,8 @@ const PlaceMap = () => {
     try {
       const result = await searchPlaceApi(keyword)
 
-      // 기존 마커 삭제
       markers.forEach((marker) => marker.setMap(null))
 
-      // 새 마커 생성
       const newMarkers = result.data.map((place) => {
         const marker = new naver.maps.Marker({
           position: new naver.maps.LatLng(place.latitude, place.longitude),
@@ -202,14 +194,13 @@ const PlaceMap = () => {
         })
 
         naver.maps.Event.addListener(marker, 'click', () => {
-          switchPanelContent('selected') // ↓ 내려갔다가 ↑ 다시 올라옴
+          switchPanelContent('selected')
           setSelectedPlace(place)
         })
 
         return marker
       })
 
-      // 검색된 첫 장소로 지도 중심 옮기기
       if (result.data.length > 0) {
         const first = result.data[0]
         map.setCenter(new naver.maps.LatLng(first.latitude, first.longitude))
@@ -222,7 +213,7 @@ const PlaceMap = () => {
     }
   }
 
-  /** 장소 임시저장 + 집결지 핀 생성 */
+  /** 장소 임시저장 및 집결지 핀 생성 */
   const handleAdd = async () => {
     if (!selectedPlace) return
 
