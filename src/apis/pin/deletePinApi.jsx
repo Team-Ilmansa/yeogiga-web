@@ -1,7 +1,7 @@
 import api from '@/apis/api'
 
 /**집결지 핀 삭제 API */
-const deletePinApi = (tripId) => {
+const deletePinApi = async (tripId) => {
   try {
     const response = await api.delete(`trip/${tripId}/pin`)
     return response.data
