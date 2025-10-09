@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import readTotalSettlementsApi from '@/apis/settlement/readTotalSettlementsApi'
 
@@ -37,8 +37,6 @@ const SettlementTabs = ({ onChange }) => {
     }
     fetchDates()
   }, [tripId])
-
-  const dayCount = dates.length
 
   const handleSelect = (nextActive) => {
     setActive(nextActive)

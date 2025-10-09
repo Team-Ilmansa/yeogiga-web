@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useRef } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { A11y } from 'swiper/modules'
@@ -6,8 +7,8 @@ import TripPreviewCard from '@/components/home/common/TripPreviewCard'
 
 /**준비 중인 여행 목록 가로 슬라이드 */
 const PlannedTripSlide = ({ settingTrips = [] }) => {
-  if (!Array.isArray(settingTrips) || settingTrips.length === 0) return null
   const swiperRef = useRef(null)
+  if (!Array.isArray(settingTrips) || settingTrips.length === 0) return null
 
   return (
     <section className='w-full pl-10'>
@@ -21,7 +22,7 @@ const PlannedTripSlide = ({ settingTrips = [] }) => {
         modules={[A11y]}
         onSwiper={(s) => (swiperRef.current = s)}
         onBeforeDestroy={() => (swiperRef.current = null)}
-        slidesPerView={1.08}
+        slidesPerView={1.8}
         spaceBetween={16}
         slidesOffsetBefore={8}
         slidesOffsetAfter={8}
@@ -30,9 +31,11 @@ const PlannedTripSlide = ({ settingTrips = [] }) => {
       >
         {settingTrips.map((trip) => (
           <SwiperSlide key={trip.tripId} className='!h-auto'>
-            <div className='h-full'>
-              <TripPreviewCard trip={trip} />
-            </div>
+            <Link to={`/trip/${trip.tripId}`}>
+              <div className='h-full'>
+                <TripPreviewCard trip={trip} />
+              </div>
+            </Link>
           </SwiperSlide>
         ))}
       </Swiper>

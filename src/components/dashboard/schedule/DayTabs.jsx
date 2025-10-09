@@ -42,20 +42,21 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
     setDates(tempDates)
   }, [startedAt, endedAt])
 
-  /**확정 후 전체 일정 불러오기 */
-  const fetchPlanningPlaces = async () => {
-    try {
-      const result = await readPlanningDatePlaceApi(tripId)
-      setPlanningPlaces(result.data)
-    } catch (err) {
-      alert(err.message)
-    }
-  }
-
   useEffect(() => {
     if (tripInfo.status === 'SETTING') return
+
+    /**확정 후 전체 일정 불러오기 */
+    const fetchPlanningPlaces = async () => {
+      try {
+        const result = await readPlanningDatePlaceApi(tripId)
+        setPlanningPlaces(result.data)
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+
     fetchPlanningPlaces()
-  }, [tripId])
+  }, [tripId, tripInfo.status])
 
   const handleTabClick = (index) => {
     setActiveDayTab(index)
@@ -65,7 +66,7 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
   const handleConfirmPlace = async () => {
     const body = { lastDay: dates.length }
     try {
-      const result = await confirmTripPlaceApi(tripId, body)
+      await confirmTripPlaceApi(tripId, body)
       window.location.reload()
     } catch (err) {
       alert(err.message)

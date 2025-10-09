@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import readTripInfoApi from '@/apis/trip/readTripInfo'
 import DayTabs from './DayTabs'
@@ -35,7 +35,7 @@ const GalleryDashBoard = ({ activeTab }) => {
         const result = await readTripInfoApi(tripId)
         setTripInfo(result.data)
       } catch (err) {
-        alert('여행 정보를 불러오지 못했습니다.')
+        alert(err.message)
       }
     }
 
@@ -54,7 +54,7 @@ const GalleryDashBoard = ({ activeTab }) => {
   }, [tripId])
 
   /**임시 저장 이미지 불러오기 */
-  const fetchTemporaryImages = async () => {
+  const fetchTemporaryImages = useCallback(async () => {
     if (activeDay > 0 && planningPlaces.length > 0) {
       try {
         const tripDayPlaceId = planningPlaces[activeDay - 1].id
@@ -67,10 +67,10 @@ const GalleryDashBoard = ({ activeTab }) => {
     } else {
       setTemporaryImages([])
     }
-  }
+  }, [activeDay, planningPlaces, tripId])
 
   /**장소별 매칭된 이미지 불러오기 */
-  const fetchMatchedImages = async () => {
+  const fetchMatchedImages = useCallback(async () => {
     if (activeDay > 0 && planningPlaces.length > 0) {
       try {
         const dayData = planningPlaces[activeDay - 1]
@@ -92,10 +92,10 @@ const GalleryDashBoard = ({ activeTab }) => {
     } else {
       setMatchedImages([])
     }
-  }
+  }, [activeDay, planningPlaces, tripId])
 
   /**매칭되지 않은 이미지 불러오기 */
-  const fetchUnmatchedImages = async () => {
+  const fetchUnmatchedImages = useCallback(async () => {
     if (activeDay > 0 && planningPlaces.length > 0) {
       try {
         const tripDayPlaceId = planningPlaces[activeDay - 1].id
@@ -108,13 +108,13 @@ const GalleryDashBoard = ({ activeTab }) => {
     } else {
       setUnmatchedImages([])
     }
-  }
+  }, [activeDay, planningPlaces, tripId])
 
   useEffect(() => {
     fetchTemporaryImages()
     fetchMatchedImages()
     fetchUnmatchedImages()
-  }, [activeDay, planningPlaces, tripId])
+  }, [fetchTemporaryImages, fetchMatchedImages, fetchUnmatchedImages])
 
   /**선택 모드 전환 */
   const toggleSelectionMode = () => {

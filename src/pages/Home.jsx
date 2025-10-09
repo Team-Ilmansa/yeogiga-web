@@ -1,8 +1,5 @@
-import signOutApi from '@/apis/authentication/signOutApi'
 import createTripApi from '@/apis/trip/createTripApi'
-import readMainTripApi from '@/apis/trip/readMainApi'
-import readSettingTripApi from '@/apis/trip/readSettingTripApi'
-import readTripApi from '@/apis/trip/readTripApi'
+import readTripByStatusApi from '@/apis/trip/readTripByStatusApi'
 import CreateTripModal from '@/components/home/CreateTripModal'
 import HomeButton from '@/components/home/HomeButton'
 import HomeTitle from '@/components/home/HomeTitle'
@@ -12,11 +9,10 @@ import TrendingPlaces from '@/components/home/TrendingPlaces'
 import useAuth from '@/hooks/useAuth'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import PlannedTrip from '@/components/home/PlannedTrip'
 import PlannedTripSlide from '@/components/home/utils/PlannedTripSlide'
 
 const Home = () => {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   /**여행 생성 모달창 토글 */
@@ -24,16 +20,16 @@ const Home = () => {
   /**여행 이름 */
   const [tripTitle, setTripTitle] = useState('')
 
-  const [isReadMainTripListOpen, setIsReadMainTripListOpen] = useState(false)
   const [isReadTripListOpen, setIsReadTripListOpen] = useState(false)
   const [settingTrips, setSettingTrips] = useState(null)
+  const [pastTrips, setPastTrips] = useState(null)
   const [trips, setTrips] = useState(null)
 
   /**여행 생성 API 호출 */
   const createTrip = async (e) => {
     e.preventDefault()
     try {
-      const result = await createTripApi({ title: tripTitle })
+      await createTripApi({ title: tripTitle })
       alert('여행이 성공적으로 생성되었습니다!')
       setIsCreateTripModalOpen(false)
     } catch (err) {
@@ -47,36 +43,43 @@ const Home = () => {
     setTripTitle('')
   }
 
-  useEffect(() => {
-    /**준비 중 여행 조회 API 호출 */
-    const fetchSettingTrip = async () => {
-      try {
-        const result = await readSettingTripApi()
-        setSettingTrips(result.data)
-      } catch (err) {
-        alert(err.message)
-      }
+  /**준비 중 여행 조회 API 호출 */
+  const fetchSettingTrip = async () => {
+    try {
+      const result = await readTripByStatusApi({ status: 'SETTING' })
+      const sortedTrips = result.data.content.sort(
+        (a, b) => b.tripId - a.tripId,
+      )
+      setSettingTrips(sortedTrips)
+    } catch (err) {
+      alert(err.message)
     }
+  }
 
-    fetchSettingTrip()
-  }, [])
-
-  /**메인 화면 내 여행 출력 상태 토글 */
-  const toggleReadMainTripList = () => {
-    setIsReadMainTripListOpen((prev) => !prev)
+  /**이전 여행 조회 API 호출 */
+  const fetchPastTrip = async () => {
+    try {
+      const result = await readTripByStatusApi({ status: 'COMPLETED' })
+      setPastTrips(result.data.content)
+    } catch (err) {
+      alert(err.message)
+    }
   }
 
   /**사용자가 속한 여행 조회 API 호출 */
-  useEffect(() => {
-    const fetchTrip = async () => {
-      try {
-        const result = await readTripApi()
-        setTrips(result.data.content)
-      } catch (err) {
-        alert(err.message)
-      }
+  const fetchMyTrip = async () => {
+    try {
+      const result = await readTripByStatusApi({ status: 'ALL' })
+      setTrips(result.data.content)
+    } catch (err) {
+      alert(err.message)
     }
-    if (user) fetchTrip()
+  }
+
+  useEffect(() => {
+    fetchSettingTrip()
+    fetchPastTrip()
+    fetchMyTrip()
   }, [])
 
   /**사용자가 속한 여행 출력 상태 토글 */
@@ -90,7 +93,7 @@ const Home = () => {
       <PlannedTripSlide settingTrips={settingTrips || []} />
       <RecommendedPlaces user={user} />
       <TrendingPlaces />
-      <PastTrips />
+      <PastTrips pastTrips={pastTrips || []} />
       <nav className='flex flex-col gap-2'>
         <button onClick={toggleReadTripList}>사용자가 속한 여행 읽기</button>
       </nav>
@@ -104,36 +107,6 @@ const Home = () => {
         />
       )}
 
-      {isReadMainTripListOpen && (
-        <fieldset className='rounded-2xl border p-4'>
-          <legend className='p-2'>여행 목록</legend>
-          {mainTrip ? (
-            <ul>
-              <li key={mainTrip.tripId}>
-                <h3>{mainTrip.title}</h3>
-                <p>시작일: {mainTrip.staredAt}</p>
-                <p>상태: {mainTrip.travelStatus}</p>
-                <p>일차: {mainTrip.day}</p>
-                <ul>
-                  {Array.isArray(mainTrip.places) &&
-                  mainTrip.places.length > 0 ? (
-                    mainTrip.places.map((place) => (
-                      <li key={place.id}>
-                        - {place.name} ({place.placeType}) / 방문여부:{' '}
-                        {place.isVisited ? 'O' : 'X'}
-                      </li>
-                    ))
-                  ) : (
-                    <li>장소 정보가 없습니다.</li>
-                  )}
-                </ul>
-              </li>
-            </ul>
-          ) : (
-            <p>여행 정보가 없습니다.</p>
-          )}
-        </fieldset>
-      )}
       {isReadTripListOpen && (
         <fieldset className='rounded-2xl border p-4'>
           <legend className='p-2'>내가 속한 여행 목록</legend>

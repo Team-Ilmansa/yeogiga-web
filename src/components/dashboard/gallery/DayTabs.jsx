@@ -3,13 +3,6 @@ import { useEffect, useState } from 'react'
 const DayTabs = ({ startedAt, endedAt, activeDay, onDayChange }) => {
   const [dates, setDates] = useState([])
 
-  const formatDateToDot = (dateObj) => {
-    const year = dateObj.getFullYear()
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0')
-    const day = String(dateObj.getDate()).padStart(2, '0')
-    return `${year}. ${month}. ${day}`
-  }
-
   useEffect(() => {
     if (!startedAt || !endedAt) return
 

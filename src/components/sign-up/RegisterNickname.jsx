@@ -9,12 +9,7 @@ const RegisterNickname = ({ setIsNicknameVerified, setNickname }) => {
   const [nicknameMessage, setNicknameMessage] = useState('')
 
   /**useForm */
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm()
+  const { register, watch } = useForm()
 
   /**닉네임 입력값 검사 */
   const nickname = watch('nickname')
@@ -25,22 +20,23 @@ const RegisterNickname = ({ setIsNicknameVerified, setNickname }) => {
       setNicknameMessage('')
       setNicknameError('')
     }
-  }, [nickname])
+  }, [nicknameMessage, nicknameError])
 
   /**닉네임 중복 검사통과 시 버튼 활성화 */
   useEffect(() => {
     setIsNicknameVerified(nicknameMessage)
-  }, [nicknameMessage])
+  }, [nicknameMessage, setIsNicknameVerified])
 
   /**닉네임 중복 확인 API 호출 */
   const handleDupCheckNickname = async () => {
     try {
-      const result = await nicknameDupCheckApi(nickname)
+      await nicknameDupCheckApi(nickname)
       setNicknameMessage('사용 가능한 닉네임이에요')
       setIsNicknameVerified(true)
       setNickname(nickname)
     } catch (err) {
       setNicknameError('이미 사용중인 닉네임이에요')
+      console.error(err)
     }
   }
   return (

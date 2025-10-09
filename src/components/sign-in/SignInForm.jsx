@@ -10,17 +10,10 @@ const SignInForm = () => {
   const navigate = useNavigate()
 
   /** 입력 관리를 위한 useForm 적용 */
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm()
+  const { register, handleSubmit } = useForm()
 
   /** 양식 제출 시 실행 할 함수 */
   const onSubmit = async (data) => {
-    const { username, password } = data
-
     /** Request Body 양식에 맞게 변경 */
     const body = {
       username: data.username,

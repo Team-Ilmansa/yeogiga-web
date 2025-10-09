@@ -80,14 +80,14 @@ const PlaceMap = () => {
         minZoom: 7,
         zoomControl: true,
         zoomControlOptions: {
-          position: naver.maps.Position.TOP_RIGHT,
+          position: window.naver.maps.Position.TOP_RIGHT,
         },
         mapTypeControl: true,
         mapTypeControlOptions: {
-          style: naver.maps.MapTypeControlStyle.BUTTON,
-          position: naver.maps.Position.TOP_RIGHT,
+          style: window.naver.maps.MapTypeControlStyle.BUTTON,
+          position: window.naver.maps.Position.TOP_RIGHT,
         },
-        mapTypeId: naver.maps.MapTypeId.NORMAL,
+        mapTypeId: window.naver.maps.MapTypeId.NORMAL,
       }
       const map = new naver.maps.Map('map', mapOptions)
       setMap(map)
@@ -120,19 +120,22 @@ const PlaceMap = () => {
     if (map && rallyPin) {
       const pinHTML = ReactDOMServer.renderToString(<PointPin />)
 
-      const rallyPointMarker = new naver.maps.Marker({
-        position: new naver.maps.LatLng(rallyPin.latitude, rallyPin.longitude),
+      const rallyPointMarker = new window.naver.maps.Marker({
+        position: new window.naver.maps.LatLng(
+          rallyPin.latitude,
+          rallyPin.longitude,
+        ),
         map: map,
         icon: {
           content: pinHTML,
 
-          anchor: new naver.maps.Point(12, 25),
+          anchor: new window.naver.maps.Point(12, 25),
         },
 
         zIndex: 999,
       })
 
-      const infoWindow = new naver.maps.InfoWindow({
+      const infoWindow = new window.naver.maps.InfoWindow({
         content: `
         <div style="padding: 10px; font-size: 14px; border-radius: 5px;">
           <b>${rallyPin.place}</b><br/>
@@ -141,7 +144,7 @@ const PlaceMap = () => {
       `,
       })
 
-      naver.maps.Event.addListener(rallyPointMarker, 'click', () => {
+      window.naver.maps.Event.addListener(rallyPointMarker, 'click', () => {
         if (infoWindow.getMap()) {
           infoWindow.close()
         } else {
@@ -154,12 +157,12 @@ const PlaceMap = () => {
   useEffect(() => {
     if (!map) return
 
-    const listener = naver.maps.Event.addListener(map, 'click', () => {
+    const listener = window.naver.maps.Event.addListener(map, 'click', () => {
       setSelectedPlace(null)
     })
 
     return () => {
-      naver.maps.Event.removeListener(listener)
+      window.naver.maps.Event.removeListener(listener)
     }
   }, [map])
 
@@ -188,8 +191,11 @@ const PlaceMap = () => {
       markers.forEach((marker) => marker.setMap(null))
 
       const newMarkers = result.data.map((place) => {
-        const marker = new naver.maps.Marker({
-          position: new naver.maps.LatLng(place.latitude, place.longitude),
+        const marker = new window.naver.maps.Marker({
+          position: new window.naver.maps.LatLng(
+            place.latitude,
+            place.longitude,
+          ),
           map,
         })
 
@@ -203,7 +209,9 @@ const PlaceMap = () => {
 
       if (result.data.length > 0) {
         const first = result.data[0]
-        map.setCenter(new naver.maps.LatLng(first.latitude, first.longitude))
+        map.setCenter(
+          new window.naver.maps.LatLng(first.latitude, first.longitude),
+        )
         map.setZoom(16)
       }
 
@@ -310,29 +318,6 @@ const PlaceMap = () => {
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
     )
   }, [selectedPlace])
-
-  /**집결지 공지 시간 관련 함수 */
-  const toOffsetISO = (localDatetime) => {
-    const toLocalDateTimeString = (localDatetime) => {
-      return localDatetime.length === 16 ? `${localDatetime}:00` : localDatetime
-    }
-
-    const d = new Date(localDatetime)
-    const pad = (n) => String(Math.trunc(Math.abs(n))).padStart(2, '0')
-    const y = d.getFullYear()
-    const m = pad(d.getMonth() + 1)
-    const day = pad(d.getDate())
-    const hh = pad(d.getHours())
-    const mm = pad(d.getMinutes())
-    const ss = pad(d.getSeconds())
-
-    const tzMin = -d.getTimezoneOffset()
-    const sign = tzMin >= 0 ? '+' : '-'
-    const tzH = pad(Math.trunc(tzMin / 60))
-    const tzM = pad(tzMin % 60)
-
-    return `${y}-${m}-${day}T${hh}:${mm}:${ss}${sign}${tzH}:${tzM}`
-  }
 
   return (
     <div className='relative h-full w-full'>
