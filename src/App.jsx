@@ -20,7 +20,7 @@ import PlanningPlaceMap from './pages/PlanningPlaceMap'
 import SettlementAdd from './pages/SettlementAdd'
 import SettlementBook from './pages/SettlementBook'
 import TripPlaceMap from './pages/TripPlaceMap'
-import SettlementDetail from './pages/SettlementDatail'
+import SettlementDetail from './pages/SettlementDetail'
 
 const App = () => {
   return (
