@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Search from '../assets/map/Search'
 import searchPlaceApi from '@/apis/map/searchPlaceApi'
 import { ExternalLink } from 'lucide-react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import PlusCalendar from '@/assets/map/PlusCalendar'
 import MapPin from '@/assets/map/MapPin'
 import Trash from '@/assets/map/Trash'
@@ -54,6 +54,7 @@ const PlaceMap = () => {
 
   /**주소에서 여행 번호, 일차 가져오기*/
   const { tripId, day } = useParams()
+  const [searchParams] = useSearchParams()
 
   useEffect(() => {
     const fetchRallyPin = async () => {
@@ -72,13 +73,10 @@ const PlaceMap = () => {
   }, [tripId])
 
   useEffect(() => {
-    const scriptId = 'naver-maps-script'
-    let mapScript = document.getElementById(scriptId)
-
     const initMap = (lat, lng) => {
       const mapOptions = {
-        center: new window.naver.maps.LatLng(lat, lng),
-        zoom: 13,
+        center: new naver.maps.LatLng(lat, lng),
+        zoom: 15,
         minZoom: 7,
         zoomControl: true,
         zoomControlOptions: {
@@ -91,16 +89,16 @@ const PlaceMap = () => {
         },
         mapTypeId: window.naver.maps.MapTypeId.NORMAL,
       }
-      const map = new window.naver.maps.Map('map', mapOptions)
+      const map = new naver.maps.Map('map', mapOptions)
       setMap(map)
-      const location = new window.naver.maps.LatLng(lat, lng)
-      new window.naver.maps.Marker({
-        position: location,
-        map,
-      })
     }
 
-    const startMapInit = () => {
+    const latFromQuery = searchParams.get('lat')
+    const lngFromQuery = searchParams.get('lng')
+
+    if (latFromQuery && lngFromQuery) {
+      initMap(parseFloat(latFromQuery), parseFloat(lngFromQuery))
+    } else {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
@@ -109,25 +107,14 @@ const PlaceMap = () => {
           },
           (error) => {
             console.error('위치 정보 가져오기 실패:', error)
-            initMap(37.5665, 126.978) // 실패 시 서울 시청 좌표
+            initMap(37.5665, 126.978)
           },
         )
       } else {
         initMap(37.5665, 126.978)
       }
     }
-
-    if (!mapScript) {
-      mapScript = document.createElement('script')
-      mapScript.id = scriptId
-      mapScript.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${import.meta.env.VITE_NAVER_MAP_KEY}`
-      mapScript.async = true
-      mapScript.onload = startMapInit
-      document.head.appendChild(mapScript)
-    } else if (window.naver && window.naver.maps) {
-      startMapInit()
-    }
-  }, [])
+  }, [searchParams])
 
   useEffect(() => {
     if (map && rallyPin) {
@@ -167,7 +154,6 @@ const PlaceMap = () => {
     }
   }, [map, rallyPin])
 
-  // 지도 누르면 정보창 꺼지도록
   useEffect(() => {
     if (!map) return
 
@@ -175,7 +161,6 @@ const PlaceMap = () => {
       setSelectedPlace(null)
     })
 
-    // 컴포넌트 언마운트 시 이벤트 제거
     return () => {
       window.naver.maps.Event.removeListener(listener)
     }
@@ -203,10 +188,8 @@ const PlaceMap = () => {
     try {
       const result = await searchPlaceApi(keyword)
 
-      // 기존 마커 삭제
       markers.forEach((marker) => marker.setMap(null))
 
-      // 새 마커 생성
       const newMarkers = result.data.map((place) => {
         const marker = new window.naver.maps.Marker({
           position: new window.naver.maps.LatLng(
@@ -216,15 +199,14 @@ const PlaceMap = () => {
           map,
         })
 
-        window.naver.maps.Event.addListener(marker, 'click', () => {
-          switchPanelContent('selected') // ↓ 내려갔다가 ↑ 다시 올라옴
+        naver.maps.Event.addListener(marker, 'click', () => {
+          switchPanelContent('selected')
           setSelectedPlace(place)
         })
 
         return marker
       })
 
-      // 검색된 첫 장소로 지도 중심 옮기기
       if (result.data.length > 0) {
         const first = result.data[0]
         map.setCenter(
@@ -239,7 +221,7 @@ const PlaceMap = () => {
     }
   }
 
-  /** 장소 임시저장 + 집결지 핀 생성 */
+  /** 장소 임시저장 및 집결지 핀 생성 */
   const handleAdd = async () => {
     if (!selectedPlace) return
 
