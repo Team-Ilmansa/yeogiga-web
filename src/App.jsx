@@ -20,7 +20,7 @@ import PlanningPlaceMap from './pages/PlanningPlaceMap'
 import SettlementAdd from './pages/SettlementAdd'
 import SettlementBook from './pages/SettlementBook'
 import TripPlaceMap from './pages/TripPlaceMap'
-import SettlementDatail from './pages/SettlementDatail'
+import SettlementDetail from './pages/SettlementDatail'
 
 const App = () => {
   return (
@@ -54,7 +54,7 @@ const App = () => {
                 {/** 정산 내역 세부 조회 페이지 */}
                 <Route
                   path='settlement/:settlementId'
-                  element={<SettlementDatail />}
+                  element={<SettlementDetail />}
                 />
                 {/* TODO: 추후 Notice 페이지와 결합 */}
                 <Route path='post/notice' element={<CreateNotices />} />
