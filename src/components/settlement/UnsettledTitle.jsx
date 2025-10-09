@@ -10,16 +10,18 @@ const UnsettledTitle = () => {
   useEffect(() => {
     const fetchUnSettledCount = async () => {
       try {
+        if (!tripId) return
         const result = await readTotalSettlementsApi(tripId)
-        console.log('전체 정산 내역:', result)
+        const groups = result?.data ?? {}
 
-        /** 날짜별 그룹 객체 -> 배열 합치기*/
-        const allItems = Object.values(result).flat()
+        const allItems = Object.values(groups).flatMap((arr) =>
+          Array.isArray(arr) ? arr : [],
+        )
 
-        /** 미정산 내역만 필터링*/
-        const unsettledItems = allItems.filter((item) => !item.isCompleted)
+        const unsettledItems = allItems.filter(
+          (item) => item && item.isCompleted === false,
+        )
 
-        /** 미정산 개수 저장*/
         setCount(unsettledItems.length)
       } catch (err) {
         console.error(err)
@@ -27,9 +29,7 @@ const UnsettledTitle = () => {
       }
     }
 
-    if (tripId) {
-      fetchUnSettledCount()
-    }
+    fetchUnSettledCount()
   }, [tripId])
 
   return (
