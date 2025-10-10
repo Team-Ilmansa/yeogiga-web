@@ -1,9 +1,9 @@
-// src/components/account-book/SettlementBox.jsx
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import ArrowUp from '@/assets/dashboard/ArrowUp'
 import ArrowDown from '@/assets/dashboard/ArrowDown'
 import readTotalSettlementsApi from '@/apis/settlement/readTotalSettlementsApi'
+import { formatWon } from '@/hooks/settlement/formatWon'
 
 import SelTouristIcon from '@/assets/map/category/SelTouristIcon'
 import SelTransportIcon from '@/assets/map/category/SelTransportIcon'
@@ -46,12 +46,6 @@ const typeToIcon = (type) => {
   }
 }
 
-const formatWon = (n) =>
-  new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 }).format(
-    Number(n) || 0,
-  )
-
-// 아바타(프로필) — imageUrl 없으면 이니셜
 const Avatar = ({ url, name, size = 18 }) => {
   const s = `${size}px`
   if (url) {
@@ -76,13 +70,7 @@ const Avatar = ({ url, name, size = 18 }) => {
   )
 }
 
-/**
- * 날짜별 정산 내역 박스
- * props:
- *  - mode: 'UNSETTLED' | 'ALL' | 'DAY'  (기본 'ALL')
- *  - date?: string  // mode === 'DAY' 일 때 표시할 'YYYY-MM-DD'
- */
-const SettlementBox = ({ mode = 'ALL', date }) => {
+const SettlementBox = ({ mode = 'ALL', date, onItemClick }) => {
   const { tripId } = useParams()
   const [loading, setLoading] = useState(false)
   const [sections, setSections] = useState([])
@@ -95,13 +83,11 @@ const SettlementBox = ({ mode = 'ALL', date }) => {
         const result = await readTotalSettlementsApi(tripId)
         const groups = extractGroups(result) // { 'YYYY-MM-DD': [...] }
 
-        // 표시할 날짜 목록 결정
         let dates = Object.keys(groups).sort((a, b) => a.localeCompare(b))
         if (mode === 'DAY' && date) {
           dates = dates.filter((d) => d === date)
         }
 
-        // 날짜별 아이템 구성
         const next = dates.map((d) => {
           let items = Array.isArray(groups[d]) ? groups[d] : []
           if (mode === 'UNSETTLED') {
@@ -110,7 +96,6 @@ const SettlementBox = ({ mode = 'ALL', date }) => {
           return { date: d, items, open: true }
         })
 
-        // 빈 섹션 제거 (예: 미정산 필터 후 0건)
         setSections(next.filter((s) => s.items.length > 0))
       } catch (e) {
         console.error(e)
@@ -176,16 +161,19 @@ const SettlementBox = ({ mode = 'ALL', date }) => {
                 const total = payers.length
                 const Icon = typeToIcon(item?.type)
                 const allDone = total > 0 && completed === total
+                const sid = item?.id ?? item?.settlementId
 
                 return (
-                  <div key={item.id} className='relative'>
+                  <div key={sid} className='relative'>
                     {/* 카테고리 아이콘: 카드 밖 + 중앙 */}
                     <div className='absolute top-1/2 left-0 -translate-y-1/2'>
                       <Icon width={24} height={24} />
                     </div>
 
-                    {/* 카드 */}
-                    <div className='relative ml-9 flex items-start justify-between rounded-[16px] bg-gray-100 px-8 py-5'>
+                    <div
+                      onClick={() => onItemClick?.(sid)}
+                      className='relative ml-9 flex items-start justify-between rounded-[16px] bg-gray-100 px-8 py-5'
+                    >
                       {/* 본문 */}
                       <div className='min-w-0 pr-16'>
                         <div className='text-[12px] text-gray-400'>

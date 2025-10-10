@@ -14,6 +14,12 @@ const SettlementBook = () => {
   /** 뒤로 가기 버튼 */
   const handleBack = () => navigate(-1)
 
+  /** 상세 페이지 이동 */
+  const handleOpenDetail = (settlementId) => {
+    if (!settlementId) return
+    navigate(`/trip/${tripId}/settlement/${settlementId}`)
+  }
+
   return (
     <>
       <div className='flex w-full flex-col pt-5'>
@@ -31,12 +37,15 @@ const SettlementBook = () => {
           <SettlementTabs onChange={setView} />
 
           {/**날짜별 내역 박스 */}
-          <SettlementBox mode={view.key} date={view.date} />
+          <SettlementBox
+            mode={view.key}
+            date={view.date}
+            onItemClick={handleOpenDetail}
+          />
           {/**내역 추가하기 버튼 */}
           <FixedActionBar className='flex justify-center'>
             <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
               <button
-                button
                 onClick={() => navigate(`/trip/${tripId}/settlement/add`)}
                 className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
               >
