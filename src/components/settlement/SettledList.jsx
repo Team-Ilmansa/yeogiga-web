@@ -1,15 +1,10 @@
-import React, { useEffect, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import React, { useEffect } from 'react'
 import { formatWon } from '@/hooks/settlement/formatWon'
+import useAuth from '@/hooks/useAuth'
 
-const SettledList = ({ items = [], onContentUpdate, currentUserId }) => {
-  const params = useParams()
-  const inferredCurrentUserId = useMemo(() => {
-    const uid = params.userId ? Number(params.userId) : undefined
-    return Number.isFinite(uid) ? uid : undefined
-  }, [params.userId])
-
-  const me = currentUserId ?? inferredCurrentUserId
+const UnsettledList = ({ items = [], onContentUpdate }) => {
+  const { user } = useAuth()
+  const currentUserId = user?.userId
 
   useEffect(() => {
     const t = setTimeout(() => onContentUpdate?.(), 0)
@@ -40,45 +35,48 @@ const SettledList = ({ items = [], onContentUpdate, currentUserId }) => {
   if (!items.length) {
     return (
       <div className='px-3 py-6 text-center text-gray-500'>
-        정산 완료 내역이 없습니다.
+        미정산 내역이 없습니다.
       </div>
     )
   }
 
   return (
     <ul className='flex flex-col gap-4 px-1'>
-      {items
-        .filter((p) => p.isCompleted)
-        .map((p) => {
-          const key = p.id ?? p.userId
-          const isMe = me != null && p.userId === me
-          return (
-            <li key={key} className='flex items-center justify-between px-2'>
-              <div className='flex items-center gap-3'>
-                <Avatar url={p.imageUrl} isMe={isMe} />
-                <div className='text-base text-gray-800'>
-                  {isMe ? '(나) ' : ''}
-                  {p.nickname}
-                </div>
+      {items.map((p) => {
+        const key = p.id ?? p.userId
+        const isMe = Number(p.userId) === Number(currentUserId)
+
+        return (
+          <li key={key} className='flex items-center justify-between px-2'>
+            <div className='flex items-center gap-3'>
+              <Avatar url={p.imageUrl} isMe={isMe} />
+              <div className='text-base text-gray-800'>
+                {isMe ? (
+                  <span className='font-medium text-[var(--Blue-Scale-blue-500)]'>
+                    (나){' '}
+                  </span>
+                ) : null}
+                {p.nickname}
+              </div>
+            </div>
+
+            <div className='flex items-center gap-3'>
+              <div className='min-w-[110px] text-right text-gray-800'>
+                {formatWon(p.price)}원
               </div>
 
-              <div className='flex items-center gap-3'>
-                <div className='min-w-[110px] text-right text-gray-800'>
-                  {formatWon(p.price)}원
-                </div>
-                {/* TODO: 취소 함수 연결 */}
-                <button
-                  type='button'
-                  className='rounded-full border border-gray-200 bg-white px-3 py-1 text-sm text-gray-700'
-                >
-                  취소
-                </button>
-              </div>
-            </li>
-          )
-        })}
+              <button
+                type='button'
+                className='rounded-full border border-[var(--Blue-Scale-blue-200,#cfe0ff)] bg-white px-3 py-1 text-sm text-[var(--Blue-Scale-blue-500)]'
+              >
+                완료
+              </button>
+            </div>
+          </li>
+        )
+      })}
     </ul>
   )
 }
 
-export default SettledList
+export default UnsettledList
