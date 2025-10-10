@@ -2,7 +2,19 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import readTotalSettlementsApi from '@/apis/settlement/readTotalSettlementsApi'
 
-const SettlementTabs = ({ onChange }) => {
+const getDayNumber = (startDateString, currentDateString) => {
+  if (!startDateString || !currentDateString) return 0
+
+  const startDate = new Date(startDateString)
+  const currentDate = new Date(currentDateString)
+
+  const diffTime = currentDate.getTime() - startDate.getTime()
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
+
+  return diffDays + 1
+}
+
+const SettlementTabs = ({ onChange, tripStartDate }) => {
   const { tripId } = useParams()
 
   const [active, setActive] = useState('ALL')
@@ -17,11 +29,14 @@ const SettlementTabs = ({ onChange }) => {
         setLoading(true)
         const result = await readTotalSettlementsApi(tripId)
         const groups = result?.data ?? {}
-        /** 날짜 키 정렬*/
-        const keys = Object.keys(groups).sort((a, b) => a.localeCompare(b))
-        setDates(keys)
 
-        /**미정산 건수 계산*/
+        /** 날짜 키 정렬 */
+        const sortedKeys = Object.keys(groups).sort((a, b) =>
+          a.localeCompare(b),
+        )
+        setDates(sortedKeys)
+
+        /** 미정산 건수 계산 */
         const allItems = Object.values(groups).flat()
         const unsettled = allItems.filter(
           (it) => it && it.isCompleted === false,
@@ -38,18 +53,14 @@ const SettlementTabs = ({ onChange }) => {
     fetchDates()
   }, [tripId])
 
-  const handleSelect = (nextActive) => {
+  const handleSelect = (nextActive, date = null) => {
     setActive(nextActive)
     if (!onChange) return
 
-    if (nextActive === 'UNSETTLED') {
-      onChange({ key: 'UNSETTLED' })
-    } else if (nextActive === 'ALL') {
-      onChange({ key: 'ALL' })
-    } else if (typeof nextActive === 'number') {
-      const idx = nextActive // 1..N
-      const date = dates[idx - 1]
-      onChange({ key: 'DAY', dayIndex: idx, date })
+    if (nextActive === 'UNSETTLED' || nextActive === 'ALL') {
+      onChange({ key: nextActive })
+    } else if (typeof nextActive === 'number' && date) {
+      onChange({ key: 'DAY', dayIndex: nextActive, date })
     }
   }
 
@@ -61,7 +72,7 @@ const SettlementTabs = ({ onChange }) => {
   return (
     <div className='w-full'>
       <div className='flex flex-wrap gap-[6px]'>
-        {/** 미정산 내역 */}
+        {/* 미정산 내역, 여행 전체 버튼 (생략) */}
         <button
           type='button'
           onClick={() => handleSelect('UNSETTLED')}
@@ -73,7 +84,6 @@ const SettlementTabs = ({ onChange }) => {
           {!loading && unsettledCount > 0 ? ` (${unsettledCount})` : ''}
         </button>
 
-        {/** 여행 전체 */}
         <button
           type='button'
           onClick={() => handleSelect('ALL')}
@@ -84,20 +94,22 @@ const SettlementTabs = ({ onChange }) => {
           여행 전체
         </button>
 
-        {/** DAY 1 ~ N (API에서 받은 날짜 수 기준) */}
-        {dates.map((_, i) => {
-          const index = i + 1
-          const isActive = active === index
+        {/** DAY 1 ~ N (Props로 받은 실제 여행 시작일 기준) */}
+        {dates.map((date) => {
+          const dayNumber = getDayNumber(tripStartDate, date)
+          if (dayNumber <= 0) return null
+
+          const isActive = active === dayNumber
           return (
             <button
-              key={_.toString() + i}
+              key={date}
               type='button'
-              onClick={() => handleSelect(index)}
+              onClick={() => handleSelect(dayNumber, date)}
               className={`cursor-pointer rounded-full px-4 py-1 text-base ${pill(isActive)}`}
               disabled={loading}
               aria-pressed={isActive}
             >
-              DAY {index}
+              DAY {dayNumber}
             </button>
           )
         })}

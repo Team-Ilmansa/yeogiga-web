@@ -103,7 +103,8 @@ const SettlementAdd = () => {
     const hasTitle = !!title.trim()
     const hasAmount = !!amount
     const hasDate = !!date.y && !!date.m && !!date.d
-    return hasTitle && hasAmount && hasDate
+    const hasPayers = selectedCount > 0
+    return hasTitle && hasAmount && hasDate && hasPayers
   }, [title, amount, date, selectedCount])
 
   /* 뒤로 가기 */
@@ -212,20 +213,20 @@ const SettlementAdd = () => {
       payers = selectedMembers.map((m) => ({
         userId: m.userId,
         price: Number(manualAmountByUserId[m.userId] || 0),
-        isCompleted: true,
+        isCompleted: false,
       }))
     } else if (isEvenSplitActive) {
       payers = selectedMembers.map((m) => ({
         userId: m.userId,
         price: allocatedByUserId[m.userId] ?? 0,
-        isCompleted: true,
+        isCompleted: false,
       }))
     } else {
       const even = computeEvenAllocation(totalPrice, selectedMembers)
       payers = selectedMembers.map((m) => ({
         userId: m.userId,
         price: even[m.userId],
-        isCompleted: true,
+        isCompleted: false,
       }))
     }
 
@@ -262,12 +263,17 @@ const SettlementAdd = () => {
     navigate,
   ])
 
-  const MemberSelectRow = React.memo(function MemberSelectRow({ member }) {
-    const isCurrentUser =
-      currentUserId != null && member.userId === currentUserId
-    const isSelected = !!selectedPayersByUserId[member.userId]
-    const allocated = allocatedByUserId[member.userId]
-    const showEvenAmount = isEvenSplitActive && isSelected && allocated != null
+  const MemberSelectRow = React.memo(function MemberSelectRow({
+    member,
+    isCurrentUser,
+    isSelected,
+    isManualInput,
+    allocated,
+    value = '',
+    onChange,
+    onToggle,
+  }) {
+    const showEvenAmount = !isManualInput && isSelected && allocated != null
 
     return (
       <div className='flex items-center justify-between rounded-xl px-1 py-3'>
@@ -295,10 +301,10 @@ const SettlementAdd = () => {
                 <input
                   type='text'
                   inputMode='numeric'
-                  value={manualAmountByUserId[member.userId] ?? ''}
-                  onChange={(e) =>
-                    handleChangeManualAmount(member.userId, e.target.value)
-                  }
+                  autoComplete='off'
+                  pattern='[0-9]*'
+                  value={value}
+                  onChange={(e) => onChange(e.target.value)}
                   placeholder='금액입력'
                   className='w-[110px] appearance-none rounded-none border-none bg-transparent px-0 py-1 pr-6 text-right text-sm outline-none focus:ring-0'
                 />
@@ -314,7 +320,7 @@ const SettlementAdd = () => {
           </div>
 
           <button
-            onClick={() => toggleSelectPayer(member.userId)}
+            onClick={onToggle}
             className={`relative flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
               isSelected
                 ? 'border-[var(--Blue-Scale-blue-500)] bg-[var(--Blue-Scale-blue-500)]'
@@ -464,9 +470,27 @@ const SettlementAdd = () => {
                 여행 멤버가 없습니다.
               </div>
             ) : (
-              memberList.map((member) => (
-                <MemberSelectRow key={member.userId} member={member} />
-              ))
+              memberList.map((member) => {
+                const isSelected = !!selectedPayersByUserId[member.userId]
+                const isCurrentUser =
+                  currentUserId != null && member.userId === currentUserId
+                const allocated = allocatedByUserId[member.userId]
+                const value = manualAmountByUserId[member.userId] ?? ''
+
+                return (
+                  <MemberSelectRow
+                    key={member.userId}
+                    member={member}
+                    isCurrentUser={isCurrentUser}
+                    isSelected={isSelected}
+                    isManualInput={isManualInput}
+                    allocated={allocated}
+                    value={value}
+                    onChange={(v) => handleChangeManualAmount(member.userId, v)}
+                    onToggle={() => toggleSelectPayer(member.userId)}
+                  />
+                )
+              })
             )}
           </div>
         </div>
