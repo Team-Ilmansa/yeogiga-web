@@ -7,6 +7,7 @@ import CategorySelector from '@/components/common/CategorySelector'
 
 import readMemberApi from '@/apis/member/readMemberApi'
 import createSettlementApi from '@/apis/settlement/createSettlementApi'
+import useAuth from '@/hooks/useAuth'
 
 const pad2 = (v) => String(v).padStart(2, '0')
 const onlyDigits = (v) => String(v).replace(/[^0-9]/g, '')
@@ -129,8 +130,9 @@ const MemberSelectRow = React.memo(function MemberSelectRow({
 
 const SettlementAdd = () => {
   const navigate = useNavigate()
-  const { tripId, userId } = useParams()
-  const currentUserId = userId ? Number(userId) : null
+  const { tripId } = useParams()
+  const { user } = useAuth()
+  const currentUserId = user?.userId
 
   const [amount, setAmount] = useState('')
   const [title, setTitle] = useState('')
@@ -472,8 +474,10 @@ const SettlementAdd = () => {
             ) : (
               memberList.map((member) => {
                 const isSelected = !!selectedPayersByUserId[member.userId]
+
                 const isCurrentUser =
                   currentUserId != null && member.userId === currentUserId
+
                 const allocated = allocatedByUserId[member.userId]
                 const value = manualAmountByUserId[member.userId] ?? ''
 
