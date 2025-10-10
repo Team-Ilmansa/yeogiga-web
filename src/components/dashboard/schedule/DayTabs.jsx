@@ -7,17 +7,37 @@ import { useNavigate, useParams } from 'react-router-dom'
 import FixedActionBar from '@/components/common/FixedActionBar'
 import PlanningDateBox from './PlanningDateBox'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
+
+import NoticeCreateModal from '../modal/NoticeCreateModal'
+import createNoticeApi from '@/apis/notice/createNoticeApi'
+
 const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
   const [activeDayTab, setActiveDayTab] = useState(0)
   const [dates, setDates] = useState([])
   const [selectedDay, setSelectedDay] = useState(null)
   const [planningPlaces, setPlanningPlaces] = useState([])
+  const [isNoticeOpen, setIsNoticeOpen] = useState(false)
+  const [noticeSubmitting, setNoticeSubmitting] = useState(false)
 
   const { tripId } = useParams()
   const { startedAt, endedAt } = tripInfo
 
   const navigate = useNavigate()
+  /** 공지 작성 API 호출 */
+  const handleSubmitCreateNotice = async ({ title, description }) => {
+    try {
+      setNoticeSubmitting(true)
+      await createNoticeApi(tripId, { title, description })
+      onContentUpdate?.()
+      setIsNoticeOpen(false)
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setNoticeSubmitting(false)
+    }
+  }
 
+  /** 날짜 포맷팅 */
   const formatDateToDot = (dateObj) => {
     const year = dateObj.getFullYear()
     const month = String(dateObj.getMonth() + 1).padStart(2, '0')
@@ -174,13 +194,24 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
                 <PlusCalendar size={40} color={'white'} />
                 일정 추가하기
               </button>
-              <button className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'>
+              <button
+                className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                onClick={() => {
+                  setIsNoticeOpen(true)
+                }}
+              >
                 <NoticeIcon size={40} color={'white'} />
                 공지하기
               </button>
             </div>
           </FixedActionBar>
         ))}
+      <NoticeCreateModal
+        open={isNoticeOpen}
+        onClose={() => setIsNoticeOpen(false)}
+        onSubmit={handleSubmitCreateNotice}
+        submitting={noticeSubmitting}
+      />
     </div>
   )
 }
