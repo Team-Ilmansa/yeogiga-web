@@ -7,6 +7,7 @@ import CategorySelector from '@/components/common/CategorySelector'
 
 import readMemberApi from '@/apis/member/readMemberApi'
 import createSettlementApi from '@/apis/settlement/createSettlementApi'
+import useAuth from '@/hooks/useAuth'
 
 const pad2 = (v) => String(v).padStart(2, '0')
 const onlyDigits = (v) => String(v).replace(/[^0-9]/g, '')
@@ -35,10 +36,103 @@ const dateInputClass =
   'h-18 rounded-2xl bg-gray-100 px-0 text-lg text-center placeholder:text-gray-400 border-none outline-none'
 const dotStyle = 'self-end text-4xl text-gray-500'
 
+const MemberSelectRow = React.memo(function MemberSelectRow({
+  member,
+  isCurrentUser,
+  isSelected,
+  isManualInput,
+  allocated,
+  value = '',
+  onChange,
+  onToggle,
+}) {
+  const showEvenAmount = !isManualInput && isSelected && allocated != null
+
+  const handleOnChange = useCallback(
+    (e) => {
+      onChange(member.userId, e.target.value)
+    },
+    [onChange, member.userId],
+  )
+
+  const handleOnToggle = useCallback(() => {
+    onToggle(member.userId)
+  }, [onToggle, member.userId])
+
+  return (
+    <div className='flex items-center justify-between rounded-xl px-1 py-3'>
+      <div className='flex items-center gap-3'>
+        <div className='relative h-9 w-9 overflow-hidden rounded-full bg-gray-200'>
+          {member.imageUrl ? (
+            <img
+              src={member.imageUrl}
+              alt={`${member.nickname} 프로필 이미지`}
+              className='h-full w-full object-cover'
+              onError={(e) => (e.currentTarget.style.display = 'none')}
+            />
+          ) : null}
+        </div>
+        <div className='text-base text-gray-800'>
+          {isCurrentUser ? '(나) ' : ''}
+          {member.nickname}
+        </div>
+      </div>
+
+      <div className='flex items-center gap-3'>
+        <div className='min-w-[120px] text-right text-gray-800'>
+          {isManualInput && isSelected ? (
+            <div className='relative'>
+              <input
+                type='text'
+                inputMode='numeric'
+                autoComplete='off'
+                pattern='[0-9]*'
+                value={value}
+                onChange={handleOnChange}
+                placeholder='금액입력'
+                className='w-[110px] appearance-none rounded-none border-none bg-transparent px-0 py-1 pr-6 text-right text-sm outline-none focus:ring-0'
+              />
+              <span className='pointer-events-none absolute top-1/2 right-1 -translate-y-1/2 text-sm text-gray-500'>
+                원
+              </span>
+            </div>
+          ) : showEvenAmount ? (
+            `${formatWon(allocated)}원`
+          ) : (
+            ''
+          )}
+        </div>
+
+        <button
+          onClick={handleOnToggle}
+          className={`relative flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
+            isSelected
+              ? 'border-[var(--Blue-Scale-blue-500)] bg-[var(--Blue-Scale-blue-500)]'
+              : 'border-gray-300 bg-white'
+          }`}
+          aria-pressed={isSelected}
+        >
+          {isSelected && (
+            <span
+              className='block h-[10px] w-[6px] rotate-45'
+              style={{
+                borderRight: '2px solid #fff',
+                borderBottom: '2px solid #fff',
+                marginTop: '-1px',
+              }}
+            />
+          )}
+        </button>
+      </div>
+    </div>
+  )
+})
+
 const SettlementAdd = () => {
   const navigate = useNavigate()
-  const { tripId, userId } = useParams()
-  const currentUserId = userId ? Number(userId) : null
+  const { tripId } = useParams()
+  const { user } = useAuth()
+  const currentUserId = user?.userId
 
   const [amount, setAmount] = useState('')
   const [title, setTitle] = useState('')
@@ -83,7 +177,9 @@ const SettlementAdd = () => {
       } catch (err) {
         alert(err.message || '여행 멤버를 불러오지 못했습니다.')
       } finally {
-        setIsLoadingMembers(false)
+        if (isMounted) {
+          setIsLoadingMembers(false)
+        }
       }
     }
 
@@ -103,7 +199,8 @@ const SettlementAdd = () => {
     const hasTitle = !!title.trim()
     const hasAmount = !!amount
     const hasDate = !!date.y && !!date.m && !!date.d
-    return hasTitle && hasAmount && hasDate
+    const hasPayers = selectedCount > 0
+    return hasTitle && hasAmount && hasDate && hasPayers
   }, [title, amount, date, selectedCount])
 
   /* 뒤로 가기 */
@@ -150,27 +247,21 @@ const SettlementAdd = () => {
           )
         }
 
-        if (
-          isManualInput &&
-          next[toggleUserId] &&
-          manualAmountByUserId[toggleUserId] == null
-        ) {
-          setManualAmountByUserId((prevManual) => ({
-            ...prevManual,
-            [toggleUserId]: '',
-          }))
+        if (isManualInput && next[toggleUserId]) {
+          setManualAmountByUserId((prevManual) => {
+            if (prevManual[toggleUserId] != null) {
+              return prevManual
+            }
+            return {
+              ...prevManual,
+              [toggleUserId]: '',
+            }
+          })
         }
-
         return next
       })
     },
-    [
-      isEvenSplitActive,
-      amount,
-      memberList,
-      isManualInput,
-      manualAmountByUserId,
-    ],
+    [isEvenSplitActive, amount, memberList, isManualInput],
   )
 
   /* 총액 변경 시 1/n 재분배 */
@@ -212,20 +303,20 @@ const SettlementAdd = () => {
       payers = selectedMembers.map((m) => ({
         userId: m.userId,
         price: Number(manualAmountByUserId[m.userId] || 0),
-        isCompleted: true,
+        isCompleted: false,
       }))
     } else if (isEvenSplitActive) {
       payers = selectedMembers.map((m) => ({
         userId: m.userId,
         price: allocatedByUserId[m.userId] ?? 0,
-        isCompleted: true,
+        isCompleted: false,
       }))
     } else {
       const even = computeEvenAllocation(totalPrice, selectedMembers)
       payers = selectedMembers.map((m) => ({
         userId: m.userId,
         price: even[m.userId],
-        isCompleted: true,
+        isCompleted: false,
       }))
     }
 
@@ -262,94 +353,15 @@ const SettlementAdd = () => {
     navigate,
   ])
 
-  const MemberSelectRow = React.memo(function MemberSelectRow({ member }) {
-    const isCurrentUser =
-      currentUserId != null && member.userId === currentUserId
-    const isSelected = !!selectedPayersByUserId[member.userId]
-    const allocated = allocatedByUserId[member.userId]
-    const showEvenAmount = isEvenSplitActive && isSelected && allocated != null
-
-    return (
-      <div className='flex items-center justify-between rounded-xl px-1 py-3'>
-        <div className='flex items-center gap-3'>
-          <div className='relative h-9 w-9 overflow-hidden rounded-full bg-gray-200'>
-            {member.imageUrl ? (
-              <img
-                src={member.imageUrl}
-                alt={`${member.nickname} 프로필 이미지`}
-                className='h-full w-full object-cover'
-                onError={(e) => (e.currentTarget.style.display = 'none')}
-              />
-            ) : null}
-          </div>
-          <div className='text-base text-gray-800'>
-            {isCurrentUser ? '(나) ' : ''}
-            {member.nickname}
-          </div>
-        </div>
-
-        <div className='flex items-center gap-3'>
-          <div className='min-w-[120px] text-right text-gray-800'>
-            {isManualInput && isSelected ? (
-              <div className='relative'>
-                <input
-                  type='text'
-                  inputMode='numeric'
-                  value={manualAmountByUserId[member.userId] ?? ''}
-                  onChange={(e) =>
-                    handleChangeManualAmount(member.userId, e.target.value)
-                  }
-                  placeholder='금액입력'
-                  className='w-[110px] appearance-none rounded-none border-none bg-transparent px-0 py-1 pr-6 text-right text-sm outline-none focus:ring-0'
-                />
-                <span className='pointer-events-none absolute top-1/2 right-1 -translate-y-1/2 text-sm text-gray-500'>
-                  원
-                </span>
-              </div>
-            ) : showEvenAmount ? (
-              `${formatWon(allocated)}원`
-            ) : (
-              ''
-            )}
-          </div>
-
-          <button
-            onClick={() => toggleSelectPayer(member.userId)}
-            className={`relative flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
-              isSelected
-                ? 'border-[var(--Blue-Scale-blue-500)] bg-[var(--Blue-Scale-blue-500)]'
-                : 'border-gray-300 bg-white'
-            }`}
-            aria-pressed={isSelected}
-          >
-            {isSelected && (
-              <span
-                className='block h-[10px] w-[6px] rotate-45'
-                style={{
-                  borderRight: '2px solid #fff',
-                  borderBottom: '2px solid #fff',
-                  marginTop: '-1px',
-                }}
-              />
-            )}
-          </button>
-        </div>
-      </div>
-    )
-  })
-
   return (
     <div className='flex w-full flex-col pt-5'>
-      {/* 상단: 뒤로가기 */}
       <div className='mb-5 flex items-center justify-between px-8'>
         <button className='border-none' onClick={handleBack}>
           <GoBack />
         </button>
       </div>
 
-      {/* 폼 */}
       <div className='space-y-6 px-10'>
-        {/* 정산 비용 */}
         <div>
           <div className={sectionTitleClass}>정산 비용</div>
           <div className='relative'>
@@ -367,7 +379,6 @@ const SettlementAdd = () => {
           </div>
         </div>
 
-        {/* 내역 이름 */}
         <div>
           <div className={sectionTitleClass}>내역 이름</div>
           <input
@@ -379,7 +390,6 @@ const SettlementAdd = () => {
           />
         </div>
 
-        {/* 날짜 */}
         <div>
           <div className={sectionTitleClass}>날짜</div>
           <div className='flex items-center gap-2'>
@@ -421,13 +431,11 @@ const SettlementAdd = () => {
           </div>
         </div>
 
-        {/* 카테고리 */}
         <div>
           <div className={sectionTitleClass}>카테고리</div>
           <CategorySelector value={category} onChange={setCategory} size={50} />
         </div>
 
-        {/* 정산 인원 */}
         <div className='mt-4'>
           <div className='mb-2 flex items-center justify-between pr-3'>
             <div className='text-xl text-gray-800'>
@@ -464,15 +472,34 @@ const SettlementAdd = () => {
                 여행 멤버가 없습니다.
               </div>
             ) : (
-              memberList.map((member) => (
-                <MemberSelectRow key={member.userId} member={member} />
-              ))
+              memberList.map((member) => {
+                const isSelected = !!selectedPayersByUserId[member.userId]
+
+                const isCurrentUser =
+                  currentUserId != null && member.userId === currentUserId
+
+                const allocated = allocatedByUserId[member.userId]
+                const value = manualAmountByUserId[member.userId] ?? ''
+
+                return (
+                  <MemberSelectRow
+                    key={member.userId}
+                    member={member}
+                    isCurrentUser={isCurrentUser}
+                    isSelected={isSelected}
+                    isManualInput={isManualInput}
+                    allocated={allocated}
+                    value={value}
+                    onChange={handleChangeManualAmount}
+                    onToggle={toggleSelectPayer}
+                  />
+                )
+              })
             )}
           </div>
         </div>
       </div>
 
-      {/* 확인 버튼 */}
       <FixedActionBar className='flex justify-center'>
         <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
           <button
