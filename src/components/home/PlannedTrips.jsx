@@ -6,7 +6,7 @@ import 'swiper/css'
 import TripPreviewCard from '@/components/home/common/TripPreviewCard'
 
 /**준비 중인 여행 목록 가로 슬라이드 */
-const PlannedTripSlide = ({ settingTrips = [] }) => {
+const PlannedTrips = ({ settingTrips = [], loadMore }) => {
   const swiperRef = useRef(null)
   if (!Array.isArray(settingTrips) || settingTrips.length === 0) return null
 
@@ -28,6 +28,11 @@ const PlannedTripSlide = ({ settingTrips = [] }) => {
         slidesOffsetAfter={8}
         centeredSlides={false}
         className='w-full'
+        onReachEnd={() => {
+          if (settingTrips.length >= 3) {
+            loadMore()
+          }
+        }}
       >
         {settingTrips.map((trip) => (
           <SwiperSlide key={trip.tripId} className='!h-auto'>
@@ -43,4 +48,4 @@ const PlannedTripSlide = ({ settingTrips = [] }) => {
   )
 }
 
-export default PlannedTripSlide
+export default PlannedTrips

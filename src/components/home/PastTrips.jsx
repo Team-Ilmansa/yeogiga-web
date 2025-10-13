@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css'
 
 /**지난여행 돌아보기 */
-const PastTrips = ({ pastTrips = [] }) => {
+const PastTrips = ({ pastTrips = [], loadMore }) => {
   const formatDate = (d) =>
     new Date(d).toLocaleDateString('ko-KR', {
       year: 'numeric',
@@ -19,7 +19,16 @@ const PastTrips = ({ pastTrips = [] }) => {
         지난여행 돌아보기
       </div>
 
-      <Swiper slidesPerView={1.8} spaceBetween={16} className='w-full'>
+      <Swiper
+        slidesPerView={1.8}
+        spaceBetween={16}
+        className='w-full'
+        onReachEnd={() => {
+          if (pastTrips.length >= 3) {
+            loadMore()
+          }
+        }}
+      >
         {pastTrips.map((trip) => (
           <SwiperSlide key={trip.tripId}>
             <Link to={`/trip/${trip.tripId}`}>
