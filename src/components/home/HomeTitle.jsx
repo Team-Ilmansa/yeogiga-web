@@ -21,7 +21,7 @@ const HomeTitle = ({ user }) => {
         const result = await getWeatherApi(latitude, longitude)
         setWeather(result.data)
       } catch (err) {
-        alert('날씨 정보를 가져오는 데 실패했습니다: ' + err.message)
+        console.error(err)
       }
     }
 
