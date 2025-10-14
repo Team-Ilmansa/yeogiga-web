@@ -1,4 +1,5 @@
 import getWeatherApi from '@/apis/home/getWeatherApi'
+import readMainTripApi from '@/apis/trip/readMainApi'
 import ClearBackground from '@/assets/home/weather/ClearBackground.png'
 import ClearIcon from '@/assets/home/weather/ClearIcon'
 import CloudBackground from '@/assets/home/weather/CloudBackground.png'
@@ -9,11 +10,17 @@ import SnowBackground from '@/assets/home/weather/SnowBackground.png'
 import SnowIcon from '@/assets/home/weather/SnowIcon'
 import WindBackground from '@/assets/home/weather/WindBackground.png'
 import WindIcon from '@/assets/home/weather/WindIcon'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 /**홈 화면 제목 */
 const HomeTitle = ({ user }) => {
   const [weather, setWeather] = useState(null)
+  const [mainTrip, setMainTrip] = useState(null)
+  const [isScheduleExpanded, setIsScheduleExpanded] = useState(false)
+  const [isButtonExpanded, setIsButtonExpanded] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchWeather = async (latitude, longitude) => {
@@ -45,7 +52,29 @@ const HomeTitle = ({ user }) => {
       )
       fetchWeather(37.5665, 126.978)
     }
+
+    const fetchMainTrip = async () => {
+      try {
+        const result = await readMainTripApi()
+        setMainTrip(result.data)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    fetchMainTrip()
   }, [])
+
+  useEffect(() => {
+    if (isScheduleExpanded) {
+      setIsButtonExpanded(true)
+    } else {
+      const timer = setTimeout(() => {
+        setIsButtonExpanded(false)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [isScheduleExpanded])
 
   /**카테고리 별 값 읽어오기 */
   const getWeatherValue = (category) => {
@@ -76,6 +105,28 @@ const HomeTitle = ({ user }) => {
     return { text: '맑음', Icon: ClearIcon, background: ClearBackground }
   }
 
+  const getTripStatusMessage = () => {
+    if (!mainTrip) {
+      return '여행 계획 있으신가요?'
+    }
+
+    switch (mainTrip.travelStatus) {
+      case 'PLANNED': {
+        const today = new Date()
+        const startDate = new Date(mainTrip.staredAt)
+        today.setHours(0, 0, 0, 0)
+        startDate.setHours(0, 0, 0, 0)
+        const diffTime = startDate.getTime() - today.getTime()
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        return `여행이 ${diffDays}일 남았어요!`
+      }
+      case 'IN_PROGRESS':
+        return `여행 ${mainTrip.day}일차에요!`
+      default:
+        return '여행 계획 있으신가요?'
+    }
+  }
+
   const weatherCondition = getWeatherCondition()
   const WeatherIcon = weatherCondition?.Icon
   const iconColor = weatherCondition?.text === '비' ? 'white' : 'black'
@@ -91,9 +142,26 @@ const HomeTitle = ({ user }) => {
       }
     : {}
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString)
+    return `${date.getMonth() + 1}월 ${date.getDate()}일`
+  }
+
+  const getScheduleTitle = () => {
+    if (!mainTrip) return ''
+    if (mainTrip.travelStatus === 'PLANNED') {
+      return `${formatDate(mainTrip.staredAt)} 여행 첫날의 일정`
+    }
+    if (mainTrip.travelStatus === 'IN_PROGRESS') {
+      const today = new Date()
+      return `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일 오늘의 일정`
+    }
+    return ''
+  }
+
   return (
     <div
-      className='flex flex-col gap-1 pt-10 pl-10 text-4xl/[1.4] font-bold'
+      className='flex flex-col gap-1 px-10 pt-10 text-4xl/[1.4] font-bold'
       style={backgroundStyle}
     >
       <div
@@ -114,7 +182,67 @@ const HomeTitle = ({ user }) => {
         )}
       </div>
       <div>{user?.nickname}님,</div>
-      <div>여행 계획 있으신가요?</div>
+      <div>{getTripStatusMessage()}</div>
+
+      {(mainTrip?.travelStatus === 'PLANNED' ||
+        mainTrip?.travelStatus === 'IN_PROGRESS') && (
+        <div
+          className='relative mt-4 mr-4 cursor-pointer rounded-xl bg-white p-6 pb-10 text-base font-normal shadow-lg'
+          onClick={() => navigate(`/trip/${mainTrip.tripId}`)}
+        >
+          <div className='mb-3 text-lg text-[var(--Grey-Scale-grey-300)]'>
+            {getScheduleTitle()}
+          </div>
+          {mainTrip.places.length > 0 ? (
+            <>
+              <div className='relative'>
+                <ul
+                  className={`space-y-3 overflow-hidden transition-[max-height] duration-500 ease-in-out ${isScheduleExpanded ? 'max-h-1000' : 'max-h-60'}`}
+                >
+                  {mainTrip.places.map((place) => (
+                    <li
+                      key={place.id}
+                      className='flex items-center justify-start gap-5'
+                    >
+                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-[var(--Grey-Scale-grey-100)]'>
+                        C
+                      </div>
+                      <div className='flex w-full justify-between rounded-2xl bg-[var(--Grey-Scale-grey-100)] p-5 text-base text-[var(--Grey-Scale-grey-300)]'>
+                        <span>{place.name}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {mainTrip.places.length > 3 && (
+                  <div
+                    className={`pointer-events-none absolute right-0 bottom-0 left-0 h-24 bg-gradient-to-t from-white to-transparent transition-opacity duration-300 ${isScheduleExpanded ? 'opacity-0' : 'opacity-100 delay-300'}`}
+                  ></div>
+                )}
+              </div>
+              {mainTrip.places.length > 3 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setIsScheduleExpanded(!isScheduleExpanded)
+                  }}
+                  className='│ │ absolute bottom-0 left-1/2 flex -translate-x-1/2 translate-y-1/2 transform items-center gap-1 rounded-full bg-[var(--Blue-Scale-blue-500)] px-6 py-2 text-base text-white'
+                >
+                  <span>{isButtonExpanded ? '일정 접기' : '일정 펼치기'}</span>
+                  {isButtonExpanded ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
+                </button>
+              )}
+            </>
+          ) : (
+            <div className='text-center text-gray-500'>
+              일정이 아직 없습니다.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
