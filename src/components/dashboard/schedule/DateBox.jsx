@@ -40,11 +40,9 @@ const DateBox = ({ date, dayIndex, selected, onSelect, onContentUpdate }) => {
 
   const toggleOpen = () => {
     setIsOpen((prev) => !prev)
-    setTimeout(() => {
-      if (onContentUpdate) {
-        onContentUpdate()
-      }
-    }, 50)
+    if (onContentUpdate) {
+      onContentUpdate()
+    }
   }
 
   /**일자별 담은 장소 불러오기 */
@@ -52,10 +50,13 @@ const DateBox = ({ date, dayIndex, selected, onSelect, onContentUpdate }) => {
     try {
       const result = await readDatePlaceApi(tripId, dayIndex)
       setPlaces(result.data)
+      if (onContentUpdate) {
+        onContentUpdate()
+      }
     } catch (err) {
       alert(err.message)
     }
-  }, [tripId, dayIndex])
+  }, [tripId, dayIndex, onContentUpdate])
 
   useEffect(() => {
     fetchDatePlaces()
