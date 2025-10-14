@@ -1,6 +1,6 @@
 import PlaceIcon from '@/assets/dashboard/PlaceIcon'
 import { Archive } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import useAuth from '@/hooks/useAuth'
 import readNoticeApi from '@/apis/notice/readNoticeApi'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -15,6 +15,7 @@ import NoticeOptionsModal from '../dashboard/modal/NoticeOptionModal'
 import NoticeCreateModal from '../dashboard/modal/NoticeCreateModal'
 import deleteNoticeApi from '@/apis/notice/deleteNoticeApi'
 import NoticeViewModal from '../dashboard/modal/NoticeViewModal'
+import patchNoticeApi from '@/apis/notice/patchNoticeApi'
 
 const Notices = () => {
   const { user } = useAuth()
@@ -34,13 +35,16 @@ const Notices = () => {
     useState(false)
   const [selectedNoticeForOptions, setSelectedNoticeForOptions] = useState(null)
   const [isNoticeDeleteModalOpen, setIsNoticeDeleteModalOpen] = useState(false)
+  const [isNoticeCompleteModalOpen, setIsNoticeCompleteModalOpen] =
+    useState(false)
 
   useEffect(() => {
     const open =
       isModalOpen ||
       isPinDeleteModalOpen ||
       isNoticeOptionsModalOpen ||
-      isNoticeDeleteModalOpen
+      isNoticeDeleteModalOpen ||
+      isNoticeCompleteModalOpen
     const original = document.body.style.overflow
     if (open) document.body.style.overflow = 'hidden'
     else document.body.style.overflow = original || ''
@@ -52,13 +56,16 @@ const Notices = () => {
     isPinDeleteModalOpen,
     isNoticeOptionsModalOpen,
     isNoticeDeleteModalOpen,
+    isNoticeCompleteModalOpen,
   ])
 
   /** 전체 공지사항 조회 */
   const fetchNotices = useCallback(async () => {
     try {
       const result = await readNoticeApi(tripId)
-      setNotices(result.data.content)
+      /**완료된 공지사항 필터링 */
+      const activeNotices = result.data.content.filter((n) => !n.completed)
+      setNotices(activeNotices)
     } catch (err) {
       console.error(err)
     }
@@ -126,8 +133,8 @@ const Notices = () => {
   /** 공지 완료 처리 */
   const handleCompleteNotice = () => {
     if (!selectedNoticeForOptions) return
-    alert(`'${selectedNoticeForOptions.title}' 공지를 완료 처리합니다.`)
     setIsNoticeOptionsModalOpen(false)
+    setIsNoticeCompleteModalOpen(true)
   }
 
   /** 공지 삭제 처리 */
@@ -154,9 +161,31 @@ const Notices = () => {
     }
   }
 
+  /**실제 완료 실행 */
+  const confirmCompleteNotice = async () => {
+    if (!selectedNoticeForOptions) return
+    const { id } = selectedNoticeForOptions
+    try {
+      await patchNoticeApi(tripId, id)
+      setNotices((prev) => prev.filter((n) => n.id !== id))
+      alert('공지가 완료 처리되었습니다.')
+    } catch (err) {
+      console.error(err)
+      alert('공지 완료 처리에 실패했습니다.')
+    } finally {
+      setIsNoticeCompleteModalOpen(false)
+      setSelectedNoticeForOptions(null)
+    }
+  }
+
   const containerStyle =
     'flex items-center justify-between gap-3 rounded-2xl bg-[var(--Blue-Scale-blue-100)] px-4 h-[70px]'
   const fontStyle = 'text-base font-medium text-gray-700'
+
+  const activeNotices = useMemo(
+    () => (Array.isArray(notices) ? notices.filter((n) => !n?.completed) : []),
+    [notices],
+  )
 
   return (
     <div className='space-y-2'>
@@ -169,7 +198,6 @@ const Notices = () => {
           setSelectedNotice(null)
         }}
       />
-
       {/* 집결지 삭제 모달 */}
       {isPinDeleteModalOpen &&
         createPortal(
@@ -247,6 +275,46 @@ const Notices = () => {
           </div>,
           document.body,
         )}
+
+      {/** 공지 완료 확인 모달 */}
+      {isNoticeCompleteModalOpen &&
+        createPortal(
+          <div className='fixed inset-0 z-[9999] flex items-center justify-center'>
+            <div
+              className='absolute inset-0 bg-black/50'
+              onClick={() => setIsNoticeCompleteModalOpen(false)}
+              aria-hidden='true'
+            />
+            <div
+              className='relative z-10 w-[380px] rounded-2xl bg-white p-6 shadow-xl'
+              role='dialog'
+              aria-modal='true'
+            >
+              <h2 className='mb-2 text-lg font-bold text-gray-800'>
+                "{selectedNoticeForOptions?.title || '공지'}" 공지를
+                완료하시겠어요?
+              </h2>
+              <p className='mb-10 text-sm text-gray-500'>
+                완료 처리된 공지는 현재 공지 목록에서 제외돼요.
+              </p>
+              <div className='flex gap-2'>
+                <button
+                  className='flex-1 rounded-lg border-none bg-gray-100 py-3 font-semibold text-gray-700'
+                  onClick={() => setIsNoticeCompleteModalOpen(false)}
+                >
+                  취소
+                </button>
+                <button
+                  className='flex-1 rounded-lg border-none bg-gray-100 py-3 font-semibold text-red-500'
+                  onClick={confirmCompleteNotice}
+                >
+                  완료하기
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
       {/* 공지 옵션 모달 */}
       <NoticeOptionsModal
         isOpen={isNoticeOptionsModalOpen}
@@ -317,7 +385,7 @@ const Notices = () => {
           )}
 
           {/* 공지 리스트 */}
-          {notices.length === 0 ? (
+          {activeNotices.length === 0 ? (
             <div className={containerStyle}>
               <div className='flex items-center gap-3'>
                 <Archive className='h-6 w-6 text-[var(--Blue-Scale-blue-500)]' />
@@ -325,7 +393,7 @@ const Notices = () => {
               </div>
             </div>
           ) : (
-            notices.map((notice) => (
+            activeNotices.map((notice) => (
               <div
                 key={notice.id}
                 className={containerStyle + ' cursor-pointer'}
