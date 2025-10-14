@@ -30,11 +30,12 @@ const SlideTabs = ({ isScheduleConfirmed }) => {
   }
 
   return (
-    <div className='w-full overflow-hidden'>
+    <div className='flex h-full w-full flex-col overflow-hidden'>
       {/* 탭 바 */}
-      <div className='flex'>
+      <div className='flex flex-shrink-0'>
         {tabList.map((tab, index) => {
           const isActive = activeTab === index
+
           return (
             <div
               key={tab.label}
@@ -71,19 +72,18 @@ const SlideTabs = ({ isScheduleConfirmed }) => {
         })}
       </div>
       <Swiper
-        autoHeight={true}
         onSwiper={(swiper) => (contentSwiperRef.current = swiper)}
         onSlideChange={(swiper) => setActiveTab(swiper.activeIndex)}
         slidesPerView={1}
         spaceBetween={0}
-        allowTouchMove={true} // 전체는 허용
+        allowTouchMove={true}
         noSwiping={true}
-        noSwipingClass='no-swipe-zone' // 이 클래스 붙은 곳만 스와이프 금지
+        noSwipingClass='no-swipe-zone'
         simulateTouch={true}
-        className='w-full overflow-hidden'
+        className='w-full flex-grow'
       >
-        <SwiperSlide className='!w-full'>
-          <div className='mt-5 w-full'>
+        <SwiperSlide className='h-full !w-full'>
+          <div className='mt-5 h-full w-full'>
             <ScheduleDashBoard
               activeTab={activeTab}
               onContentUpdate={updateSwiperHeight}
@@ -91,13 +91,13 @@ const SlideTabs = ({ isScheduleConfirmed }) => {
           </div>
         </SwiperSlide>
 
-        <SwiperSlide className='!w-full'>
-          <div className='mt-5 w-full'>
+        <SwiperSlide className='h-full !w-full'>
+          <div className='mt-5 h-full w-full'>
             <GalleryDashBoard activeTab={activeTab} />
           </div>
         </SwiperSlide>
 
-        <SwiperSlide className='!w-full'>
+        <SwiperSlide className='h-full !w-full'>
           <div className='w-full'>⭐ 즐겨찾는 사진 내용</div>
         </SwiperSlide>
       </Swiper>

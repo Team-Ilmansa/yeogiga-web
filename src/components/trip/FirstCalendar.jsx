@@ -73,7 +73,7 @@ const FirstCalendar = ({ tripInfo }) => {
       <div>
         <button
           className='text-bold my-5 border-none px-8'
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/')}
         >
           <GoBack />
         </button>

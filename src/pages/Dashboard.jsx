@@ -16,6 +16,7 @@ import MapIcon from '@/assets/map/MapIcon'
 const Dashboard = () => {
   const navigate = useNavigate()
   const { tripId } = useParams()
+  const [isLoading, setIsLoading] = useState(true)
   /** 케밥 모달 열림 여부 상태 */
   const [isKebabOpen, setIsKebabOpen] = useState(false)
   /** 여행 이름 수정 모달 열림 여부 상태 */
@@ -36,13 +37,19 @@ const Dashboard = () => {
       } catch (err) {
         if (err.code === 'T009') navigate('calendar')
         console.error(err.message)
+      } finally {
+        setIsLoading(false)
       }
     }
     fetchMyCalendar()
   }, [navigate, tripId])
 
+  if (isLoading) {
+    return null // 또는 로딩 스피너
+  }
+
   return (
-    <>
+    <div className='flex h-screen flex-col'>
       {/** 케밥 모달이 열렸을 때만 렌더링 */}
       {isKebabOpen && (
         <KebabModal
@@ -92,7 +99,7 @@ const Dashboard = () => {
             </button>
           </div>
         </div>
-        <div className='flex w-full flex-col gap-15 px-10'>
+        <div className='flex w-full flex-grow flex-col gap-15 bg-white px-10'>
           <TripTitle
             isScheduleConfirmed={isScheduleConfirmed}
             setIsScheduleConfirmed={setIsScheduleConfirmed}
@@ -112,7 +119,7 @@ const Dashboard = () => {
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }
 

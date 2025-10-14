@@ -44,7 +44,10 @@ const PlanningDateBox = ({
 
   useEffect(() => {
     setPlaces(planningPlaces?.places)
-  }, [planningPlaces])
+    if (onContentUpdate) {
+      onContentUpdate()
+    }
+  }, [planningPlaces, onContentUpdate])
 
   const toggleOpen = () => {
     setIsOpen((prev) => !prev)

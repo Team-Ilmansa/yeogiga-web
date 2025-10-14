@@ -10,9 +10,30 @@ import SnowBackground from '@/assets/home/weather/SnowBackground.png'
 import SnowIcon from '@/assets/home/weather/SnowIcon'
 import WindBackground from '@/assets/home/weather/WindBackground.png'
 import WindIcon from '@/assets/home/weather/WindIcon'
+import EtcIcon from '@/assets/map/category/EtcIcon'
+import LodgingIcon from '@/assets/map/category/LodgingIcon'
+import MealIcon from '@/assets/map/category/MealIcon'
+import TouristIcon from '@/assets/map/category/TouristIcon'
+import TransportIcon from '@/assets/map/category/TransportIcon'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+const categoryIcons = {
+  관광지: TouristIcon,
+  숙소: LodgingIcon,
+  식당: MealIcon,
+  이동수단: TransportIcon,
+  기타: EtcIcon,
+}
+
+const categoryColors = {
+  관광지: '#F87C7C',
+  숙소: '#66CD7A',
+  식당: '#8CB6E8',
+  이동수단: '#F19B55',
+  기타: '#C161EE',
+}
 
 /**홈 화면 제목 */
 const HomeTitle = ({ user }) => {
@@ -199,19 +220,24 @@ const HomeTitle = ({ user }) => {
                 <ul
                   className={`space-y-3 overflow-hidden transition-[max-height] duration-500 ease-in-out ${isScheduleExpanded ? 'max-h-1000' : 'max-h-60'}`}
                 >
-                  {mainTrip.places.map((place) => (
-                    <li
-                      key={place.id}
-                      className='flex items-center justify-start gap-5'
-                    >
-                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-[var(--Grey-Scale-grey-100)]'>
-                        C
-                      </div>
-                      <div className='flex w-full justify-between rounded-2xl bg-[var(--Grey-Scale-grey-100)] p-5 text-base text-[var(--Grey-Scale-grey-300)]'>
-                        <span>{place.name}</span>
-                      </div>
-                    </li>
-                  ))}
+                  {mainTrip.places.map((place) => {
+                    const Icon = categoryIcons[place.placeType] || EtcIcon
+                    const color = categoryColors[place.placeType] || '#C161EE'
+
+                    return (
+                      <li
+                        key={place.id}
+                        className='flex items-center justify-start gap-5'
+                      >
+                        <div className='flex h-10 w-10 items-center justify-center rounded-full'>
+                          <Icon size={40} color={color} />
+                        </div>
+                        <div className='flex w-full justify-between rounded-2xl bg-[var(--Grey-Scale-grey-100)] p-5 text-base text-[var(--Grey-Scale-grey-300)]'>
+                          <span>{place.name}</span>
+                        </div>
+                      </li>
+                    )
+                  })}
                 </ul>
                 {mainTrip.places.length > 3 && (
                   <div
