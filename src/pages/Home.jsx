@@ -7,7 +7,7 @@ import PastTrips from '@/components/home/PastTrips'
 import RecommendedPlaces from '@/components/home/RecommendedPlaces'
 import TrendingPlaces from '@/components/home/TrendingPlaces'
 import useAuth from '@/hooks/useAuth'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import PlannedTrips from '@/components/home/PlannedTrips'
 
@@ -31,6 +31,12 @@ const Home = () => {
 
   const [trips, setTrips] = useState(null)
 
+  const hasMoreSettingTripsRef = useRef(hasMoreSettingTrips)
+  hasMoreSettingTripsRef.current = hasMoreSettingTrips
+
+  const hasMorePastTripsRef = useRef(hasMorePastTrips)
+  hasMorePastTripsRef.current = hasMorePastTrips
+
   /**여행 생성 API 호출 */
   const createTrip = async (e) => {
     e.preventDefault()
@@ -51,26 +57,23 @@ const Home = () => {
   }
 
   /**준비 중 여행 조회 API 호출 */
-  const fetchSettingTrip = useCallback(
-    async (page) => {
-      if (!hasMoreSettingTrips && page > 0) return
-      try {
-        const result = await readTripByStatusApi({ status: 'SETTING', page })
-        const newTrips = result.data.content
-        if (page === 0) {
-          setSettingTrips(newTrips)
-        } else {
-          setSettingTrips((prev) => [...prev, ...newTrips])
-        }
-        if (newTrips.length < 3) {
-          setHasMoreSettingTrips(false)
-        }
-      } catch (err) {
-        alert(err.message)
+  const fetchSettingTrip = useCallback(async (page) => {
+    if (!hasMoreSettingTripsRef.current && page > 0) return
+    try {
+      const result = await readTripByStatusApi({ status: 'SETTING', page })
+      const newTrips = result.data.content
+      if (page === 0) {
+        setSettingTrips(newTrips)
+      } else {
+        setSettingTrips((prev) => [...prev, ...newTrips])
       }
-    },
-    [hasMoreSettingTrips],
-  )
+      if (newTrips.length < 3) {
+        setHasMoreSettingTrips(false)
+      }
+    } catch (err) {
+      alert(err.message)
+    }
+  }, [])
 
   const loadMoreSettingTrips = () => {
     const nextPage = settingTripsPage + 1
@@ -79,26 +82,23 @@ const Home = () => {
   }
 
   /**이전 여행 조회 API 호출 */
-  const fetchPastTrip = useCallback(
-    async (page) => {
-      if (!hasMorePastTrips && page > 0) return
-      try {
-        const result = await readTripByStatusApi({ status: 'COMPLETED', page })
-        const newTrips = result.data.content
-        if (page === 0) {
-          setPastTrips(newTrips)
-        } else {
-          setPastTrips((prev) => [...prev, ...newTrips])
-        }
-        if (newTrips.length < 3) {
-          setHasMorePastTrips(false)
-        }
-      } catch (err) {
-        alert(err.message)
+  const fetchPastTrip = useCallback(async (page) => {
+    if (!hasMorePastTripsRef.current && page > 0) return
+    try {
+      const result = await readTripByStatusApi({ status: 'COMPLETED', page })
+      const newTrips = result.data.content
+      if (page === 0) {
+        setPastTrips(newTrips)
+      } else {
+        setPastTrips((prev) => [...prev, ...newTrips])
       }
-    },
-    [hasMorePastTrips],
-  )
+      if (newTrips.length < 3) {
+        setHasMorePastTrips(false)
+      }
+    } catch (err) {
+      alert(err.message)
+    }
+  }, [])
 
   const loadMorePastTrips = () => {
     const nextPage = pastTripsPage + 1
