@@ -130,6 +130,7 @@ const Home = () => {
   return (
     <div className='flex w-full flex-col gap-15 bg-[var(--Grey-Scale-grey-50)] pb-50'>
       <HomeTitle user={user} />
+      <div className='h-5 bg-[var(--Grey-Scale-grey-100)]' />
       <PlannedTrips
         settingTrips={settingTrips || []}
         loadMore={loadMoreSettingTrips}
