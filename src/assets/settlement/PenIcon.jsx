@@ -1,5 +1,4 @@
-/**펜 아이콘 */
-
+/**연필 아이콘 */
 const PenIcon = () => {
   return (
     <svg
