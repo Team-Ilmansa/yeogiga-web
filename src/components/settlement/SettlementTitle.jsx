@@ -12,7 +12,7 @@ import SelLodgingIcon from '@/assets/map/category/SelLodgingIcon'
 import SelEtcIcon from '@/assets/map/category/SelEtcIcon'
 
 const formatDate = (date) =>
-  new Date(date).toLocaleDateString('ko-KR').replace(/. /g, '. ').slice(0, -1)
+  new Date(date).toLocaleDateString('ko-KR').replace(/\.\s/g, '. ').slice(0, -1)
 
 const typeToIcon = (type) => {
   switch (type) {
@@ -59,15 +59,15 @@ const Avatar = ({ url, name }) => {
   return <div className='h-[20px] w-[20px] rounded-full bg-gray-300' />
 }
 
-const SettlementTitle = () => {
+const SettlementTitle = ({ onTitleReady }) => {
   const { tripId, settlementId } = useParams()
   const [data, setData] = useState(null)
 
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const res = await readSettlementApi(tripId, settlementId)
-        setData(res?.data ?? res)
+        const result = await readSettlementApi(tripId, settlementId)
+        setData(result.data)
       } catch (err) {
         alert(err.message)
       }
@@ -75,9 +75,21 @@ const SettlementTitle = () => {
     if (tripId && settlementId) fetchDetail()
   }, [tripId, settlementId])
 
+  useEffect(() => {
+    if (
+      data &&
+      typeof data.name === 'string' &&
+      data.name.length > 0 &&
+      typeof onTitleReady === 'function'
+    ) {
+      onTitleReady(data.name)
+    }
+  }, [data, onTitleReady])
+
   const statusText = useMemo(
-    () => (data?.isCompleted ? '정산이 완료됐어요' : '정산이 진행중이에요'),
-    [data?.isCompleted],
+    () =>
+      data && data.isCompleted ? '정산이 완료됐어요' : '정산이 진행중이에요',
+    [data],
   )
 
   if (!data) return <p>정산 정보를 불러오는 중...</p>
@@ -118,7 +130,7 @@ const SettlementTitle = () => {
         <div className='flex items-center gap-2'>
           <UserIcon className='h-5 w-5' />
           <ul className='flex gap-1'>
-            {(data.payers ?? []).map((payer) => (
+            {(Array.isArray(data.payers) ? data.payers : []).map((payer) => (
               <li key={payer.id ?? payer.userId}>
                 <Avatar url={payer.imageUrl} name={payer.nickname} />
               </li>

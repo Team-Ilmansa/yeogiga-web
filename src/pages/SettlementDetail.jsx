@@ -3,27 +3,52 @@ import GoBack from '@/assets/sign-up/GoBack'
 import SettlementTitle from '@/components/settlement/SettlementTitle'
 import SettleSlideTabs from '@/components/settlement/SettleSlideTabs'
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import SettlementOptionsModal from '@/components/dashboard/modal/SettlementOptionsModal'
+import deleteSettlementApi from '@/apis/settlement/deleteSettlementApi'
+import SettlementDeleteConfirmModal from '@/components/dashboard/modal/SettlementDeleteConfirmModal'
+
 const SettlementDetail = () => {
   const navigate = useNavigate()
-  const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+  const { tripId, settlementId } = useParams()
 
-  /** 뒤로 가기 */
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false)
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+  const [settlementTitle, setSettlementTitle] = useState('정산 내역')
+
+  const handleTitleReady = (title) => {
+    if (title) setSettlementTitle(title)
+  }
+
   const handleBack = () => navigate(-1)
 
-  /**TODO: 옵션 모달 관련 핸들러 연결 */
   const handleEdit = () => {
     setIsOptionsOpen(false)
-    // TODO: 수정 화면 이동 등
+    // TODO: 수정 화면 이동
   }
+
   const handleDelete = () => {
     setIsOptionsOpen(false)
-    // TODO: 삭제 confirm 모달/로직
+    setIsDeleteConfirmOpen(true)
   }
+
   const handleReannounce = () => {
     setIsOptionsOpen(false)
     // TODO: 재공지 로직
+  }
+
+  /** 정산 내역 삭제 API 호출 */
+  const confirmDeleteSettlement = async () => {
+    try {
+      await deleteSettlementApi(tripId, settlementId)
+      alert('정산 내역이 삭제되었습니다.')
+      navigate(-1)
+    } catch (err) {
+      console.error(err)
+      alert('정산 내역 삭제에 실패했습니다.')
+    } finally {
+      setIsDeleteConfirmOpen(false)
+    }
   }
 
   return (
@@ -33,8 +58,6 @@ const SettlementDetail = () => {
           <button className='border-none' onClick={handleBack}>
             <GoBack />
           </button>
-
-          {/** 케밥 아이콘 클릭 시 옵션 모달 오픈 */}
           <button
             type='button'
             className='border-none bg-transparent p-1'
@@ -44,20 +67,23 @@ const SettlementDetail = () => {
             <KebabIcon />
           </button>
         </div>
-
         <div className='flex w-full flex-col gap-5 px-10'>
-          <SettlementTitle />
+          <SettlementTitle onTitleReady={handleTitleReady} />
           <SettleSlideTabs />
         </div>
       </div>
-
-      {/** 바텀시트 옵션 모달 */}
       <SettlementOptionsModal
         open={isOptionsOpen}
         onClose={() => setIsOptionsOpen(false)}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onReannounce={handleReannounce}
+      />
+      <SettlementDeleteConfirmModal
+        open={isDeleteConfirmOpen}
+        title={settlementTitle}
+        onCancel={() => setIsDeleteConfirmOpen(false)}
+        onConfirm={confirmDeleteSettlement}
       />
     </>
   )
