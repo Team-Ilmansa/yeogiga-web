@@ -19,7 +19,7 @@ import patchNoticeApi from '@/apis/notice/patchNoticeApi'
 
 const Notices = () => {
   const { user } = useAuth()
-  const { tripId, day } = useParams()
+  const { tripId } = useParams()
   const navigate = useNavigate()
 
   const [notices, setNotices] = useState([])
@@ -347,53 +347,48 @@ const Notices = () => {
         </button>
       </div>
       {/* 본문 */}
-      {isCurrentOpen && (
-        <div id='current-notice-section' className='space-y-3'>
-          {/* 집결지 카드 */}
-          {hasPin && pinData && (
-            <div
-              className={containerStyle + ' cursor-pointer'}
-              onClick={() =>
-                navigate(
-                  `/trip/${tripId}/map/${day}?lat=${pinData.latitude}&lng=${pinData.longitude}`,
-                )
-              }
-            >
-              <div className='flex flex-1 items-center gap-3 overflow-hidden'>
-                <PlaceIcon className='h-6 w-6 flex-shrink-0' />
-                <div className='flex min-w-0 items-baseline gap-2'>
-                  <span className={`${fontStyle} truncate`}>
-                    {pinData.place}
-                  </span>
-                  <span className='truncate text-sm text-indigo-300'>
-                    {pinData.time
-                      ? new Date(pinData.time).toLocaleString('ko-KR')
-                      : ''}
-                  </span>
-                </div>
-              </div>
-              <button
-                className='border-none bg-transparent p-2'
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setIsPinDeleteModalOpen(true)
-                }}
-              >
-                <KebabIcon />
-              </button>
-            </div>
-          )}
 
-          {/* 공지 리스트 */}
-          {activeNotices.length === 0 ? (
-            <div className={containerStyle}>
-              <div className='flex items-center gap-3'>
-                <Archive className='h-6 w-6 text-[var(--Blue-Scale-blue-500)]' />
-                <div className={fontStyle}>현재 공지사항 없음</div>
+      <div id='current-notice-section' className='space-y-3'>
+        {/* 집결지 카드 */}
+        {hasPin && pinData && (
+          <div
+            className={containerStyle + ' cursor-pointer'}
+            onClick={() => navigate(`/trip/${tripId}/rally-viewer`)}
+          >
+            <div className='flex flex-1 items-center gap-3 overflow-hidden'>
+              <PlaceIcon className='h-6 w-6 flex-shrink-0' />
+              <div className='flex min-w-0 items-baseline gap-2'>
+                <span className={`${fontStyle} truncate`}>{pinData.place}</span>
+                <span className='truncate text-sm text-indigo-300'>
+                  {pinData.time
+                    ? new Date(pinData.time).toLocaleString('ko-KR')
+                    : ''}
+                </span>
               </div>
             </div>
-          ) : (
-            activeNotices.map((notice) => (
+            <button
+              className='border-none bg-transparent p-2'
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsPinDeleteModalOpen(true)
+              }}
+            >
+              <KebabIcon />
+            </button>
+          </div>
+        )}
+
+        {/* 공지 리스트 */}
+        {activeNotices.length === 0 ? (
+          <div className={containerStyle}>
+            <div className='flex items-center gap-3'>
+              <Archive className='h-6 w-6 text-[var(--Blue-Scale-blue-500)]' />
+              <div className={fontStyle}>현재 공지사항 없음</div>
+            </div>
+          </div>
+        ) : (
+          (isCurrentOpen ? activeNotices : activeNotices.slice(0, 1)).map(
+            (notice) => (
               <div
                 key={notice.id}
                 className={containerStyle + ' cursor-pointer'}
@@ -412,10 +407,10 @@ const Notices = () => {
                   <KebabIcon />
                 </button>
               </div>
-            ))
-          )}
-        </div>
-      )}
+            ),
+          )
+        )}
+      </div>
     </div>
   )
 }
