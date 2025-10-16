@@ -6,7 +6,8 @@ import DeleteTripModal from './modal/DeleteTripModal'
 
 const AccountSettings = () => {
   const { logout } = useAuth()
-  const style = 'text-lg cursor-pointer'
+  const style =
+    'text-lg cursor-pointer w-full py-10 hover:bg-[var(--Grey-Scale-grey-100)] px-10'
 
   /**회원탈퇴 모달창 토글 */
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] =
@@ -40,7 +41,7 @@ const AccountSettings = () => {
   }
 
   return (
-    <>
+    <div>
       {/* /**회원탈퇴 모달 */}
       {isDeleteAccountModalOpen && (
         <DeleteTripModal
@@ -56,7 +57,7 @@ const AccountSettings = () => {
       <div onClick={toggleDeleteAccountModal} className={style}>
         회원탈퇴
       </div>
-    </>
+    </div>
   )
 }
 

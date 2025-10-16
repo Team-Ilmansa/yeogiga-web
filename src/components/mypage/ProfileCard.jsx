@@ -2,14 +2,14 @@ import { ChevronRight } from 'lucide-react'
 import kakaoLogoImg from '@/assets/mypage/kakaoIcon.png'
 import naverLogoImg from '@/assets/mypage/naverIcon.png'
 
-const ProfileCard = ({ userInfo }) => {
+const ProfileCard = ({ userInfo, onProfileClick }) => {
   const provider = localStorage.getItem('provider')
 
   return (
-    <div className='flex h-[160px] w-[800px] items-center rounded-[20px] border border-gray-100 bg-white px-10 shadow-sm'>
+    <div className='mx-10 flex h-[160px] w-[800px] items-center rounded-[20px] border border-gray-100 bg-white px-5 shadow-sm'>
       <div className='mr-8 aspect-square w-35 overflow-hidden rounded-full bg-gray-100'>
         <img
-          src='/images/default_profile.png'
+          src={userInfo.imageUrl || '/images/default_profile.png'}
           alt='프로필'
           className='h-full w-full rounded-full object-cover'
         />
@@ -32,9 +32,13 @@ const ProfileCard = ({ userInfo }) => {
         </div>
 
         <div className='flex items-center justify-between'>
-          <p className='text-lg text-gray-500'>{userInfo.email}</p>
-          {/* TODO: 프로필 관리 페이지 or 모달창 연결 예정 */}
-          <button className='flex items-center border-none text-base text-gray-400 hover:text-gray-500'>
+          {userInfo.email && (
+            <p className='text-lg text-gray-500'>{userInfo.email}</p>
+          )}
+          <button
+            onClick={onProfileClick}
+            className='flex items-center border-none text-base text-gray-400 hover:text-gray-500'
+          >
             프로필 관리
             <ChevronRight size={16} className='ml-1' />
           </button>
