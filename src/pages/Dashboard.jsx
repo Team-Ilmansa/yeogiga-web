@@ -49,7 +49,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className='flex h-screen flex-col'>
+    <div className='flex h-screen w-full flex-col'>
       {/** 케밥 모달이 열렸을 때만 렌더링 */}
       {isKebabOpen && (
         <KebabModal
@@ -71,7 +71,7 @@ const Dashboard = () => {
       )}
       <div className='flex w-full flex-col pt-5'>
         <div className='mb-5 flex items-center justify-between px-8'>
-          <button className='border-none' onClick={handleBack}>
+          <button className='border-none p-0' onClick={handleBack}>
             <GoBack />
           </button>
           {/** 오른쪽 상단 컴포넌트 */}
@@ -99,7 +99,7 @@ const Dashboard = () => {
             </button>
           </div>
         </div>
-        <div className='flex w-full flex-grow flex-col gap-15 bg-white px-10'>
+        <div className='flex w-full flex-grow flex-col bg-white px-10'>
           <TripTitle
             isScheduleConfirmed={isScheduleConfirmed}
             setIsScheduleConfirmed={setIsScheduleConfirmed}
@@ -109,14 +109,18 @@ const Dashboard = () => {
         </div>
         {/* 여행 날짜 확정 버튼 */}
         {!isScheduleConfirmed && (
-          <div className='mt-auto flex w-full items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
-            <button
-              onClick={() => navigate('confirmation')}
-              className='w-full rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
-            >
-              여행 날짜 확정하기
-            </button>
-          </div>
+          <FixedActionBar>
+            <div className='flex w-full justify-center'>
+              <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
+                <button
+                  onClick={() => navigate('confirmation')}
+                  className='w-full rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                >
+                  여행 날짜 확정하기
+                </button>
+              </div>
+            </div>
+          </FixedActionBar>
         )}
       </div>
     </div>

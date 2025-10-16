@@ -21,7 +21,7 @@ import recommendDatePlaceOrderApi from '@/apis/dashboard/recommendDatePlaceOrder
 import { createPortal } from 'react-dom'
 
 /**일자별 일정 박스 */
-const DateBox = ({ date, dayIndex, selected, onSelect, onContentUpdate }) => {
+const DateBox = ({ date, dayIndex, onContentUpdate }) => {
   /**토글 여부 */
   const [isOpen, setIsOpen] = useState(false)
   /**일차별 장소 */
@@ -147,8 +147,7 @@ const DateBox = ({ date, dayIndex, selected, onSelect, onContentUpdate }) => {
 
   return (
     <div
-      className={`no-swipe-zone w-full rounded-[20px] border bg-white px-4 py-3 drop-shadow ${selected ? 'border-[var(--Blue-Scale-blue-500)]' : 'border-gray-300'}`}
-      onClick={onSelect}
+      className={`no-swipe-zone w-full rounded-[20px] border bg-white px-4 py-3 drop-shadow border-gray-300`}
     >
       <div
         className='flex cursor-pointer items-center justify-between'

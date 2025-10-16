@@ -3,18 +3,18 @@ import DateBox from './DateBox'
 import PlusCalendar from '@/assets/map/PlusCalendar'
 import NoticeIcon from '@/assets/dashboard/NoticeIcon'
 import confirmTripPlaceApi from '@/apis/dashboard/confirmTripPlaceApi'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import FixedActionBar from '@/components/common/FixedActionBar'
 import PlanningDateBox from './PlanningDateBox'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
 
 import NoticeCreateModal from '../modal/NoticeCreateModal'
 import createNoticeApi from '@/apis/notice/createNoticeApi'
+import PointPinIcon from '@/assets/dashboard/PointPinIcon'
 
 const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
   const [activeDayTab, setActiveDayTab] = useState(0)
   const [dates, setDates] = useState([])
-  const [selectedDay, setSelectedDay] = useState(null)
   const [planningPlaces, setPlanningPlaces] = useState([])
   const [isNoticeOpen, setIsNoticeOpen] = useState(false)
   const [noticeSubmitting, setNoticeSubmitting] = useState(false)
@@ -22,7 +22,6 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
   const { tripId } = useParams()
   const { startedAt, endedAt } = tripInfo
 
-  const navigate = useNavigate()
   /** 공지 작성 API 호출 */
   const handleSubmitCreateNotice = async ({ title, description }) => {
     try {
@@ -142,8 +141,6 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
                     date={formatDateToDot(d)}
                     dayIndex={i + 1}
                     tripInfo={tripInfo}
-                    selected={selectedDay === i}
-                    onSelect={() => setSelectedDay(i)}
                     onContentUpdate={onContentUpdate}
                   />
                 ))
@@ -162,8 +159,6 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
                     date={formatDateToDot(d)}
                     dayIndex={i + 1}
                     tripInfo={tripInfo}
-                    selected={selectedDay === i}
-                    onSelect={() => setSelectedDay(i)}
                     planningPlaces={planningPlaces[i]}
                     onContentUpdate={onContentUpdate}
                   />
@@ -199,12 +194,10 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
               <div className='flex w-4xl items-center justify-center gap-4 rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
                 <button
                   className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
-                  onClick={() =>
-                    navigate(`map/plan/${planningPlaces[selectedDay].id}`)
-                  }
+                  disabled
                 >
-                  <PlusCalendar size={40} color={'white'} />
-                  일정 추가하기
+                  <PointPinIcon size={40} color={'white'} />
+                  집결지 공지하기
                 </button>
                 <button
                   className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'

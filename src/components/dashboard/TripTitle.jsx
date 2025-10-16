@@ -28,7 +28,7 @@ const TripTitle = ({ isScheduleConfirmed, setIsScheduleConfirmed }) => {
     () => ({
       SETTING: '준비중인 여행',
       PLANNED: '계획중인 여행',
-      PROGRESSED: '진행중인 여행',
+      IN_PROGRESS: '진행중인 여행',
       COMPLETED: '종료된 여행',
     }),
     [],
