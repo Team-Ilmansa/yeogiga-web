@@ -1,0 +1,83 @@
+import { MapPin, Calendar } from 'lucide-react'
+import UserIcon from '@/assets/home/UserIcon'
+import { Link } from 'react-router-dom'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import 'swiper/css'
+
+/**모든 여행 보기 */
+const AllTrips = ({ allTrips = [], loadMore }) => {
+  const formatDate = (d) =>
+    new Date(d).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
+
+  return (
+    <div className='ml-10'>
+      <div className='pb-3 text-3xl font-bold text-[var(--Grey-Scale-grey-400)]'>
+        모든 여행 보기
+      </div>
+
+      <Swiper
+        slidesPerView={1.8}
+        spaceBetween={16}
+        className='w-full'
+        onReachEnd={() => {
+          if (allTrips.length >= 3) {
+            loadMore()
+          }
+        }}
+      >
+        {allTrips.map((trip) => (
+          <SwiperSlide key={trip.tripId}>
+            <Link to={`/trip/${trip.tripId}`}>
+              <div className='relative flex h-100 w-full flex-shrink-0 flex-col justify-end rounded-xl p-6'>
+                <img
+                  src={`https://picsum.photos/seed/${trip.tripId}/400/400`}
+                  alt={trip.title}
+                  className='absolute inset-0 h-full w-full rounded-xl object-cover'
+                />
+                <div className='bg-opacity-40 absolute inset-0 rounded-xl bg-black'></div>
+                <div className='relative z-10 text-white'>
+                  <h3 className='mb-4 truncate text-3xl font-bold'>
+                    {trip.title}
+                  </h3>
+                  <div className='flex items-center gap-2 text-lg'>
+                    <MapPin className='h-5 w-5' />
+                    <span>{trip.city || '미정'}</span>
+                  </div>
+                  <div className='mb-1 flex items-center gap-2 text-lg'>
+                    <Calendar className='h-5 w-5' />
+                    <span>
+                      {trip.startedAt && trip.endedAt
+                        ? `${formatDate(trip.startedAt)} - ${formatDate(
+                            trip.endedAt,
+                          )}`
+                        : '미정'}
+                    </span>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <UserIcon color={'white'} size={20} />
+                    <div className='flex items-center'>
+                      {trip.members.map((member) => (
+                        <img
+                          key={member.userId}
+                          src={member.imageUrl || '/images/default_profile.png'}
+                          alt={member.nickname}
+                          className='h-6 w-6 rounded-full border-2 border-white first:ml-0'
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+    </div>
+  )
+}
+
+export default AllTrips
