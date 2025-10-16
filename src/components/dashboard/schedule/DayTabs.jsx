@@ -197,7 +197,7 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
                   disabled
                 >
                   <PointPinIcon size={40} color={'white'} />
-                  집결지 추가하기
+                  집결지 공지하기
                 </button>
                 <button
                   className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'

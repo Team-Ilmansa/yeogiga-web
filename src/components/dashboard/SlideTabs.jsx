@@ -30,7 +30,7 @@ const SlideTabs = ({ isScheduleConfirmed }) => {
   }
 
   return (
-    <div className='flex h-full w-full flex-col overflow-hidden'>
+    <div className='mt-10 flex h-full w-full flex-col overflow-hidden'>
       {/* 탭 바 */}
       <div className='flex flex-shrink-0'>
         {tabList.map((tab, index) => {

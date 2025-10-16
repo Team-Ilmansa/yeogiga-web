@@ -188,7 +188,7 @@ const Notices = () => {
   )
 
   return (
-    <div className='space-y-2'>
+    <div className='mt-5 space-y-2'>
       {/* 특정 공지 상세 모달 */}
       <NoticeViewModal
         open={isModalOpen}

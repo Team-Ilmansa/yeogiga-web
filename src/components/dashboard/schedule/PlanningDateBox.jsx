@@ -1,7 +1,7 @@
 import ArrowUp from '@/assets/dashboard/ArrowUp'
 import ArrowDown from '@/assets/dashboard/ArrowDown'
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   DndContext,
   MouseSensor,
@@ -22,8 +22,6 @@ import checkVisitStatusApi from '@/apis/planning-dashboard/checkVisitStatusApi'
 /**확정 후 일자별 일정 박스 */
 const PlanningDateBox = ({
   date,
-  selected,
-  onSelect,
   planningPlaces,
   onContentUpdate,
 }) => {
@@ -41,6 +39,7 @@ const PlanningDateBox = ({
   })
 
   const { tripId } = useParams()
+  const navigate = useNavigate()
 
   useEffect(() => {
     setPlaces(planningPlaces?.places)
@@ -163,8 +162,7 @@ const PlanningDateBox = ({
 
   return (
     <div
-      className={`no-swipe-zone w-full rounded-[20px] border bg-white px-4 py-3 drop-shadow ${selected ? 'border-[var(--Blue-Scale-blue-500)]' : 'border-gray-300'}`}
-      onClick={onSelect}
+      className={`no-swipe-zone w-full rounded-[20px] border bg-white px-4 py-3 drop-shadow border-gray-300`}
     >
       <div
         className='flex cursor-pointer items-center justify-between'
@@ -207,10 +205,28 @@ const PlanningDateBox = ({
                   </ul>
                 </SortableContext>
               </DndContext>
+              <div
+                onClick={() => {
+                  navigate(`map/plan/${planningPlaces.id}`)
+                }}
+                className='mt-5 mb-3 cursor-pointer text-center text-base text-[var(--Blue-Scale-blue-500)]'
+              >
+                + 일정 추가하기
+              </div>
             </div>
           ) : (
-            <div className='text-center text-base text-gray-400'>
-              아직 예정된 일정이 없어요
+            <div>
+              <div className='text-center text-base text-gray-400'>
+                아직 예정된 일정이 없어요
+              </div>
+              <div
+                onClick={() => {
+                  navigate(`map/plan/${planningPlaces.id}`)
+                }}
+                className='mt-5 mb-3 cursor-pointer text-center text-base text-[var(--Blue-Scale-blue-500)]'
+              >
+                + 일정 추가하기
+              </div>
             </div>
           )}
         </div>
