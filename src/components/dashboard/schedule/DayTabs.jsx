@@ -3,7 +3,7 @@ import DateBox from './DateBox'
 import PlusCalendar from '@/assets/map/PlusCalendar'
 import NoticeIcon from '@/assets/dashboard/NoticeIcon'
 import confirmTripPlaceApi from '@/apis/dashboard/confirmTripPlaceApi'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import FixedActionBar from '@/components/common/FixedActionBar'
 import PlanningDateBox from './PlanningDateBox'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
@@ -20,6 +20,7 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
   const [noticeSubmitting, setNoticeSubmitting] = useState(false)
 
   const { tripId } = useParams()
+  const navigate = useNavigate()
   const { startedAt, endedAt } = tripInfo
 
   /** 공지 작성 API 호출 */
@@ -194,7 +195,7 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
               <div className='flex w-4xl items-center justify-center gap-4 rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
                 <button
                   className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
-                  disabled
+                  onClick={() => navigate(`/trip/${tripId}/rally`)}
                 >
                   <PointPinIcon size={40} color={'white'} />
                   집결지 공지하기

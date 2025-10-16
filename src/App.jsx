@@ -21,6 +21,8 @@ import SettlementAdd from './pages/SettlementAdd'
 import SettlementBook from './pages/SettlementBook'
 import TripPlaceMap from './pages/TripPlaceMap'
 import SettlementDetail from './pages/SettlementDetail'
+import RallyMap from './pages/RallyMap'
+import RallyPointViewer from './pages/RallyPointViewer'
 
 const App = () => {
   return (
@@ -64,6 +66,8 @@ const App = () => {
                 <Route path='map' element={<TripPlaceMap />} />
                 <Route path='map/:day' element={<PlaceMap />} />
                 <Route path='map/plan/:day' element={<PlanningPlaceMap />} />
+                <Route path='rally' element={<RallyMap />} />
+                <Route path='rally-viewer' element={<RallyPointViewer />} />
               </Route>
             </Route>
           </Routes>

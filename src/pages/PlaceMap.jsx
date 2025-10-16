@@ -1,5 +1,4 @@
 import GoBack from '@/assets/sign-up/GoBack'
-import PlaceMapWithPin from '@/components/trip/pin/PlaceMapWithPin'
 import { useEffect, useState } from 'react'
 import Search from '../assets/map/Search'
 import searchPlaceApi from '@/apis/map/searchPlaceApi'
@@ -9,11 +8,7 @@ import PlusCalendar from '@/assets/map/PlusCalendar'
 import MapPin from '@/assets/map/MapPin'
 import Trash from '@/assets/map/Trash'
 import addPlaceApi from '@/apis/map/addPlaceApi'
-import createPinApi from '@/apis/pin/createPinApi'
 import CategorySelector from '@/components/common/CategorySelector'
-import ReactDOMServer from 'react-dom/server'
-import readPinApi from '@/apis/pin/readPinApi'
-import PointPin from '@/assets/map/PointPin'
 
 /**목적지 검색을 위한 지도 화면 */
 const PlaceMap = () => {
@@ -35,47 +30,15 @@ const PlaceMap = () => {
   const [showSavedList, setShowSavedList] = useState(false)
   /**정보창 내용 변경(선택된 장소 or 저장된 장소 목록) */
   const [panelChanging, setPanelChanging] = useState(false)
-  /**집결지 공지 체크박스 상태 */
-  /**집결지 공지 체크박스*/
-  const [noticeAsPin, setNoticeAsPin] = useState(false)
-
-  const [rallyPin, setRallyPin] = useState(null)
-
-  /**집결 시간 설정 */
-  const [noticeTime, setNoticeTime] = useState(() => {
-    const pad = (n) => String(n).padStart(2, '0')
-    const d = new Date()
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-  })
-
-  const toLocalDateTimeString = (localDatetime) => {
-    return localDatetime.length === 16 ? `${localDatetime}:00` : localDatetime
-  }
 
   /**주소에서 여행 번호, 일차 가져오기*/
   const { tripId, day } = useParams()
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
-    const fetchRallyPin = async () => {
-      try {
-        const result = await readPinApi(tripId)
-        if (result && result.data) {
-          console.log('기존 집결지 정보:', result.data)
-          setRallyPin(result.data)
-        }
-      } catch (error) {
-        console.warn('기존 집결지를 불러오는 데 실패했습니다:', error.message)
-      }
-    }
-
-    fetchRallyPin()
-  }, [tripId])
-
-  useEffect(() => {
     const initMap = (lat, lng) => {
       const mapOptions = {
-        center: new naver.maps.LatLng(lat, lng),
+        center: new window.naver.maps.LatLng(lat, lng),
         zoom: 15,
         minZoom: 7,
         zoomControl: true,
@@ -89,7 +52,7 @@ const PlaceMap = () => {
         },
         mapTypeId: window.naver.maps.MapTypeId.NORMAL,
       }
-      const map = new naver.maps.Map('map', mapOptions)
+      const map = new window.naver.maps.Map('map', mapOptions)
       setMap(map)
     }
 
@@ -115,44 +78,6 @@ const PlaceMap = () => {
       }
     }
   }, [searchParams])
-
-  useEffect(() => {
-    if (map && rallyPin) {
-      const pinHTML = ReactDOMServer.renderToString(<PointPin />)
-
-      const rallyPointMarker = new window.naver.maps.Marker({
-        position: new window.naver.maps.LatLng(
-          rallyPin.latitude,
-          rallyPin.longitude,
-        ),
-        map: map,
-        icon: {
-          content: pinHTML,
-
-          anchor: new window.naver.maps.Point(12, 25),
-        },
-
-        zIndex: 999,
-      })
-
-      const infoWindow = new window.naver.maps.InfoWindow({
-        content: `
-        <div style="padding: 10px; font-size: 14px; border-radius: 5px;">
-          <b>${rallyPin.place}</b><br/>
-          집결 시간: ${new Date(rallyPin.time).toLocaleString('ko-KR')}
-        </div>
-      `,
-      })
-
-      window.naver.maps.Event.addListener(rallyPointMarker, 'click', () => {
-        if (infoWindow.getMap()) {
-          infoWindow.close()
-        } else {
-          infoWindow.open(map, rallyPointMarker)
-        }
-      })
-    }
-  }, [map, rallyPin])
 
   useEffect(() => {
     if (!map) return
@@ -199,7 +124,7 @@ const PlaceMap = () => {
           map,
         })
 
-        naver.maps.Event.addListener(marker, 'click', () => {
+        window.naver.maps.Event.addListener(marker, 'click', () => {
           switchPanelContent('selected')
           setSelectedPlace(place)
         })
@@ -221,7 +146,7 @@ const PlaceMap = () => {
     }
   }
 
-  /** 장소 임시저장 및 집결지 핀 생성 */
+  /** 장소 임시저장 */
   const handleAdd = async () => {
     if (!selectedPlace) return
 
@@ -240,45 +165,9 @@ const PlaceMap = () => {
           chosenType: placeType === 'TRANSPORT' ? 'ETC' : placeType || 'ETC',
         },
       ])
-      if (!noticeAsPin) {
-        alert('목적지가 임시 저장되었습니다.')
-      }
-    }
-
-    if (noticeAsPin) {
-      if (!noticeTime) {
-        alert('집결 시간을 선택해 주세요.')
-        return
-      }
-
-      const now = new Date()
-      const chosen = new Date(noticeTime)
-      const bufferedNow = new Date(now.getTime() + 5000)
-      if (chosen < bufferedNow) {
-        alert(
-          '집결 시간은 현재 시각 이후여야 합니다. (몇 분 뒤로 설정해 주세요)',
-        )
-        return
-      }
-
-      const timeLocal = toLocalDateTimeString(noticeTime)
-
-      try {
-        const result = await createPinApi(tripId, {
-          latitude: selectedPlace.latitude,
-          longitude: selectedPlace.longitude,
-          place:
-            selectedPlace.title ||
-            selectedPlace.name ||
-            selectedPlace.roadAddress ||
-            selectedPlace.address,
-          time: timeLocal,
-        })
-        alert('집결지가 성공적으로 공지되었습니다!')
-        console.log(result)
-      } catch (err) {
-        alert(err.message)
-      }
+      alert('목적지가 임시 저장되었습니다.')
+    } else {
+      alert('이미 추가된 장소입니다.')
     }
   }
 
@@ -308,16 +197,6 @@ const PlaceMap = () => {
 
     alert(`${successCount}개의 장소가 등록되었습니다.`)
   }
-
-  // 선택 장소가 바뀌면 체크/시간 초기화
-  useEffect(() => {
-    setNoticeAsPin(false)
-    const pad = (n) => String(n).padStart(2, '0')
-    const d = new Date()
-    setNoticeTime(
-      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
-    )
-  }, [selectedPlace])
 
   return (
     <div className='relative h-full w-full'>
@@ -462,43 +341,6 @@ const PlaceMap = () => {
                     size={50}
                   />
                 </div>
-
-                {/* 집결지 공지하기 체크박스 */}
-                <label className='mt-3 flex cursor-pointer items-center gap-3 rounded-xl border border-[var(--Grey-Scale-grey-200)] bg-white px-4 py-3'>
-                  <input
-                    type='checkbox'
-                    className='h-5 w-5 accent-[var(--Blue-Scale-blue-500)]'
-                    checked={noticeAsPin}
-                    onChange={(e) => setNoticeAsPin(e.target.checked)}
-                  />
-                  <div className='flex flex-col'>
-                    <div className='flex items-center gap-2'>
-                      <span className='rounded-md bg-yellow-300 px-2 py-[2px] text-xs font-semibold text-yellow-900'>
-                        집결지
-                      </span>
-                      <span className='text-[14px] text-[var(--Grey-Scale-grey-300)]'>
-                        공지하기
-                      </span>
-                    </div>
-                    <span className='text-[13px] text-[var(--Grey-Scale-grey-300)]'>
-                      이 장소를 팀의 집결지로 공지합니다.
-                    </span>
-                  </div>
-                </label>
-                {/**시간 설정 (집결지 공지하기 체크되었을 때만 표시) */}
-                {noticeAsPin && (
-                  <div className='mt-2 flex items-center gap-3 rounded-xl border border-[var(--Grey-Scale-grey-200)] bg-white px-4 py-3'>
-                    <label className='w-28 shrink-0 text-sm text-[var(--Grey-Scale-grey-300)]'>
-                      집결 시간
-                    </label>
-                    <input
-                      type='datetime-local'
-                      value={noticeTime}
-                      onChange={(e) => setNoticeTime(e.target.value)}
-                      className='w-full rounded-md border border-gray-200 px-3 py-2 text-gray-700 outline-none'
-                    />
-                  </div>
-                )}
 
                 <button
                   onClick={handleAdd}
