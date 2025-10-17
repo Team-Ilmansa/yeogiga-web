@@ -355,10 +355,18 @@ const SettlementAdd = () => {
 
   return (
     <div className='flex w-full flex-col pt-5'>
-      <div className='mb-5 flex items-center justify-between px-8'>
-        <button className='border-none' onClick={handleBack}>
+      <div className='relative mb-5 flex items-center px-8'>
+        <button
+          className='border-none bg-transparent p-0'
+          onClick={handleBack}
+          aria-label='뒤로가기'
+        >
           <GoBack />
         </button>
+
+        <div className='absolute left-1/2 -translate-x-1/2 text-lg font-semibold text-gray-800'>
+          정산 내역 추가하기
+        </div>
       </div>
 
       <div className='space-y-6 px-10'>
