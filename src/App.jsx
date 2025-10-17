@@ -23,6 +23,7 @@ import TripPlaceMap from './pages/TripPlaceMap'
 import SettlementDetail from './pages/SettlementDetail'
 import RallyMap from './pages/RallyMap'
 import RallyPointViewer from './pages/RallyPointViewer'
+import SettlementEdit from './pages/SettlementEdit'
 
 const App = () => {
   return (
@@ -57,6 +58,11 @@ const App = () => {
                 <Route
                   path='settlement/:settlementId'
                   element={<SettlementDetail />}
+                />
+                {/** 정산 내역 수정하기 페이지 */}
+                <Route
+                  path='/trip/:tripId/settlement/:settlementId/edit'
+                  element={<SettlementEdit />}
                 />
                 {/* TODO: 추후 Notice 페이지와 결합 */}
                 <Route path='post/notice' element={<CreateNotices />} />
