@@ -6,7 +6,7 @@ import 'swiper/css'
 import TripPreviewCard from '@/components/home/common/TripPreviewCard'
 
 /**준비 중인 여행 목록 가로 슬라이드 */
-const PlannedTrips = ({ settingTrips = [], loadMore }) => {
+const PlannedTrips = ({ settingTrips = [], loadMore, totalElements }) => {
   const swiperRef = useRef(null)
   if (!Array.isArray(settingTrips) || settingTrips.length === 0) return null
 
@@ -14,7 +14,7 @@ const PlannedTrips = ({ settingTrips = [], loadMore }) => {
     <section className='w-full pl-10'>
       <div className='mb-3 flex items-center justify-between px-1'>
         <h2 className='text-2xl font-bold text-gray-900'>
-          {settingTrips.length}개의 준비중인 여행
+          {totalElements}개의 준비중인 여행
         </h2>
       </div>
 

@@ -22,6 +22,7 @@ const Home = () => {
 
   const [isReadTripListOpen, setIsReadTripListOpen] = useState(false)
   const [settingTrips, setSettingTrips] = useState([])
+  const [settingTripsTotalElements, setSettingTripsTotalElements] = useState(0)
   const [settingTripsPage, setSettingTripsPage] = useState(0)
   const [hasMoreSettingTrips, setHasMoreSettingTrips] = useState(true)
 
@@ -64,6 +65,7 @@ const Home = () => {
       const newTrips = result.data.content
       if (page === 0) {
         setSettingTrips(newTrips)
+        setSettingTripsTotalElements(result.data.page.totalElements)
       } else {
         setSettingTrips((prev) => [...prev, ...newTrips])
       }
@@ -134,6 +136,7 @@ const Home = () => {
       <PlannedTrips
         settingTrips={settingTrips || []}
         loadMore={loadMoreSettingTrips}
+        totalElements={settingTripsTotalElements}
       />
       <RecommendedPlaces user={user} />
       <TrendingPlaces />
