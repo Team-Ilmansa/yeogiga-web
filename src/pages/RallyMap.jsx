@@ -1,13 +1,30 @@
 import GoBack from '@/assets/sign-up/GoBack'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Search from '../assets/map/Search'
 import searchPlaceApi from '@/apis/map/searchPlaceApi'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, MapPin } from 'lucide-react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import createPinApi from '@/apis/pin/createPinApi'
 import ReactDOMServer from 'react-dom/server'
 import readPinApi from '@/apis/pin/readPinApi'
 import PointPin from '@/assets/map/PointPin'
+
+const getInitialNoticeTime = () => {
+  const pad = (n) => String(n).padStart(2, '0')
+  const d = new Date()
+
+  // Add 10 minutes
+  d.setMinutes(d.getMinutes() + 10)
+
+  // Round up to the next 5-minute interval
+  const minutes = d.getMinutes()
+  const roundedMinutes = Math.ceil(minutes / 5) * 5
+  d.setMinutes(roundedMinutes)
+
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+    d.getDate(),
+  )}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 
 /**집결지 검색 및 등록을 위한 지도 화면 */
 const RallyMap = () => {
@@ -24,14 +41,10 @@ const RallyMap = () => {
 
   const [rallyPin, setRallyPin] = useState(null)
 
+  const [isTimePickerOpen, setIsTimePickerOpen] = useState(false)
+
   /**집결 시간 설정 */
-  const [noticeTime, setNoticeTime] = useState(() => {
-    const pad = (n) => String(n).padStart(2, '0')
-    const d = new Date()
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
-      d.getDate(),
-    )}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-  })
+  const [noticeTime, setNoticeTime] = useState(getInitialNoticeTime)
 
   const toLocalDateTimeString = (localDatetime) => {
     return localDatetime.length === 16 ? `${localDatetime}:00` : localDatetime
@@ -61,7 +74,7 @@ const RallyMap = () => {
     const initMap = (lat, lng) => {
       const mapOptions = {
         center: new window.naver.maps.LatLng(lat, lng),
-        zoom: 15,
+        zoom: 17,
         minZoom: 7,
         zoomControl: true,
         zoomControlOptions: {
@@ -147,7 +160,7 @@ const RallyMap = () => {
     return () => {
       window.naver.maps.Event.removeListener(listener)
     }
-  }, [map])
+  }, [map, markers])
 
   /**검색 시 실행 */
   const handleSearch = async (e) => {
@@ -179,7 +192,7 @@ const RallyMap = () => {
         map.setCenter(
           new window.naver.maps.LatLng(first.latitude, first.longitude),
         )
-        map.setZoom(16)
+        map.setZoom(18)
       }
 
       setMarkers(newMarkers)
@@ -190,7 +203,9 @@ const RallyMap = () => {
 
   /** 집결지 핀 생성 */
   const handleSetRally = async () => {
-    if (!selectedPlace) return
+    const currentTarget = selectedPlace
+
+    if (!currentTarget) return
 
     if (!noticeTime) {
       alert('집결 시간을 선택해 주세요.')
@@ -201,9 +216,7 @@ const RallyMap = () => {
     const chosen = new Date(noticeTime)
     const bufferedNow = new Date(now.getTime() + 5000)
     if (chosen < bufferedNow) {
-      alert(
-        '집결 시간은 현재 시각 이후여야 합니다. (몇 분 뒤로 설정해 주세요)',
-      )
+      alert('집결 시간은 현재 시각 이후여야 합니다. (몇 분 뒤로 설정해 주세요)')
       return
     }
 
@@ -211,13 +224,13 @@ const RallyMap = () => {
 
     try {
       const result = await createPinApi(tripId, {
-        latitude: selectedPlace.latitude,
-        longitude: selectedPlace.longitude,
+        latitude: currentTarget.latitude,
+        longitude: currentTarget.longitude,
         place:
-          selectedPlace.title ||
-          selectedPlace.name ||
-          selectedPlace.roadAddress ||
-          selectedPlace.address,
+          currentTarget.title ||
+          currentTarget.name ||
+          currentTarget.roadAddress ||
+          currentTarget.address,
         time: timeLocal,
       })
       alert('집결지가 성공적으로 공지되었습니다!')
@@ -230,14 +243,222 @@ const RallyMap = () => {
 
   // 선택 장소가 바뀌면 시간 초기화
   useEffect(() => {
-    const pad = (n) => String(n).padStart(2, '0')
-    const d = new Date()
-    setNoticeTime(
-      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
-        d.getDate(),
-      )}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
-    )
+    setNoticeTime(getInitialNoticeTime())
   }, [selectedPlace])
+
+  const PickerColumn = ({ values, selectedValue, onValueChange, unit }) => {
+    const itemHeight = 48 // h-12
+    const wrapperRef = useRef(null)
+    const [currentTranslateY, setCurrentTranslateY] = useState(0)
+
+    useEffect(() => {
+      const selectedIndex = values.findIndex((v) => v === selectedValue)
+      if (selectedIndex !== -1) {
+        setCurrentTranslateY(-selectedIndex * itemHeight)
+      }
+    }, [selectedValue, values])
+
+    const handleWheel = (e) => {
+      e.stopPropagation()
+      const selectedIndex = values.findIndex((v) => v === selectedValue)
+      if (e.deltaY > 0) {
+        if (selectedIndex < values.length - 1) {
+          onValueChange(values[selectedIndex + 1])
+        }
+      } else {
+        if (selectedIndex > 0) {
+          onValueChange(values[selectedIndex - 1])
+        }
+      }
+    }
+
+    return (
+      <div className='relative h-36 overflow-hidden' onWheel={handleWheel}>
+        <div
+          ref={wrapperRef}
+          className='flex flex-col'
+          style={{
+            transform: `translateY(${currentTranslateY + itemHeight}px)`,
+            transition: 'transform 0.3s ease-out',
+          }}
+        >
+          {values.map((value) => (
+            <div
+              key={value}
+              className={`flex h-12 items-center justify-center text-xl select-none ${
+                value !== selectedValue ? 'text-gray-400' : ''
+              }`}
+            >
+              {value}
+              {unit}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const TimePicker = () => {
+    const [tempTime, setTempTime] = useState(noticeTime)
+
+    const handleTimeChange = (part, value) => {
+      const d = new Date(tempTime)
+      const now = new Date()
+      const pad = (n) => String(n).padStart(2, '0')
+
+      let year = d.getFullYear()
+      let month = d.getMonth()
+      let day = d.getDate()
+      let hour = d.getHours()
+      let minute = d.getMinutes()
+
+      switch (part) {
+        case 'year':
+          year = value
+          break
+        case 'month':
+          month = value - 1
+          break
+        case 'day':
+          day = value
+          break
+        case 'hour':
+          hour = value
+          break
+        case 'minute':
+          minute = value
+          break
+        default:
+          break
+      }
+
+      let newDate = new Date(year, month, day, hour, minute)
+
+      if (newDate < now) {
+        newDate = now
+      }
+
+      setTempTime(
+        `${newDate.getFullYear()}-${pad(newDate.getMonth() + 1)}-${pad(
+          newDate.getDate(),
+        )}T${pad(newDate.getHours())}:${pad(newDate.getMinutes())}`,
+      )
+    }
+
+    const handleConfirm = () => {
+      const now = new Date()
+      const chosen = new Date(tempTime)
+      if (chosen < now) {
+        alert('현재 시간보다 이전의 시간은 선택할 수 없습니다.')
+        return
+      }
+      setNoticeTime(tempTime)
+      setIsTimePickerOpen(false)
+    }
+
+    const d = new Date(tempTime)
+    const now = new Date()
+
+    const years = Array.from({ length: 10 }, (_, i) => now.getFullYear() + i)
+
+    const months = Array.from({ length: 12 }, (_, i) => i + 1).filter((m) => {
+      if (d.getFullYear() === now.getFullYear()) {
+        return m >= now.getMonth() + 1
+      }
+      return true
+    })
+
+    const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1).filter(
+      (day) => {
+        if (
+          d.getFullYear() === now.getFullYear() &&
+          d.getMonth() === now.getMonth()
+        ) {
+          return day >= now.getDate()
+        }
+        return true
+      },
+    )
+
+    const hours = Array.from({ length: 24 }, (_, i) => i).filter((h) => {
+      if (
+        d.getFullYear() === now.getFullYear() &&
+        d.getMonth() === now.getMonth() &&
+        d.getDate() === now.getDate()
+      ) {
+        return h >= now.getHours()
+      }
+      return true
+    })
+
+    const minutes = Array.from({ length: 12 }, (_, i) => i * 5).filter(
+      (min) => {
+        if (
+          d.getFullYear() === now.getFullYear() &&
+          d.getMonth() === now.getMonth() &&
+          d.getDate() === now.getDate() &&
+          d.getHours() === now.getHours()
+        ) {
+          return min >= Math.ceil(now.getMinutes() / 5) * 5
+        }
+        return true
+      },
+    )
+
+    return (
+      <div className='flex flex-col gap-3 rounded-t-2xl border-t border-gray-300 bg-white p-10'>
+        <h3 className='text-2xl font-bold'>집결 시간 설정</h3>
+        <div className='px-4'>
+          <div className='relative flex items-center justify-center gap-x-8'>
+            <div className='absolute top-1/2 left-0 h-12 w-full -translate-y-1/2 bg-[var(--Blue-Scale-blue-100)] opacity-50' />
+            <div className='flex gap-x-2'>
+              <PickerColumn
+                values={years}
+                selectedValue={d.getFullYear()}
+                onValueChange={(v) => handleTimeChange('year', v)}
+                unit='년'
+              />
+              <PickerColumn
+                values={months}
+                selectedValue={d.getMonth() + 1}
+                onValueChange={(v) => handleTimeChange('month', v)}
+                unit='월'
+              />
+              <PickerColumn
+                values={days}
+                selectedValue={d.getDate()}
+                onValueChange={(v) => handleTimeChange('day', v)}
+                unit='일'
+              />
+            </div>
+            <div className='flex gap-x-2'>
+              <PickerColumn
+                values={hours}
+                selectedValue={d.getHours()}
+                onValueChange={(v) => handleTimeChange('hour', v)}
+                unit='시'
+              />
+              <PickerColumn
+                values={minutes}
+                selectedValue={d.getMinutes()}
+                onValueChange={(v) => handleTimeChange('minute', v)}
+                unit='분'
+              />
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={handleConfirm}
+          className='mt-3 flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+        >
+          확인
+        </button>
+      </div>
+    )
+  }
+
+  const currentPlace = selectedPlace
 
   return (
     <div className='relative h-full w-full'>
@@ -274,51 +495,61 @@ const RallyMap = () => {
       {/**정보창 */}
       <div
         className={`fixed bottom-0 left-0 z-10 flex w-full justify-center transition-all duration-300 ${
-          selectedPlace ? 'translate-y-0' : 'translate-y-full'
+          currentPlace ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
         <div className='relative w-4xl'>
-          <div className='flex flex-col gap-3 rounded-t-2xl border-t border-gray-300 bg-white p-10'>
-            <div className='flex flex-col gap-1'>
-              <div className='flex items-center gap-1'>
-                <h3 className='text-3xl font-bold text-[var(--Grey-Scale-grey-400)]'>
-                  {selectedPlace?.title}
-                </h3>
-                {selectedPlace?.link && (
-                  <a
-                    href={selectedPlace?.link}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='mt-1 inline-block text-sm text-blue-500 underline'
-                  >
-                    <ExternalLink className='h-6 w-6 text-[var(--Grey-Scale-grey-200)]' />
-                  </a>
-                )}
+          {isTimePickerOpen ? (
+            <TimePicker />
+          ) : (
+            <div className='flex flex-col gap-3 rounded-t-2xl border-t border-gray-300 bg-white p-10'>
+              <div className='flex flex-col gap-1'>
+                <div className='flex items-center gap-1'>
+                  <h3 className='text-3xl font-bold text-[var(--Grey-Scale-grey-400)]'>
+                    {currentPlace?.title}
+                  </h3>
+                  {currentPlace?.link && (
+                    <a
+                      href={currentPlace?.link}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='mt-1 inline-block text-sm text-blue-500 underline'
+                    >
+                      <ExternalLink className='h-6 w-6 text-[var(--Grey-Scale-grey-200)]' />
+                    </a>
+                  )}
+                </div>
+                <p className='text-base text-gray-600'>
+                  {currentPlace?.roadAddress || currentPlace?.address}
+                </p>
               </div>
-              <p className='text-base text-gray-600'>
-                {selectedPlace?.roadAddress || selectedPlace?.address}
-              </p>
-            </div>
 
-            <div className='mt-2 flex items-center gap-3 rounded-xl border border-[var(--Grey-Scale-grey-200)] bg-white px-4 py-3'>
-              <label className='w-28 shrink-0 text-sm text-[var(--Grey-Scale-grey-300)]'>
-                집결 시간
-              </label>
-              <input
-                type='datetime-local'
-                value={noticeTime}
-                onChange={(e) => setNoticeTime(e.target.value)}
-                className='w-full rounded-md border border-gray-200 px-3 py-2 text-gray-700 outline-none'
-              />
-            </div>
+              <div
+                className='mt-2 flex cursor-pointer items-center gap-2 rounded-xl bg-white py-3'
+                onClick={() => setIsTimePickerOpen(true)}
+              >
+                <label className='w-28 shrink-0 text-lg text-[var(--Grey-Scale-grey-300)]'>
+                  집결 시간
+                </label>
+                <div className='rounded-md px-4 py-2 text-lg text-gray-700 hover:bg-[var(--Grey-Scale-grey-100)]'>
+                  {new Date(noticeTime).toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </div>
+              </div>
 
-            <button
-              onClick={handleSetRally}
-              className='mt-3 flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
-            >
-              이 장소를 집결지로 설정
-            </button>
-          </div>
+              <button
+                onClick={handleSetRally}
+                className='mt-3 flex w-full items-center justify-center gap-2 border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+              >
+                이 장소를 집결지로 설정
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
