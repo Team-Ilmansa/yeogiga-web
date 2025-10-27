@@ -46,7 +46,11 @@ const TripPreviewCard = ({ trip }) => {
       {/** 위치 */}
       <div className='mt-2 flex items-center gap-2 text-[15px] text-gray-500'>
         <MapPin className='h-5 w-5' />
-        <span>{trip.city || '아직 정해지지 않았어요'}</span>
+        <span>
+          {trip.city.length > 0
+            ? trip.city.join(', ')
+            : '아직 정해지지 않았어요'}
+        </span>
       </div>
 
       {/** 기간 */}
