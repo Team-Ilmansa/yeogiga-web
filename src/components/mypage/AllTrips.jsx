@@ -45,7 +45,11 @@ const AllTrips = ({ allTrips = [], loadMore }) => {
                   </h3>
                   <div className='flex items-center gap-2 text-lg'>
                     <MapPin className='h-5 w-5' />
-                    <span>{trip.city || '미정'}</span>
+                    <span>
+                      {trip.city.length > 0
+                        ? trip.city.join(', ')
+                        : '아직 정해지지 않았어요'}
+                    </span>
                   </div>
                   <div className='mb-1 flex items-center gap-2 text-lg'>
                     <Calendar className='h-5 w-5' />
@@ -54,7 +58,7 @@ const AllTrips = ({ allTrips = [], loadMore }) => {
                         ? `${formatDate(trip.startedAt)} - ${formatDate(
                             trip.endedAt,
                           )}`
-                        : '미정'}
+                        : '아직 정해지지 않았어요'}
                     </span>
                   </div>
                   <div className='flex items-center gap-2'>
