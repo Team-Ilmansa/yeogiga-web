@@ -6,13 +6,19 @@ import FixedActionBar from '@/components/common/FixedActionBar'
 import CategorySelector from '@/components/common/CategorySelector'
 
 import readMemberApi from '@/apis/member/readMemberApi'
-import createSettlementApi from '@/apis/settlement/createSettlementApi'
+import readSettlementApi from '@/apis/settlement/readSettlementApi'
+import putSettlementApi from '@/apis/settlement/putSettlementApi'
 import useAuth from '@/hooks/useAuth'
+import SettlementEditModal from '@/components/settlement/modal/SettlementEditModal'
 
 const pad2 = (v) => String(v).padStart(2, '0')
 const onlyDigits = (v) => String(v).replace(/[^0-9]/g, '')
 const formatWon = (n) => Number(n || 0).toLocaleString('ko-KR')
 const formatDate = ({ y, m, d }) => `${y}-${pad2(m)}-${pad2(d)}`
+const parseDate = (yyyymmdd) => {
+  const [y, m, d] = (yyyymmdd || '').split('-')
+  return { y: y || '', m: m || '', d: d || '' }
+}
 
 const isValidDateInputs = ({ y, m, d }) =>
   String(y).length === 4 && String(m).length >= 1 && String(d).length >= 1
@@ -47,17 +53,14 @@ const MemberSelectRow = React.memo(function MemberSelectRow({
   onToggle,
 }) {
   const showEvenAmount = !isManualInput && isSelected && allocated != null
-
   const handleOnChange = useCallback(
-    (e) => {
-      onChange(member.userId, e.target.value)
-    },
+    (e) => onChange(member.userId, e.target.value),
     [onChange, member.userId],
   )
-
-  const handleOnToggle = useCallback(() => {
-    onToggle(member.userId)
-  }, [onToggle, member.userId])
+  const handleOnToggle = useCallback(
+    () => onToggle(member.userId),
+    [onToggle, member.userId],
+  )
 
   return (
     <div className='flex items-center justify-between rounded-xl px-1 py-3'>
@@ -104,6 +107,7 @@ const MemberSelectRow = React.memo(function MemberSelectRow({
         </div>
 
         <button
+          type='button'
           onClick={handleOnToggle}
           className={`relative flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
             isSelected
@@ -128,9 +132,9 @@ const MemberSelectRow = React.memo(function MemberSelectRow({
   )
 })
 
-const SettlementAdd = () => {
+const SettlementEdit = () => {
   const navigate = useNavigate()
-  const { tripId } = useParams()
+  const { tripId, settlementId } = useParams()
   const { user } = useAuth()
   const currentUserId = user?.userId
 
@@ -148,46 +152,82 @@ const SettlementAdd = () => {
   const [manualAmountByUserId, setManualAmountByUserId] = useState({})
   const [isEvenSplitActive, setIsEvenSplitActive] = useState(false)
 
+  const [isLoadingDetail, setIsLoadingDetail] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  /* 여행 멤버 조회 */
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [pendingBody, setPendingBody] = useState(null)
+
   useEffect(() => {
-    let isMounted = true
-    const fetchTripMembers = async () => {
-      if (!tripId) return
+    let mounted = true
+    const run = async () => {
       try {
         setIsLoadingMembers(true)
         const result = await readMemberApi(tripId)
-        const members = result.data
+        const members = result.data ?? []
+        if (!mounted) return
 
-        if (!isMounted) return
-
-        const sortedMembers = [...members].sort((a, b) => {
+        const sorted = [...members].sort((a, b) => {
           if (currentUserId != null) {
             if (a.userId === currentUserId) return -1
             if (b.userId === currentUserId) return 1
           }
           return a.nickname.localeCompare(b.nickname, 'ko')
         })
-        setMemberList(sortedMembers)
-
-        setSelectedPayersByUserId(
-          Object.fromEntries(sortedMembers.map((m) => [m.userId, true])),
-        )
-      } catch (err) {
-        alert(err.message || '여행 멤버를 불러오지 못했습니다.')
+        setMemberList(sorted)
+      } catch (e) {
+        alert(e.message || '여행 멤버를 불러오지 못했습니다.')
       } finally {
-        if (isMounted) {
-          setIsLoadingMembers(false)
-        }
+        mounted && setIsLoadingMembers(false)
       }
     }
-
-    fetchTripMembers()
-    return () => {
-      isMounted = false
-    }
+    if (tripId) run()
+    return () => (mounted = false)
   }, [tripId, currentUserId])
+
+  useEffect(() => {
+    let mounted = true
+    const run = async () => {
+      if (!tripId || !settlementId) return
+      try {
+        setIsLoadingDetail(true)
+        const data = await readSettlementApi(tripId, settlementId)
+        if (!mounted) return
+
+        const {
+          name,
+          totalPrice,
+          date: ymd,
+          type,
+          payers = [],
+        } = data?.data ?? data
+
+        setTitle(name ?? '')
+        setAmount(String(totalPrice ?? ''))
+        setDate(parseDate(ymd ?? ''))
+        setCategory(type ?? 'ETC')
+
+        const selected = {}
+        const manual = {}
+        payers.forEach((p) => {
+          selected[p.userId] = true
+          manual[p.userId] = String(p.price ?? '')
+        })
+        setSelectedPayersByUserId(selected)
+        setManualAmountByUserId(manual)
+        setIsManualInput(true)
+        setIsEvenSplitActive(false)
+        setAllocatedByUserId({})
+      } catch (e) {
+        alert(e.message || '정산 내역을 불러올 수 없습니다.')
+        navigate(-1)
+      } finally {
+        mounted && setIsLoadingDetail(false)
+      }
+    }
+    run()
+    return () => (mounted = false)
+  }, [tripId, settlementId, navigate])
 
   const selectedMembers = useMemo(
     () => memberList.filter((m) => selectedPayersByUserId[m.userId]),
@@ -203,10 +243,8 @@ const SettlementAdd = () => {
     return hasTitle && hasAmount && hasDate && hasPayers
   }, [title, amount, date, selectedCount])
 
-  /* 뒤로 가기 */
   const handleBack = () => navigate(-1)
 
-  /* 1/n 정산하기 */
   const handleSplitEvenly = useCallback(() => {
     if (!/^\d+$/.test(amount)) return alert('정산 비용에 숫자를 입력해주세요.')
     const total = Number(amount)
@@ -218,7 +256,6 @@ const SettlementAdd = () => {
     setAllocatedByUserId(computeEvenAllocation(total, selectedMembers))
   }, [amount, selectedCount, selectedMembers])
 
-  /* 직접입력 모드 */
   const handleManualInputMode = useCallback(() => {
     setIsManualInput(true)
     setIsEvenSplitActive(false)
@@ -234,29 +271,25 @@ const SettlementAdd = () => {
     })
   }, [allocatedByUserId, selectedMembers])
 
-  /* 멤버 선택 토글 */
   const toggleSelectPayer = useCallback(
     (toggleUserId) => {
       setSelectedPayersByUserId((prev) => {
-        const next = { ...prev, [toggleUserId]: !prev[toggleUserId] }
+        const id = String(toggleUserId)
+        const next = { ...prev, [id]: !prev[id] }
 
         if (isEvenSplitActive && /^\d+$/.test(amount) && Number(amount) > 0) {
-          const nextSelectedMembers = memberList.filter((m) => next[m.userId])
+          const nextSelectedMembers = memberList.filter(
+            (m) => next[String(m.userId)],
+          )
           setAllocatedByUserId(
             computeEvenAllocation(Number(amount), nextSelectedMembers),
           )
         }
 
-        if (isManualInput && next[toggleUserId]) {
-          setManualAmountByUserId((prevManual) => {
-            if (prevManual[toggleUserId] != null) {
-              return prevManual
-            }
-            return {
-              ...prevManual,
-              [toggleUserId]: '',
-            }
-          })
+        if (isManualInput && next[id]) {
+          setManualAmountByUserId((prevManual) =>
+            prevManual[id] != null ? prevManual : { ...prevManual, [id]: '' },
+          )
         }
         return next
       })
@@ -264,7 +297,6 @@ const SettlementAdd = () => {
     [isEvenSplitActive, amount, memberList, isManualInput],
   )
 
-  /* 총액 변경 시 1/n 재분배 */
   useEffect(() => {
     if (!isEvenSplitActive || isManualInput) return
     if (!/^\d+$/.test(amount)) return setAllocatedByUserId({})
@@ -280,9 +312,8 @@ const SettlementAdd = () => {
     }))
   }, [])
 
-  /* 제출 */
-  const handleSubmitSettlement = useCallback(async () => {
-    if (!tripId || isSubmitting) return
+  const handleUpdateSettlement = useCallback(() => {
+    if (!tripId || !settlementId || isSubmitting) return
 
     const name = title.trim()
     if (!name) return alert('내역 이름을 입력해주세요.')
@@ -312,7 +343,7 @@ const SettlementAdd = () => {
         isCompleted: false,
       }))
     } else {
-      const even = computeEvenAllocation(totalPrice, selectedMembers)
+      const even = computeEvenAllocation(Number(amount), selectedMembers)
       payers = selectedMembers.map((m) => ({
         userId: m.userId,
         price: even[m.userId],
@@ -320,7 +351,7 @@ const SettlementAdd = () => {
       }))
     }
 
-    const requestBody = {
+    const body = {
       name,
       totalPrice,
       date: formatDate(date),
@@ -328,18 +359,11 @@ const SettlementAdd = () => {
       payers,
     }
 
-    try {
-      setIsSubmitting(true)
-      await createSettlementApi(tripId, requestBody)
-      alert('정산 내역이 등록되었습니다.')
-      navigate(-1)
-    } catch (error) {
-      alert(error.message || '정산 내역 등록에 실패했습니다.')
-    } finally {
-      setIsSubmitting(false)
-    }
+    setPendingBody(body)
+    setIsConfirmOpen(true)
   }, [
     tripId,
+    settlementId,
     isSubmitting,
     title,
     amount,
@@ -350,8 +374,22 @@ const SettlementAdd = () => {
     manualAmountByUserId,
     isEvenSplitActive,
     allocatedByUserId,
-    navigate,
   ])
+
+  const handleConfirmUpdate = useCallback(async () => {
+    if (!pendingBody || !tripId || !settlementId) return
+    try {
+      setIsSubmitting(true)
+      await putSettlementApi(tripId, settlementId, pendingBody)
+      alert('정산 내역이 수정되었습니다.')
+      navigate(-1)
+    } catch (e) {
+      alert(e.message || '정산 내역 수정에 실패했습니다.')
+    } finally {
+      setIsSubmitting(false)
+      setIsConfirmOpen(false)
+    }
+  }, [pendingBody, tripId, settlementId, navigate])
 
   return (
     <div className='flex w-full flex-col pt-5'>
@@ -363,168 +401,185 @@ const SettlementAdd = () => {
         >
           <GoBack />
         </button>
-
         <div className='absolute left-1/2 -translate-x-1/2 text-lg font-semibold text-gray-800'>
-          정산 내역 추가하기
+          정산 내역 수정하기
         </div>
       </div>
 
       <div className='space-y-6 px-10'>
-        <div>
-          <div className={sectionTitleClass}>정산 비용</div>
-          <div className='relative'>
-            <input
-              type='text'
-              inputMode='numeric'
-              value={amount}
-              onChange={(e) => setAmount(onlyDigits(e.target.value))}
-              placeholder='금액을 입력해주세요'
-              className={inputStyle}
-            />
-            <span className='pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-xl text-gray-500'>
-              원
-            </span>
+        {isLoadingDetail ? (
+          <div className='py-12 text-center text-gray-500'>
+            내역을 불러오는 중…
           </div>
-        </div>
-
-        <div>
-          <div className={sectionTitleClass}>내역 이름</div>
-          <input
-            type='text'
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder='내역 이름을 입력해주세요'
-            className={inputStyle}
-          />
-        </div>
-
-        <div>
-          <div className={sectionTitleClass}>날짜</div>
-          <div className='flex items-center gap-2'>
-            <input
-              type='text'
-              inputMode='numeric'
-              maxLength={4}
-              placeholder='YYYY'
-              value={date.y}
-              onChange={(e) =>
-                setDate((prev) => ({ ...prev, y: onlyDigits(e.target.value) }))
-              }
-              className={`${dateInputClass} w-28`}
-            />
-            <span className={dotStyle}>.</span>
-            <input
-              type='text'
-              inputMode='numeric'
-              maxLength={2}
-              placeholder='MM'
-              value={date.m}
-              onChange={(e) =>
-                setDate((prev) => ({ ...prev, m: onlyDigits(e.target.value) }))
-              }
-              className={`${dateInputClass} w-20`}
-            />
-            <span className={dotStyle}>.</span>
-            <input
-              type='text'
-              inputMode='numeric'
-              maxLength={2}
-              placeholder='DD'
-              value={date.d}
-              onChange={(e) =>
-                setDate((prev) => ({ ...prev, d: onlyDigits(e.target.value) }))
-              }
-              className={`${dateInputClass} w-20`}
-            />
-          </div>
-        </div>
-
-        <div>
-          <div className={sectionTitleClass}>카테고리</div>
-          <CategorySelector value={category} onChange={setCategory} size={50} />
-        </div>
-
-        <div className='mt-4'>
-          <div className='mb-2 flex items-center justify-between pr-3'>
-            <div className='text-xl text-gray-800'>
-              정산 인원{' '}
-              <span className='text-[var(--Blue-Scale-blue-500)]'>
-                {selectedCount}
-              </span>
-            </div>
-            <div className='flex items-center gap-2'>
-              <button
-                type='button'
-                onClick={handleSplitEvenly}
-                className='text-m rounded-full border border-gray-200 px-3 py-1 text-[var(--Blue-Scale-blue-500)]'
-              >
-                1/n 정산하기
-              </button>
-              <button
-                type='button'
-                onClick={handleManualInputMode}
-                className='text-m rounded-full border border-gray-200 px-3 py-1 text-gray-700'
-              >
-                직접입력
-              </button>
-            </div>
-          </div>
-
-          <div className='px-3 py-1'>
-            {isLoadingMembers ? (
-              <div className='px-2 py-6 text-center text-gray-500'>
-                멤버를 불러오는 중…
+        ) : (
+          <>
+            <div>
+              <div className={sectionTitleClass}>정산 비용</div>
+              <div className='relative'>
+                <input
+                  type='text'
+                  inputMode='numeric'
+                  value={amount}
+                  onChange={(e) => setAmount(onlyDigits(e.target.value))}
+                  placeholder='금액을 입력해주세요'
+                  className={inputStyle}
+                />
+                <span className='pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-xl text-gray-500'>
+                  원
+                </span>
               </div>
-            ) : memberList.length === 0 ? (
-              <div className='px-2 py-6 text-center text-gray-500'>
-                여행 멤버가 없습니다.
+            </div>
+
+            <div>
+              <div className={sectionTitleClass}>내역 이름</div>
+              <input
+                type='text'
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder='내역 이름을 입력해주세요'
+                className={inputStyle}
+              />
+            </div>
+
+            <div>
+              <div className={sectionTitleClass}>날짜</div>
+              <div className='flex items-center gap-2'>
+                <input
+                  type='text'
+                  inputMode='numeric'
+                  maxLength={4}
+                  placeholder='YYYY'
+                  value={date.y}
+                  onChange={(e) =>
+                    setDate((p) => ({ ...p, y: onlyDigits(e.target.value) }))
+                  }
+                  className={`${dateInputClass} w-28`}
+                />
+                <span className={dotStyle}>.</span>
+                <input
+                  type='text'
+                  inputMode='numeric'
+                  maxLength={2}
+                  placeholder='MM'
+                  value={date.m}
+                  onChange={(e) =>
+                    setDate((p) => ({ ...p, m: onlyDigits(e.target.value) }))
+                  }
+                  className={`${dateInputClass} w-20`}
+                />
+                <span className={dotStyle}>.</span>
+                <input
+                  type='text'
+                  inputMode='numeric'
+                  maxLength={2}
+                  placeholder='DD'
+                  value={date.d}
+                  onChange={(e) =>
+                    setDate((p) => ({ ...p, d: onlyDigits(e.target.value) }))
+                  }
+                  className={`${dateInputClass} w-20`}
+                />
               </div>
-            ) : (
-              memberList.map((member) => {
-                const isSelected = !!selectedPayersByUserId[member.userId]
+            </div>
 
-                const isCurrentUser =
-                  currentUserId != null && member.userId === currentUserId
+            <div>
+              <div className={sectionTitleClass}>카테고리</div>
+              <CategorySelector
+                value={category}
+                onChange={setCategory}
+                size={50}
+              />
+            </div>
 
-                const allocated = allocatedByUserId[member.userId]
-                const value = manualAmountByUserId[member.userId] ?? ''
+            <div className='mt-4'>
+              <div className='mb-2 flex items-center justify-between pr-3'>
+                <div className='text-xl text-gray-800'>
+                  정산 인원{' '}
+                  <span className='text-[var(--Blue-Scale-blue-500)]'>
+                    {selectedCount}
+                  </span>
+                </div>
+                <div className='flex items-center gap-2'>
+                  <button
+                    type='button'
+                    onClick={handleSplitEvenly}
+                    className='text-m rounded-full border border-gray-200 px-3 py-1 text-[var(--Blue-Scale-blue-500)]'
+                  >
+                    1/n 정산하기
+                  </button>
+                  <button
+                    type='button'
+                    onClick={handleManualInputMode}
+                    className='text-m rounded-full border border-gray-200 px-3 py-1 text-gray-700'
+                  >
+                    직접입력
+                  </button>
+                </div>
+              </div>
 
-                return (
-                  <MemberSelectRow
-                    key={member.userId}
-                    member={member}
-                    isCurrentUser={isCurrentUser}
-                    isSelected={isSelected}
-                    isManualInput={isManualInput}
-                    allocated={allocated}
-                    value={value}
-                    onChange={handleChangeManualAmount}
-                    onToggle={toggleSelectPayer}
-                  />
-                )
-              })
-            )}
-          </div>
-        </div>
+              <div className='px-3 py-1'>
+                {isLoadingMembers ? (
+                  <div className='px-2 py-6 text-center text-gray-500'>
+                    멤버를 불러오는 중…
+                  </div>
+                ) : memberList.length === 0 ? (
+                  <div className='px-2 py-6 text-center text-gray-500'>
+                    여행 멤버가 없습니다.
+                  </div>
+                ) : (
+                  memberList.map((member) => {
+                    const uid = String(member.userId)
+                    const isSelected = !!selectedPayersByUserId[uid]
+                    const allocated = allocatedByUserId[uid]
+                    const value = manualAmountByUserId[uid] ?? ''
+                    return (
+                      <MemberSelectRow
+                        key={uid}
+                        member={member}
+                        isCurrentUser={
+                          currentUserId != null &&
+                          member.userId === currentUserId
+                        }
+                        isSelected={isSelected}
+                        isManualInput={isManualInput}
+                        allocated={allocated}
+                        value={value}
+                        onChange={handleChangeManualAmount}
+                        onToggle={toggleSelectPayer}
+                      />
+                    )
+                  })
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <FixedActionBar className='flex justify-center'>
         <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
           <button
-            disabled={!isConfirmEnabled || isSubmitting}
-            onClick={handleSubmitSettlement}
+            disabled={!isConfirmEnabled || isSubmitting || isLoadingDetail}
+            onClick={handleUpdateSettlement}
             className={`w-full rounded-lg border-none p-[20px] text-2xl text-white ${
-              isConfirmEnabled
+              isConfirmEnabled && !isLoadingDetail
                 ? 'bg-[var(--Blue-Scale-blue-500)]'
                 : 'cursor-not-allowed bg-gray-300'
             }`}
           >
-            {isSubmitting ? '저장 중…' : '확인'}
+            {isSubmitting ? '확인 중…' : '확인'}
           </button>
         </div>
       </FixedActionBar>
+
+      <SettlementEditModal
+        open={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmUpdate}
+        isSubmitting={isSubmitting}
+      />
     </div>
   )
 }
 
-export default SettlementAdd
+export default SettlementEdit

@@ -4,9 +4,9 @@ import SettlementTitle from '@/components/settlement/SettlementTitle'
 import SettleSlideTabs from '@/components/settlement/SettleSlideTabs'
 import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import SettlementOptionsModal from '@/components/dashboard/modal/SettlementOptionsModal'
+import SettlementOptionsModal from '@/components/settlement/modal/SettlementOptionsModal'
 import deleteSettlementApi from '@/apis/settlement/deleteSettlementApi'
-import SettlementDeleteConfirmModal from '@/components/dashboard/modal/SettlementDeleteConfirmModal'
+import SettlementDeleteConfirmModal from '@/components/settlement/modal/SettlementDeleteConfirmModal'
 
 const SettlementDetail = () => {
   const navigate = useNavigate()
@@ -24,7 +24,7 @@ const SettlementDetail = () => {
 
   const handleEdit = () => {
     setIsOptionsOpen(false)
-    // TODO: 수정 화면 이동
+    navigate(`/trip/${tripId}/settlement/${settlementId}/edit`)
   }
 
   const handleDelete = () => {
