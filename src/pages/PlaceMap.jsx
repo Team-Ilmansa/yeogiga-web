@@ -14,7 +14,7 @@ import CategorySelector from '@/components/common/CategorySelector'
 const PlaceMap = () => {
   const navigate = useNavigate()
   /** 선택된 카테고리 */
-  const [placeType, setPlaceType] = useState('ETC')
+  const [placeType, setPlaceType] = useState('TOURISM')
 
   /**검색어 */
   const [keyword, setKeyword] = useState('')
@@ -162,7 +162,7 @@ const PlaceMap = () => {
         ...prev,
         {
           ...selectedPlace,
-          chosenType: placeType === 'TRANSPORT' ? 'ETC' : placeType || 'ETC',
+          placeType: placeType,
         },
       ])
       alert('목적지가 임시 저장되었습니다.')
@@ -178,10 +178,10 @@ const PlaceMap = () => {
     for (const place of savedPlaces) {
       const body = {
         name: place.title || place.name,
+        address: place.roadAddress || place.address,
         latitude: place.latitude,
         longitude: place.longitude,
-        placeType:
-          place.chosenType === 'TRANSPORT' ? 'ETC' : place.chosenType || 'ETC',
+        placeType: place.placeType,
       }
 
       try {
