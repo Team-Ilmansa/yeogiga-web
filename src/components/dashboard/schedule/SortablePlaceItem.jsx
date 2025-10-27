@@ -41,8 +41,8 @@ const SortablePlaceItem = ({ id, place, onContextMenu }) => {
   }
 
   const isVisited = place.isVisited ?? false
-  const Icon = categoryIcons[place.placeType] || EtcIcon
-  const color = categoryColors[place.placeType] || '#C161EE'
+  const Icon = categoryIcons[place.placeCategory] || EtcIcon
+  const color = categoryColors[place.placeCategory] || '#C161EE'
 
   return (
     <li
