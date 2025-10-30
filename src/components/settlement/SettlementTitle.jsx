@@ -29,7 +29,6 @@ const typeToIcon = (type) => {
       return SelEtcIcon
   }
 }
-
 const typeToLabel = (type) => {
   switch (type) {
     case 'TOURISM':
@@ -46,18 +45,16 @@ const typeToLabel = (type) => {
   }
 }
 
-const Avatar = ({ url, name }) => {
-  if (url) {
-    return (
-      <img
-        src={url}
-        alt={name || 'payer'}
-        className='h-[20px] w-[20px] rounded-full object-cover'
-      />
-    )
-  }
-  return <div className='h-[20px] w-[20px] rounded-full bg-gray-300' />
-}
+const Avatar = ({ url, name }) =>
+  url ? (
+    <img
+      src={url}
+      alt={name || 'payer'}
+      className='h-[20px] w-[20px] rounded-full object-cover'
+    />
+  ) : (
+    <div className='h-[20px] w-[20px] rounded-full bg-gray-300' />
+  )
 
 const SettlementTitle = ({ onTitleReady }) => {
   const { tripId, settlementId } = useParams()
@@ -76,20 +73,26 @@ const SettlementTitle = ({ onTitleReady }) => {
   }, [tripId, settlementId])
 
   useEffect(() => {
-    if (
-      data &&
-      typeof data.name === 'string' &&
-      data.name.length > 0 &&
-      typeof onTitleReady === 'function'
-    ) {
+    if (data?.name && typeof onTitleReady === 'function')
       onTitleReady(data.name)
-    }
   }, [data, onTitleReady])
 
+  const allCompleted = useMemo(() => {
+    if (!data) return false
+    if (Array.isArray(data.payInfos) && data.payInfos.length > 0) {
+      return data.payInfos.every((pi) => pi?.isCompleted === true)
+    }
+    if (Array.isArray(data.payers) && data.payers.length > 0) {
+      return data.payers.every(
+        (p) => p?.isCompleted === true || p?.completed === true,
+      )
+    }
+    return Boolean(data.isCompleted)
+  }, [data])
+
   const statusText = useMemo(
-    () =>
-      data && data.isCompleted ? '정산이 완료됐어요' : '정산이 진행중이에요',
-    [data],
+    () => (allCompleted ? '정산이 완료됐어요' : '정산이 진행중이에요'),
+    [allCompleted],
   )
 
   if (!data) return <p>정산 정보를 불러오는 중...</p>
@@ -106,27 +109,34 @@ const SettlementTitle = ({ onTitleReady }) => {
           {statusText}
         </div>
 
-        <div className='text-[28pt] font-bold'>{data.name}</div>
+        <div
+          className={`text-[30pt] font-bold transition-opacity ${
+            allCompleted ? 'text-gray-400 opacity-80' : 'text-black opacity-100'
+          }`}
+        >
+          {data.name}
+        </div>
 
-        <div className='text-[28pt] font-bold'>
+        <div
+          className={`text-[30pt] font-bold transition-opacity ${
+            allCompleted ? 'text-gray-400 opacity-80' : 'text-black opacity-100'
+          }`}
+        >
           {formatWon(data.totalPrice)}원
         </div>
       </div>
 
       <div className='mt-4 flex flex-col gap-y-1 text-[14pt] text-gray-700'>
-        {/* 카테고리 */}
         <div className='flex items-center gap-2'>
           <TypeIcon className='h-5 w-5' />
           <span>{typeToLabel(data.type)}</span>
         </div>
 
-        {/* 날짜 */}
         <div className='flex items-center gap-2'>
           <CalendarIcon className='h-5 w-5' />
           <span>{data.date ? formatDate(data.date) : '???'}</span>
         </div>
 
-        {/* 참여자 */}
         <div className='flex items-center gap-2'>
           <UserIcon className='h-5 w-5' />
           <ul className='flex gap-1'>
