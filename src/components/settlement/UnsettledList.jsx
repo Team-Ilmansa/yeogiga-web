@@ -1,75 +1,103 @@
-import React, { useEffect } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import useAuth from '@/hooks/useAuth'
 import { formatWon } from '@/hooks/settlement/formatWon'
+import patchSettlementApi from '@/apis/settlement/patchSettlementApi'
 
-const UnsettledList = ({ items = [], onContentUpdate, currentUserId }) => {
+const UnsettledList = ({ items = [], currentUserId }) => {
   const { user } = useAuth()
-  const params = useParams()
+  const { tripId, settlementId, userId: routeUserId } = useParams()
+  const [loadingId, setLoadingId] = useState(null)
 
-  let me
-  if (currentUserId != null && !Number.isNaN(Number(currentUserId))) {
-    me = Number(currentUserId)
-  } else if (user?.userId != null && !Number.isNaN(Number(user.userId))) {
-    me = Number(user.userId)
-  } else if (params.userId && !Number.isNaN(Number(params.userId))) {
-    me = Number(params.userId)
-  } else {
-    me = undefined
-  }
+  const tripIdNum = Number(tripId)
+  const settlementIdNum = Number(settlementId)
 
-  useEffect(() => {
-    const t = setTimeout(() => onContentUpdate?.(), 0)
-    return () => clearTimeout(t)
-  }, [items, onContentUpdate])
+  /** 현재 로그인 사용자 식별 */
+  const me =
+    Number(currentUserId) ||
+    Number(user?.userId) ||
+    Number(routeUserId) ||
+    undefined
+
+  /**정산 완료 처리 API 연동 */
+  const handleSettlementAction = useCallback(
+    async (item) => {
+      if (loadingId) return
+
+      const payInfoId = Number(item.payInfoId ?? item.id)
+      if (!payInfoId) {
+        alert('유효하지 않은 결제 항목입니다.')
+        return
+      }
+
+      const ok = window.confirm(
+        `${item.nickname}님의 정산을 완료 처리하시겠습니까?`,
+      )
+      if (!ok) return
+
+      setLoadingId(payInfoId)
+
+      try {
+        await patchSettlementApi(tripIdNum, settlementIdNum, {
+          payInfos: [{ payInfoId, isCompleted: true }],
+        })
+        alert(`${item.nickname}님의 정산이 완료 처리되었습니다.`)
+        window.location.reload()
+      } catch (err) {
+        console.error(err)
+        alert(err?.message || '정산 완료 처리 중 오류가 발생했습니다.')
+      } finally {
+        setLoadingId(null)
+      }
+    },
+    [tripIdNum, settlementIdNum, loadingId],
+  )
 
   const Avatar = ({ url, isMe }) => (
     <div
       className={`relative h-9 w-9 overflow-hidden rounded-full bg-gray-200 ${
-        isMe ? 'ring-2 ring-[var(--Blue-Scale-blue-500)]' : 'ring-0'
+        isMe ? 'ring-2 ring-[var(--Blue-Scale-blue-500)]' : ''
       }`}
       title={isMe ? '나' : undefined}
     >
-      {url ? (
+      {url && (
         <img
           src={url}
           alt='프로필 이미지'
           className='h-full w-full object-cover'
-          onLoad={() => onContentUpdate?.()}
           onError={(e) => {
             e.currentTarget.style.display = 'none'
-            onContentUpdate?.()
           }}
         />
-      ) : null}
+      )}
     </div>
   )
 
-  if (!items.length) {
+  if (!items.length)
     return (
       <div className='px-3 py-6 text-center text-gray-500'>
         미정산 내역이 없습니다.
       </div>
     )
-  }
 
   return (
     <ul className='flex flex-col gap-4 px-1'>
       {items.map((p) => {
-        const key = p.id ?? p.userId
-        const uid = Number(p.userId)
-        const isMe = me != null && !Number.isNaN(uid) && uid === me
+        const payInfoId = Number(p.payInfoId ?? p.id)
+        const key = `pay-${payInfoId}`
+        const isMe = Number(p.userId) === me
+        const isLoading = loadingId === payInfoId
 
         return (
           <li key={key} className='flex items-center justify-between px-2'>
             <div className='flex items-center gap-3'>
               <Avatar url={p.imageUrl} isMe={isMe} />
               <div className='text-base text-gray-800'>
-                {isMe ? (
+                {isMe && (
                   <span className='font-medium text-[var(--Blue-Scale-blue-500)]'>
                     (나){' '}
                   </span>
-                ) : null}
+                )}
                 {p.nickname}
               </div>
             </div>
@@ -79,10 +107,15 @@ const UnsettledList = ({ items = [], onContentUpdate, currentUserId }) => {
                 {formatWon(p.price)}원
               </div>
 
-              {/* TODO: 완료 처리 함수 연결 */}
               <button
                 type='button'
-                className='rounded-full border border-[var(--Blue-Scale-blue-200,#cfe0ff)] bg-white px-3 py-1 text-sm text-[var(--Blue-Scale-blue-500)]'
+                onClick={() => handleSettlementAction(p)}
+                disabled={isLoading}
+                className={`rounded-full border border-[var(--Blue-Scale-blue-200,#cfe0ff)] bg-white px-3 py-1 text-sm transition-all ${
+                  isLoading
+                    ? 'cursor-not-allowed opacity-60'
+                    : 'text-[var(--Blue-Scale-blue-500)] hover:bg-[var(--Blue-Scale-blue-50)]'
+                }`}
               >
                 완료
               </button>
