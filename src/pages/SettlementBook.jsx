@@ -44,7 +44,7 @@ const SettlementBook = () => {
 
   return (
     <>
-      <div className='flex w-full flex-col pt-5'>
+      <div className='flex w-full flex-col pt-5 pb-50'>
         <div className='mb-5 flex items-center justify-between px-8'>
           <button className='border-none' onClick={handleBack}>
             <GoBack />
