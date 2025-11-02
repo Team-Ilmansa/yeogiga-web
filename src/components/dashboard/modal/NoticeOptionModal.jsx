@@ -2,9 +2,16 @@ import { createPortal } from 'react-dom'
 import { useEffect } from 'react'
 import TrashIcon from '@/assets/dashboard/notice/TrashIcon'
 import MegaPhoneIcon from '@/assets/dashboard/notice/MegaPhoneIcon'
+import PenIcon from '@/assets/settlement/PenIcon'
 
 /** 공지 옵션 모달 */
-const NoticeOptionsModal = ({ isOpen, onClose, onComplete, onDelete }) => {
+const NoticeOptionsModal = ({
+  isOpen,
+  onClose,
+  onComplete,
+  onDelete,
+  onEdit,
+}) => {
   useEffect(() => {
     const scrollBarWidth =
       window.innerWidth - document.documentElement.clientWidth
@@ -55,6 +62,10 @@ const NoticeOptionsModal = ({ isOpen, onClose, onComplete, onDelete }) => {
           <button onClick={onComplete} className={buttonStyle}>
             <MegaPhoneIcon className={TextStyle} />
             공지 완료하기
+          </button>
+          <button onClick={onEdit} className={buttonStyle}>
+            <PenIcon className={TextStyle} />
+            공지 수정하기
           </button>
           <button onClick={onDelete} className={buttonStyle}>
             <TrashIcon className={TextStyle} />
