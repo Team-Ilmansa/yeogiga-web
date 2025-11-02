@@ -11,7 +11,6 @@ import ConfirmCalendar from './pages/ConfirmCalendar'
 import TripCalendar from './pages/TripCalendar'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import UpdateCalendar from './pages/UpdateCalendar'
-import CreateNotices from './components/notice/CreateNotices'
 import PastNotices from './components/notice/PastNotices'
 import PlaceMap from './pages/PlaceMap'
 import RestoreAccount from './pages/RestoreAccount'
@@ -64,8 +63,6 @@ const App = () => {
                   path='/trip/:tripId/settlement/:settlementId/edit'
                   element={<SettlementEdit />}
                 />
-                {/* TODO: 추후 Notice 페이지와 결합 */}
-                <Route path='post/notice' element={<CreateNotices />} />
 
                 {/* 지난 여행 전체보기 페이지 */}
                 <Route path='past/notices' element={<PastNotices />} />
