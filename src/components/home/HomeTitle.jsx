@@ -159,7 +159,7 @@ const HomeTitle = ({ user }) => {
         minHeight: '20rem',
         backgroundImage: `linear-gradient(to bottom, transparent, #fafafa), url(${weatherCondition.background})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'bottom',
+        backgroundPosition: 'center',
       }
     : {}
 
