@@ -1,31 +1,33 @@
 import createMemberApi from '@/apis/member/createMemberApi'
 import readTripInfoApi from '@/apis/trip/readTripInfo'
-import LocationIcon from '@/assets/dashboard/modal/LocationIcon'
-import { CalendarIcon, PinIcon, UserIcon } from 'lucide-react'
+import ShareIcon from '@/assets/dashboard/modal/ShareIcon'
+import TravelBag from '@/assets/dashboard/modal/TravelBag'
+import GoBack from '@/assets/sign-up/GoBack'
+import FixedActionBar from '@/components/common/FixedActionBar'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
+/** 초대 수락 페이지 */
 const Participation = () => {
-  /**Path Variable에서 tripId 불러오기 */
   const { tripId } = useParams()
   const navigate = useNavigate()
-  const [tripInfo, setTripInfo] = useState()
+  const [tripInfo, setTripInfo] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    /**여행 정보 조회 API 호출 */
     const fetchTripInfo = async () => {
       try {
         const result = await readTripInfoApi(tripId)
         setTripInfo(result.data)
       } catch (err) {
         alert(err.message)
+      } finally {
+        setLoading(false)
       }
     }
-
     if (tripId) fetchTripInfo()
   }, [tripId])
 
-  /**여행 멤버 참가 API 호출 */
   const createMember = async () => {
     try {
       await createMemberApi(tripId)
@@ -36,96 +38,84 @@ const Participation = () => {
     }
   }
 
-  /** 디데이 함수 */
-  const calculateDday = (startDateString) => {
-    if (!startDateString) return 'D-??'
-    const today = new Date()
-    const startDate = new Date(startDateString)
-
-    today.setHours(0, 0, 0, 0)
-    startDate.setHours(0, 0, 0, 0)
-
-    const diffTime = startDate.getTime() - today.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays > 0) return `D-${diffDays}`
-    if (diffDays === 0) return 'D-Day'
-    return `D+${Math.abs(diffDays)}`
-  }
+  const ButtonStyle =
+    'flex-1 rounded-lg px-5 py-5 text-xl font-semibold border-0'
 
   return (
-    <div className='flex h-screen w-full flex-col items-center justify-center rounded-2xl px-6 py-5'>
-      {tripInfo ? (
-        <div>
-          <div className='flex w-[380px] flex-col gap-5 rounded-2xl border border-gray-100 bg-white p-4 shadow-md'>
-            <div className='flex justify-between'>
-              <h2 className='mt-3 text-xl font-semibold text-gray-900'>
-                여행 초대 요청을 수락하시겠어요?
-                <p className='mt-1 text-sm font-medium text-gray-500'>
-                  요청을 수락하면 바로 합류할 수 있어요
-                </p>
-              </h2>
-            </div>
-            <div className='flex w-full flex-col gap-2 rounded-[20px] bg-[var(--Blue-Scale-blue-100)] p-4'>
-              <div className='flex items-center gap-2'>
-                <div className='rounded-full bg-white px-2 py-1 text-xs font-medium text-[var(--Blue-Scale-blue-500)] shadow-sm'>
-                  {calculateDday(tripInfo.startedAt)}
+    <div className='flex h-screen w-full flex-col bg-white'>
+      {/**헤더 */}
+      <div className='flex w-full flex-col'>
+        <div className='flex items-center justify-between px-8 pt-3 pb-2'>
+          <button
+            className='border-none outline-none focus:outline-none'
+            onClick={() => navigate('/')}
+          >
+            <GoBack />
+          </button>
+        </div>
+
+        {/**본문 */}
+        <div className='mt-20 flex flex-grow flex-col items-center justify-center bg-white px-10 py-10'>
+          {loading ? (
+            <p className='text-sm text-gray-500'>여행 정보를 불러오는 중...</p>
+          ) : (
+            <div className='mx-auto flex w-full max-w-[420px] flex-col items-center text-center'>
+              <div className='mb-4 grid h-40 w-40 place-items-center rounded-full bg-[rgba(113,97,255,0.08)]'>
+                <div className='grid h-30 w-30 place-items-center rounded-full bg-[rgba(113,97,255,0.12)]'>
+                  <ShareIcon />
                 </div>
-                <h3 className='text-lg font-bold text-gray-900'>
-                  {tripInfo.title}
-                </h3>
               </div>
 
-              {/** 위치, 일정, 참가중인 멤버 */}
-              <div className='flex flex-col gap-y-1 text-[14px] font-medium text-gray-500'>
-                <div className='flex items-center gap-2'>
-                  <LocationIcon className='h-5 w-5 text-gray-500' />
-                  <span>{tripInfo.city || '아직 정해지지 않았어요'}</span>
-                </div>
+              <h1 className='mt-6 text-4xl font-bold text-gray-900'>
+                여행 초대
+              </h1>
+              <p className='mt-7 text-xl leading-relaxed font-medium text-gray-500'>
+                여행에 초대되었습니다. <br />
+                참가하시겠습니까?
+              </p>
 
-                <div className='flex items-center gap-2'>
-                  <CalendarIcon className='h-5 w-5' />
+              {tripInfo && (
+                <div className='mt-8 inline-flex items-center gap-2 rounded-2xl border border-[rgba(113,97,255,0.12)] bg-[rgba(113,97,255,0.06)] px-5 py-4'>
+                  <TravelBag />
+                  <span className='text-m font-semibold text-[var(--Blue-Scale-blue-500)]'>
+                    {tripInfo.title || '여행'}
+                  </span>
                 </div>
-                <div className='flex items-center gap-2'>
-                  <UserIcon className='h-5 w-5' />
-                  <ul className='flex gap-1'>
-                    {tripInfo.members.map((member) => (
-                      <li key={member.userId}>
-                        {member.imageUrl ? (
-                          <img
-                            src={member.imageUrl}
-                            alt={member.nickname}
-                            className='h-[20px] w-[20px] rounded-full object-cover'
-                          />
-                        ) : (
-                          <div className='h-[20px] w-[20px] rounded-full bg-gray-300' />
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+              )}
             </div>
+          )}
+        </div>
+      </div>
 
-            <div className='flex w-full gap-3'>
-              <button
-                className='font-large text-m text-grey-400 w-1/2 rounded-xl border-none bg-gray-100 px-4 py-3 font-semibold outline-none'
-                onClick={() => navigate('/')}
-              >
-                취소
-              </button>
-              <button
-                className='font-large text-m w-1/2 rounded-xl border-none bg-[var(--Blue-Scale-blue-500)] px-4 py-3 font-semibold text-white outline-none'
-                onClick={createMember}
-              >
-                수락하기
-              </button>
+      {/**하단 고정 바 */}
+      <FixedActionBar className='bg-transparent'>
+        <div
+          className='w-full'
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          <div className='flex w-full justify-center'>
+            <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
+              <div className='flex w-full gap-3'>
+                <button
+                  type='button'
+                  onClick={() => navigate('/')}
+                  className={`${ButtonStyle} bg-gray-100 text-gray-700`}
+                >
+                  거절
+                </button>
+                <button
+                  type='button'
+                  onClick={createMember}
+                  className={`${ButtonStyle} bg-[var(--Blue-Scale-blue-500)] text-white`}
+                  aria-label='초대 수락'
+                >
+                  참가하기
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      ) : (
-        <p>여행 정보를 불러오는 중...</p>
-      )}
+      </FixedActionBar>
     </div>
   )
 }
