@@ -15,7 +15,7 @@ const TripTitle = ({ isScheduleConfirmed, setIsScheduleConfirmed }) => {
         const result = await readTripInfoApi(tripId)
         setTripInfo(result.data)
 
-        if (result.data.startedAt) setIsScheduleConfirmed(true)
+        if (result.data.status != 'SETTING') setIsScheduleConfirmed(true)
       } catch (err) {
         alert(err.message)
       }
