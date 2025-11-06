@@ -115,7 +115,7 @@ const TripConfirmCalendar = ({ tripInfo }) => {
   }
 
   return (
-    <div className='flex w-full flex-col pt-5'>
+    <div className='flex w-full flex-col pt-5 pb-20'>
       {/* 뒤로 가기 버튼 */}
       <div>
         <button
