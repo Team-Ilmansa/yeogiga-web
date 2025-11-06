@@ -1,29 +1,9 @@
-import { useEffect, useState, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
-import readTripInfoApi from '@/apis/trip/readTripInfo'
+import { useMemo } from 'react'
 import PinIcon from '@/assets/dashboard/PinIcon'
 import CalendarIcon from '@/assets/dashboard/CalendarIcon'
 import UserIcon from '@/assets/dashboard/UserIcon'
 
-const TripTitle = ({ isScheduleConfirmed, setIsScheduleConfirmed }) => {
-  const { tripId } = useParams()
-  const [tripInfo, setTripInfo] = useState(null)
-
-  useEffect(() => {
-    const fetchTrip = async () => {
-      try {
-        const result = await readTripInfoApi(tripId)
-        setTripInfo(result.data)
-
-        if (result.data.status != 'SETTING') setIsScheduleConfirmed(true)
-      } catch (err) {
-        alert(err.message)
-      }
-    }
-
-    fetchTrip()
-  }, [tripId, setIsScheduleConfirmed])
-
+const TripTitle = ({ tripInfo }) => {
   const statusTextMap = useMemo(
     () => ({
       SETTING: '준비중인 여행',
@@ -63,7 +43,7 @@ const TripTitle = ({ isScheduleConfirmed, setIsScheduleConfirmed }) => {
         <div className='flex items-center gap-2'>
           <CalendarIcon className='h-5 w-5' />
           <span>
-            {isScheduleConfirmed
+            {tripInfo.startedAt
               ? `${formatDate(tripInfo.startedAt)} - ${formatDate(tripInfo.endedAt)}`
               : '???'}
           </span>
