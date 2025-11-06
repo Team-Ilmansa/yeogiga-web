@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react'
 import UpdateTitleModal from './UpdateTitleModal'
 import { useNavigate, useParams } from 'react-router-dom'
 
-const KebabModal = ({ onClose, onOpenUpdateModal }) => {
+const KebabModal = ({ onClose, onOpenUpdateModal, tripInfo }) => {
   const { tripId } = useParams()
   const [showUpdateTitleModal, setShowUpdateTitleModal] = useState(false)
   const navigate = useNavigate()
@@ -89,8 +89,12 @@ const KebabModal = ({ onClose, onOpenUpdateModal }) => {
               <EditIcon />
               여행 이름 변경하기
             </button>
-            {/** TODO: 추후 캘린더 생성 후 연결 예정 */}
-            <button onClick={() => navigate('update')} className={buttonStyle}>
+            <button
+              onClick={() =>
+                navigate(tripInfo.startedAt ? 'confirmation' : 'update')
+              }
+              className={buttonStyle}
+            >
               <CalendarIcon />
               일정 수정하기
             </button>
