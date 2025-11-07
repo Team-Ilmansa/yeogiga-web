@@ -101,7 +101,7 @@ const KebabModal = ({ onClose, onOpenUpdateModal }) => {
             </button>
 
             <button onClick={copyInviteLink} className={buttonStyle}>
-              <ShareIcon />
+              <ShareIcon className='h-[22px] w-[20px]' />
               링크공유로 초대하기
             </button>
           </div>
