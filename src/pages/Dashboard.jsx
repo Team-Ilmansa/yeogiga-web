@@ -11,6 +11,7 @@ import Notices from '@/components/notice/Notices'
 import FixedActionBar from '@/components/common/FixedActionBar'
 import PigIcon from '@/assets/settlement/PigIcon'
 import MapIcon from '@/assets/map/MapIcon'
+import readTripInfoApi from '@/apis/trip/readTripInfo'
 
 /**여행 정보 대시보드 페이지 */
 const Dashboard = () => {
@@ -24,6 +25,7 @@ const Dashboard = () => {
 
   /**여행 일정 확정 여부 */
   const [isScheduleConfirmed, setIsScheduleConfirmed] = useState(false)
+  const [tripInfo, setTripInfo] = useState(null)
 
   const handleBack = () => {
     navigate(`/`)
@@ -44,6 +46,21 @@ const Dashboard = () => {
     fetchMyCalendar()
   }, [navigate, tripId])
 
+  useEffect(() => {
+    const fetchTrip = async () => {
+      try {
+        const result = await readTripInfoApi(tripId)
+        setTripInfo(result.data)
+
+        if (result.data.status != 'SETTING') setIsScheduleConfirmed(true)
+      } catch (err) {
+        alert(err.message)
+      }
+    }
+
+    fetchTrip()
+  }, [tripId, setIsScheduleConfirmed])
+
   if (isLoading) {
     return null // 또는 로딩 스피너
   }
@@ -58,6 +75,7 @@ const Dashboard = () => {
             setIsKebabOpen(false)
             setIsUpdateTitleOpen(true)
           }}
+          tripInfo={tripInfo}
         />
       )}
       {/** 여행 제목 수정 모달이 열렸을 때만 렌더링 */}
@@ -101,8 +119,8 @@ const Dashboard = () => {
         </div>
         <div className='flex w-full flex-grow flex-col bg-white px-10'>
           <TripTitle
-            isScheduleConfirmed={isScheduleConfirmed}
             setIsScheduleConfirmed={setIsScheduleConfirmed}
+            tripInfo={tripInfo}
           />
           <Notices />
           <SlideTabs isScheduleConfirmed={isScheduleConfirmed} />

@@ -68,7 +68,7 @@ const FirstCalendar = ({ tripInfo }) => {
   }
 
   return (
-    <div className='flex w-full flex-col pt-5'>
+    <div className='flex w-full flex-col pt-5 pb-20'>
       {/* 뒤로 가기 버튼 */}
       <div>
         <button
@@ -185,7 +185,7 @@ const FirstCalendar = ({ tripInfo }) => {
 
       {/* 일정 등록 버튼 */}
       <div
-        className={`fixed bottom-0 left-0 flex w-full transform flex-col items-center gap-[20px] transition-transform duration-300 ${
+        className={`fixed bottom-0 left-0 z-20 flex w-full transform flex-col items-center gap-[20px] transition-transform duration-300 ${
           selectedDates.length > 0 ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
