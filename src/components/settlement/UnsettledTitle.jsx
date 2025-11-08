@@ -3,7 +3,11 @@ import { useParams } from 'react-router-dom'
 import readTotalSettlementsApi from '@/apis/settlement/readTotalSettlementsApi'
 
 /** 미정산 내역을 알리는 타이틀 컴포넌트 */
-const UnsettledTitle = ({ showMineOnly = false, onToggleShowMine }) => {
+const UnsettledTitle = ({
+  showMineOnly = false,
+  onToggleShowMine,
+  myUserId,
+}) => {
   const { tripId } = useParams()
   const [count, setCount] = useState(null)
 
@@ -18,9 +22,26 @@ const UnsettledTitle = ({ showMineOnly = false, onToggleShowMine }) => {
           Array.isArray(arr) ? arr : [],
         )
 
-        const unsettledItems = allItems.filter(
+        let unsettledItems = allItems.filter(
           (item) => item && item.isCompleted === false,
         )
+
+        if (showMineOnly && myUserId) {
+          unsettledItems = unsettledItems.filter((item) => {
+            const creatorId = item.payerId
+
+            const payers = Array.isArray(item?.payers) ? item.payers : []
+            const participants = Array.isArray(item?.participants)
+              ? item.participants
+              : []
+
+            const inCreator = creatorId === myUserId
+            const inPayers = payers.some((p) => (p.userId ?? p.id) === myUserId)
+            const inParticipants = participants.some((uid) => uid === myUserId)
+
+            return inCreator || inPayers || inParticipants
+          })
+        }
 
         setCount(unsettledItems.length)
       } catch (err) {
@@ -30,7 +51,7 @@ const UnsettledTitle = ({ showMineOnly = false, onToggleShowMine }) => {
     }
 
     fetchUnSettledCount()
-  }, [tripId])
+  }, [tripId, showMineOnly, myUserId])
 
   return (
     <div className='flex items-end justify-between'>
