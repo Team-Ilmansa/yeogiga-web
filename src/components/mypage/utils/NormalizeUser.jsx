@@ -1,4 +1,4 @@
-import { getAvatarDataUrl } from './avatar'
+import { getAvatarDataUrl } from './Avatar'
 
 /** 단일 사용자 객체 표준화 */
 export const normalizeUser = (u, { avatarSize = 256 } = {}) => {
