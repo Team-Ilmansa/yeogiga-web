@@ -5,26 +5,53 @@ import naverLogoImg from '@/assets/mypage/naverIcon.png'
 const ProfileCard = ({ userInfo, onProfileClick }) => {
   const provider = localStorage.getItem('provider')
 
+  /** 닉네임 앞 두 글자 추출 */
+  const nicknameInitials = userInfo?.nickname
+    ? userInfo.nickname.slice(0, 2)
+    : ''
+
+  /** 닉네임 기반 색상 생성 함수 */
+  const getStableColor = (name) => {
+    if (!name) return '#FFFFFF'
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    const hue = Math.abs(hash) % 360
+    const saturation = 70
+    const lightness = 55
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`
+  }
+
+  const stableColor = getStableColor(userInfo?.nickname)
+
   return (
     <div className='mx-10 flex h-[160px] w-[800px] items-center rounded-[20px] border border-gray-100 bg-white px-5 shadow-sm'>
-      <div className='mr-8 aspect-square w-35 overflow-hidden rounded-full bg-gray-100'>
-        <img
-          src={userInfo.imageUrl || '/images/default_profile.png'}
-          alt='프로필'
-          className='h-full w-full rounded-full object-cover'
-        />
+      <div className='mr-8 flex aspect-square w-35 items-center justify-center overflow-hidden rounded-full bg-gray-100'>
+        {userInfo.imageUrl ? (
+          <img
+            src={userInfo.imageUrl}
+            alt='프로필'
+            className='h-full w-full rounded-full object-cover'
+          />
+        ) : (
+          <span
+            className='flex h-full w-full items-center justify-center rounded-full text-3xl font-bold text-white'
+            style={{ backgroundColor: stableColor }}
+          >
+            {nicknameInitials}
+          </span>
+        )}
       </div>
+
       <div className='flex w-full flex-col justify-center'>
         <div className='mb-2 flex items-center gap-1'>
-          {/** 소셜 로그인 로고 */}
           {provider === 'KAKAO' && (
             <img src={kakaoLogoImg} alt='Kakao' className='h-7 w-auto' />
           )}
           {provider === 'NAVER' && (
             <img src={naverLogoImg} alt='Naver' className='h-7 w-auto' />
           )}
-
-          {/** 닉네임 */}
           <span className='text-3xl font-bold text-gray-900'>
             {userInfo.nickname}
           </span>
