@@ -1,5 +1,5 @@
 /**지도 내 집결지 아이콘 */
-const PointPin = ({ color, size }) => {
+const PointPin = () => {
   return (
     <svg
       width='48'
@@ -14,7 +14,7 @@ const PointPin = ({ color, size }) => {
         rx='6'
         ry='1'
         fill='url(#paint0_radial_1997_12147)'
-        fill-opacity='0.5'
+        fillOpacity='0.5'
       />
       <mask
         id='path-2-outside-1_1997_12147'
@@ -50,8 +50,8 @@ const PointPin = ({ color, size }) => {
           gradientUnits='userSpaceOnUse'
           gradientTransform='translate(12 24) scale(6 1)'
         >
-          <stop stop-color='#474982' />
-          <stop offset='1' stop-color='#474982' stop-opacity='0' />
+          <stop stopColor='#474982' />
+          <stop offset='1' stopColor='#474982' stopOpacity='0' />
         </radialGradient>
       </defs>
     </svg>
