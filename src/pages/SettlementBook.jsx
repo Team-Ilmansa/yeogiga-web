@@ -6,13 +6,21 @@ import UnsettledTitle from '@/components/settlement/UnsettledTitle'
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import readTripInfoApi from '@/apis/trip/readTripInfo'
+import useAuth from '@/hooks/useAuth'
 
 const SettlementBook = () => {
   const { tripId } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const currentUserId = user?.id ?? user?.userId
+
   const [view, setView] = useState({ key: 'ALL' })
   const [tripInfo, setTripInfo] = useState(null)
   const [loading, setLoading] = useState(true)
+
+  /**내 정산만 보기 */
+  const [showMineOnly, setShowMineOnly] = useState(false)
+  const toggleShowMineOnly = () => setShowMineOnly((v) => !v)
 
   /** 여행 정보 불러오기 */
   useEffect(() => {
@@ -44,25 +52,30 @@ const SettlementBook = () => {
 
   return (
     <>
-      <div className='flex w-full flex-col pt-5 pb-50'>
+      <div className='flex min-h-screen w-full flex-col overflow-y-auto pt-5 pb-50 [scrollbar-gutter:stable]'>
         <div className='mb-5 flex items-center justify-between px-8'>
           <button className='border-none' onClick={handleBack}>
             <GoBack />
           </button>
         </div>
+
         <div className='flex w-full flex-col gap-8 px-10'>
-          <UnsettledTitle />
+          <UnsettledTitle
+            showMineOnly={showMineOnly}
+            onToggleShowMine={toggleShowMineOnly}
+          />
           {tripInfo?.startedAt && (
             <SettlementTabs
               onChange={setView}
               tripStartDate={tripInfo.startedAt}
             />
           )}
-
           <SettlementBox
             mode={view.key}
             date={view.date}
             onItemClick={handleOpenDetail}
+            filterUserId={showMineOnly ? currentUserId : undefined}
+            myUserId={currentUserId}
           />
           <FixedActionBar className='flex justify-center'>
             <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
