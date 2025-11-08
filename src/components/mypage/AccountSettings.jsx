@@ -50,6 +50,7 @@ const AccountSettings = () => {
         />
       )}
 
+      {/* <div className={style}>문의하기</div> */}
       <div onClick={handleSignOut} className={style}>
         로그아웃
       </div>
