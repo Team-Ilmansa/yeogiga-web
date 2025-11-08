@@ -62,7 +62,10 @@ const Participation = () => {
             <div className='mx-auto flex w-full max-w-[420px] flex-col items-center text-center'>
               <div className='mb-4 grid h-40 w-40 place-items-center rounded-full bg-[rgba(113,97,255,0.08)]'>
                 <div className='grid h-30 w-30 place-items-center rounded-full bg-[rgba(113,97,255,0.12)]'>
-                  <ShareIcon />
+                  <ShareIcon
+                    className='h-12 w-12'
+                    stroke='var(--Blue-Scale-blue-500)'
+                  />
                 </div>
               </div>
 
