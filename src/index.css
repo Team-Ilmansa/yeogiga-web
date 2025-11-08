@@ -34,3 +34,13 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+/* 가로 흔들림 방지 */
+html {
+  scrollbar-gutter: stable;
+}
+
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
+}
