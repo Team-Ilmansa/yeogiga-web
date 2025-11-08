@@ -11,6 +11,26 @@ const ProfileCard = ({ userInfo, onProfileClick }) => {
   const isKakao = isSocial && provider === 'KAKAO'
   const isNaver = isSocial && provider === 'NAVER'
 
+  /** 닉네임 앞 두 글자 추출 */
+  const nicknameInitials = userInfo?.nickname
+    ? userInfo.nickname.slice(0, 2)
+    : ''
+
+  /** 닉네임 기반 색상 생성 함수 */
+  const getStableColor = (name) => {
+    if (!name) return '#FFFFFF'
+    let hash = 0
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    const hue = Math.abs(hash) % 360
+    const saturation = 70
+    const lightness = 55
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`
+  }
+
+  const stableColor = getStableColor(userInfo?.nickname)
+
   return (
     <div className='mx-10 flex h-[160px] w-[800px] items-center rounded-[20px] border border-gray-100 bg-white px-5 shadow-sm'>
       <div className='mr-8 flex aspect-square w-35 items-center justify-center overflow-hidden rounded-full bg-gray-100'>
@@ -24,6 +44,7 @@ const ProfileCard = ({ userInfo, onProfileClick }) => {
           className='h-full w-full rounded-full object-cover'
         />
       </div>
+
       <div className='flex w-full flex-col justify-center'>
         <div className='mb-2 flex items-center gap-1'>
           {isKakao && (

@@ -2,6 +2,7 @@ import { baseUrl } from '@/config/Env'
 import axios from 'axios'
 import reissueAccessTokenApi from '@/apis/authentication/reissueAccessTokenApi'
 import { callLogout } from '@/apis/authentication/logoutHandler'
+import { deepNormalizeUsers } from '@/components/mypage/utils/NormalizeUser'
 
 /**axios 공통 API 인스턴스 */
 const api = axios.create({
@@ -30,7 +31,14 @@ export const setUpInterceptors = () => {
 
   /**토큰 만료 시 refresh Token을 이용하여 Access Token 재발급 */
   api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      try {
+        if (response?.data) deepNormalizeUsers(response.data)
+      } catch (e) {
+        console.warn('avatar normalize error', e)
+      }
+      return response
+    },
     async (error) => {
       const originalRequest = error.config
       if (error.response?.status === 401 && !originalRequest._retry) {
