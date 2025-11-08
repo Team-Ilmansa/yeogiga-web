@@ -118,8 +118,8 @@ const Home = () => {
         loadMore={loadMoreSettingTrips}
         totalElements={settingTripsTotalElements}
       />
-      <RecommendedPlaces user={user} />
-      <TrendingPlaces />
+      {/* <RecommendedPlaces user={user} />
+      <TrendingPlaces /> */}
       <PastTrips pastTrips={pastTrips || []} loadMore={loadMorePastTrips} />
 
       {isCreateTripModalOpen && (
