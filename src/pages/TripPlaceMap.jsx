@@ -1,43 +1,147 @@
 import GoBack from '@/assets/sign-up/GoBack'
-import { useEffect, useState, useMemo } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState, useMemo, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
 import readPlaceInfoApi from '@/apis/map/readPlaceInfoApi'
 import { ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
 import FixedActionBar from '@/components/common/FixedActionBar'
+import { useTripInfo } from '@/hooks/useTripInfo'
+import readDatePlaceApi from '@/apis/dashboard/readDatePlaceApi'
+import ReactDOMServer from 'react-dom/server'
+import PointPin from '@/assets/map/PointPin'
+import TouristIcon from '@/assets/map/category/TouristIcon'
+import LodgingIcon from '@/assets/map/category/LodgingIcon'
+import MealIcon from '@/assets/map/category/MealIcon'
+import TransportIcon from '@/assets/map/category/TransportIcon'
+import EtcIcon from '@/assets/map/category/EtcIcon'
+import readMatchedImagesApi from '@/apis/image/readMatchedImagesApi'
+
+const categoryIcons = {
+  관광지: TouristIcon,
+  숙소: LodgingIcon,
+  식당: MealIcon,
+  이동수단: TransportIcon,
+  기타: EtcIcon,
+}
+
+const categoryColors = {
+  관광지: '#F87C7C',
+  숙소: '#66CD7A',
+  식당: '#8CB6E8',
+  이동수단: '#F19B55',
+  기타: '#C161EE',
+}
+
+// Custom Overlay Class Definition
+function ImageOverlay(options) {
+  this._position = options.position
+  this._element = options.element
+
+  this.setMap(options.map || null)
+}
+
+ImageOverlay.prototype = new window.naver.maps.OverlayView()
+ImageOverlay.prototype.constructor = ImageOverlay
+
+ImageOverlay.prototype.onAdd = function () {
+  this.getPanes().overlayLayer.appendChild(this._element)
+}
+
+ImageOverlay.prototype.draw = function () {
+  if (!this.getMap()) {
+    return
+  }
+
+  const projection = this.getProjection()
+  const position = this.getPosition()
+  const pixelPosition = projection.fromCoordToOffset(position)
+
+  this._element.style.position = 'absolute'
+  this._element.style.left = `${pixelPosition.x}px`
+  this._element.style.top = `${pixelPosition.y}px`
+}
+
+ImageOverlay.prototype.onRemove = function () {
+  if (this._element.parentElement) {
+    this._element.parentElement.removeChild(this._element)
+  }
+}
+
+ImageOverlay.prototype.getPosition = function () {
+  return this._position
+}
 
 /** 저장된 목적지들을 보여주는 지도 화면 */
 const TripPlaceMap = () => {
   const navigate = useNavigate()
-  const { tripId } = useParams()
+  const { tripInfo } = useTripInfo()
+  const tripId = tripInfo?.tripId
 
   const [map, setMap] = useState(null)
   const [selectedPlace, setSelectedPlace] = useState(null)
   const [places, setPlaces] = useState([])
-  const [markers, setMarkers] = useState([])
+  const markersRef = useRef([])
+  const imageOverlayRef = useRef(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [dayFilter, setDayFilter] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
 
   // 여행 정보 및 장소들 가져오기
   useEffect(() => {
-    if (!tripId) return
+    if (!tripId || !tripInfo) return
 
     const fetchTripPlaces = async () => {
       setIsLoading(true)
       try {
-        const placeSummariesResponse = await readPlanningDatePlaceApi(tripId)
+        let allPlaces = []
+        if (tripInfo.status === 'COMPLETED') {
+          const placeSummariesResponse = await readPlanningDatePlaceApi(tripId)
+          const allPlacesPromises = placeSummariesResponse.data.map(
+            async (summary) => {
+              const placeDetails = await readPlaceInfoApi(tripId, summary.id)
+              const placesWithImages = await Promise.all(
+                placeDetails.data.map(async (p) => {
+                  const imagesResponse = await readMatchedImagesApi(
+                    tripId,
+                    summary.id,
+                    p.id,
+                  )
+                  return {
+                    ...p,
+                    day: summary.day,
+                    images: imagesResponse.data.images || [],
+                  }
+                }),
+              )
+              return placesWithImages
+            },
+          )
+          const allPlacesArrays = await Promise.all(allPlacesPromises)
+          allPlaces = allPlacesArrays.flat()
+        } else if (tripInfo.status === 'SETTING') {
+          const startDate = new Date(tripInfo.startedAt)
+          const endDate = new Date(tripInfo.endedAt)
+          const dayCount = (endDate - startDate) / (1000 * 60 * 60 * 24) + 1
 
-        const allPlacesPromises = placeSummariesResponse.data.map(
-          async (summary) => {
-            const placeDetails = await readPlaceInfoApi(tripId, summary.id)
-            return placeDetails.data.map((p) => ({ ...p, day: summary.day }))
-          },
-        )
-
-        const allPlacesArrays = await Promise.all(allPlacesPromises)
-        const allPlaces = allPlacesArrays.flat()
-
+          const allPlacesPromises = Array.from({ length: dayCount }, (_, i) => {
+            const day = i + 1
+            return readDatePlaceApi(tripId, day).then((response) =>
+              response.data.map((place) => ({ ...place, day })),
+            )
+          })
+          const allPlacesArrays = await Promise.all(allPlacesPromises)
+          allPlaces = allPlacesArrays.flat()
+        } else {
+          const placeSummariesResponse = await readPlanningDatePlaceApi(tripId)
+          const allPlacesPromises = placeSummariesResponse.data.map(
+            async (summary) => {
+              const placeDetails = await readPlaceInfoApi(tripId, summary.id)
+              return placeDetails.data.map((p) => ({ ...p, day: summary.day }))
+            },
+          )
+          const allPlacesArrays = await Promise.all(allPlacesPromises)
+          allPlaces = allPlacesArrays.flat()
+        }
         setPlaces(allPlaces)
       } catch (error) {
         console.error('Failed to fetch trip places:', error)
@@ -47,7 +151,7 @@ const TripPlaceMap = () => {
     }
 
     fetchTripPlaces()
-  }, [tripId])
+  }, [tripId, tripInfo])
 
   // 지도 초기화
   useEffect(() => {
@@ -118,17 +222,23 @@ const TripPlaceMap = () => {
   useEffect(() => {
     if (!map) return
 
-    markers.forEach((marker) => marker.setMap(null))
+    // 이전 마커들 제거
+    markersRef.current.forEach((marker) => marker.setMap(null))
+    markersRef.current = []
 
     if (filteredPlaces.length === 0) {
-      setMarkers([])
       return
     }
 
     const newMarkers = filteredPlaces.map((place) => {
+      const pinHTML = ReactDOMServer.renderToString(<PointPin />)
       const marker = new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(place.latitude, place.longitude),
         map: map,
+        icon: {
+          content: pinHTML,
+          anchor: new window.naver.maps.Point(25, 25),
+        },
       })
 
       window.naver.maps.Event.addListener(marker, 'click', () => {
@@ -142,8 +252,58 @@ const TripPlaceMap = () => {
       return marker
     })
 
-    setMarkers(newMarkers)
-  }, [map, filteredPlaces, markers])
+    markersRef.current = newMarkers
+  }, [map, filteredPlaces])
+
+  // 이미지 오버레이 관리
+  useEffect(() => {
+    if (imageOverlayRef.current) {
+      imageOverlayRef.current.setMap(null)
+    }
+
+    if (
+      map &&
+      selectedPlace &&
+      selectedPlace.images &&
+      selectedPlace.images.length > 0
+    ) {
+      const radius = 100 // 핀으로부터의 거리
+      const imagesToShow = selectedPlace.images.slice(0, 5)
+      const numImages = imagesToShow.length
+
+      const container = document.createElement('div')
+      container.style.position = 'relative'
+
+      imagesToShow.forEach((image, i) => {
+        const angle = (i * (360 / numImages) - 90) * (Math.PI / 180) // 위쪽부터 시작
+        const x = radius * Math.cos(angle)
+        const y = radius * Math.sin(angle)
+
+        const img = document.createElement('img')
+        img.src = image.url
+        img.style.position = 'absolute'
+        img.style.left = `${x}px`
+        img.style.top = `${y}px`
+        img.style.minWidth = '80px'
+        img.style.height = '80px'
+        img.style.borderRadius = '50%'
+        img.style.border = '2px solid white'
+        img.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)'
+        img.style.transform = 'translate(-50%, -50%)'
+        img.style.boxSizing = 'content-box' // 너비 문제 해결
+        container.appendChild(img)
+      })
+
+      imageOverlayRef.current = new ImageOverlay({
+        map: map,
+        position: new window.naver.maps.LatLng(
+          selectedPlace.latitude,
+          selectedPlace.longitude,
+        ),
+        element: container,
+      })
+    }
+  }, [map, selectedPlace])
 
   // 지도 뷰 조정
   useEffect(() => {
@@ -181,6 +341,13 @@ const TripPlaceMap = () => {
     '여행 전체',
     ...Array.from({ length: dayCount }, (_, i) => `DAY ${i + 1}`),
   ]
+
+  const SelectedIcon = selectedPlace
+    ? categoryIcons[selectedPlace.placeType] || EtcIcon
+    : EtcIcon
+  const selectedColor = selectedPlace
+    ? categoryColors[selectedPlace.placeType] || '#C161EE'
+    : '#C161EE'
 
   return (
     <div className='relative h-full w-full'>
@@ -234,8 +401,8 @@ const TripPlaceMap = () => {
                   <ChevronLeft />
                 </button>
                 <div className='mx-4 flex flex-1 items-center gap-5'>
-                  <div className='flex h-15 w-15 cursor-grab items-center justify-center rounded-full bg-[var(--Grey-Scale-grey-100)]'>
-                    C
+                  <div className='flex h-10 w-10 cursor-grab items-center justify-center rounded-full'>
+                    <SelectedIcon size={40} color={selectedColor} />
                   </div>
                   <div className='flex w-full justify-between rounded-2xl bg-[var(--Grey-Scale-grey-100)] p-5 text-base text-[var(--Grey-Scale-grey-300)]'>
                     <span>{selectedPlace.name}</span>
@@ -250,7 +417,6 @@ const TripPlaceMap = () => {
                     </a>
                   )}
                 </div>
-
                 <button
                   onClick={goToNextPlace}
                   className='rounded-full border-none p-2 hover:bg-gray-100'
