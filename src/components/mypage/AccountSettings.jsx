@@ -42,7 +42,7 @@ const AccountSettings = () => {
 
   return (
     <div>
-      {/* /**회원탈퇴 모달 */}
+      {/**회원탈퇴 모달 */}
       {isDeleteAccountModalOpen && (
         <DeleteTripModal
           toggleDeleteAccountModal={toggleDeleteAccountModal}
@@ -50,7 +50,6 @@ const AccountSettings = () => {
         />
       )}
 
-      <div className={style}>문의하기</div>
       <div onClick={handleSignOut} className={style}>
         로그아웃
       </div>
