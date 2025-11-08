@@ -18,10 +18,14 @@ const PhotoAlbum = ({
   temporaryImages,
   unmatchedImages,
   matchedImages,
-  isSelectionMode,
-  selectedImages,
-  toggleSelectionMode,
-  handleImageClick,
+  isTempSelectionMode,
+  selectedTempImages,
+  toggleTempSelectionMode,
+  handleTempImageClick,
+  isAlbumSelectionMode,
+  selectedAlbumImages,
+  toggleAlbumSelectionMode,
+  handleAlbumImageClick,
   onImageAction,
 }) => {
   const [modalImage, setModalImage] = useState(null)
@@ -34,8 +38,7 @@ const PhotoAlbum = ({
         unmatchedImages.length
       : 0
 
-  /**매칭 이미지 + 매칭X(기타) 이미지 */
-  const allImages = matchedImages
+  const allImagesForModal = matchedImages
     .flatMap((place) =>
       place.images.map((image) => ({
         ...image,
@@ -45,34 +48,38 @@ const PhotoAlbum = ({
     )
     .concat(unmatchedImages.map((image) => ({ ...image, placeName: '기타' })))
 
-  /**모달 열기 */
-  const openModal = (image) => {
-    const imageWithPlace = allImages.find((img) => img.id === image.id)
+  const openModal = (image, place) => {
+    if (isAlbumSelectionMode) {
+      handleAlbumImageClick({ ...image, placeId: place ? place.id : null })
+      return
+    }
+    const imageWithPlace = allImagesForModal.find((img) => img.id === image.id)
     setModalImage(imageWithPlace)
   }
 
-  /**모달 닫기 */
   const closeModal = () => {
     setModalImage(null)
   }
 
-  /**다음 이미지 보기 */
   const showNextImage = (e) => {
     if (e) e.stopPropagation()
-    const currentIndex = allImages.findIndex((img) => img.id === modalImage.id)
-    const nextIndex = (currentIndex + 1) % allImages.length
-    setModalImage(allImages[nextIndex])
+    const currentIndex = allImagesForModal.findIndex(
+      (img) => img.id === modalImage.id,
+    )
+    const nextIndex = (currentIndex + 1) % allImagesForModal.length
+    setModalImage(allImagesForModal[nextIndex])
   }
 
-  /**이전 이미지 보기 */
   const showPrevImage = (e) => {
     if (e) e.stopPropagation()
-    const currentIndex = allImages.findIndex((img) => img.id === modalImage.id)
-    const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length
-    setModalImage(allImages[prevIndex])
+    const currentIndex = allImagesForModal.findIndex(
+      (img) => img.id === modalImage.id,
+    )
+    const prevIndex =
+      (currentIndex - 1 + allImagesForModal.length) % allImagesForModal.length
+    setModalImage(allImagesForModal[prevIndex])
   }
 
-  /**다운로드 함수 */
   const handleDownload = async (e) => {
     e.stopPropagation()
     if (!modalImage) return
@@ -101,7 +108,6 @@ const PhotoAlbum = ({
     }
   }
 
-  /**즐겨찾기 상태 변경 함수 */
   const handleFavoriteClick = async (e) => {
     e.stopPropagation()
     if (!modalImage) return
@@ -124,7 +130,6 @@ const PhotoAlbum = ({
     }
   }
 
-  /**단일 삭제 함수 */
   const handleSingleDelete = async (e) => {
     e.stopPropagation()
     if (!modalImage) return
@@ -156,15 +161,15 @@ const PhotoAlbum = ({
               임시 저장 이미지 ({temporaryImages.length}장)
             </p>
             <button
-              onClick={toggleSelectionMode}
+              onClick={toggleTempSelectionMode}
               className={`flex items-center gap-1 border-none py-2 ${
-                isSelectionMode || selectedImages.imageIds.length > 0
+                isTempSelectionMode || selectedTempImages.imageIds.length > 0
                   ? 'text-[var(--Blue-Scale-blue-500)]'
                   : 'text-[var(--Grey-Scale-grey-200)]'
               }`}
             >
-              {selectedImages.imageIds.length > 0
-                ? `${selectedImages.imageIds.length}개 선택됨`
+              {selectedTempImages.imageIds.length > 0
+                ? `${selectedTempImages.imageIds.length}개 선택됨`
                 : '선택하기'}
               <Check className='h-4 w-4' />
             </button>
@@ -174,14 +179,14 @@ const PhotoAlbum = ({
               <div
                 key={image.id}
                 className='relative aspect-square cursor-pointer'
-                onClick={() => handleImageClick(image)}
+                onClick={() => handleTempImageClick(image)}
               >
                 <img
                   src={image.url}
                   alt={`temporary image ${image.id}`}
                   className={'h-full w-full rounded-2xl object-cover'}
                 />
-                {selectedImages.imageIds.includes(image.id) && (
+                {selectedTempImages.imageIds.includes(image.id) && (
                   <div className='absolute inset-0 flex items-center justify-center rounded-2xl bg-[var(--Blue-Scale-blue-500)] opacity-50' />
                 )}
               </div>
@@ -192,9 +197,24 @@ const PhotoAlbum = ({
 
       {totalImages > 0 && (
         <div className={hasTemporaryImages ? 'mt-8' : 'mt-2'}>
-          <p className='py-2 text-3xl font-bold text-[var(--Blue-Scale-blue-500)]'>
-            {totalImages}장
-          </p>
+          <div className='flex justify-between'>
+            <p className='py-2 text-3xl font-bold text-[var(--Blue-Scale-blue-500)]'>
+              {totalImages}장
+            </p>
+            <button
+              onClick={toggleAlbumSelectionMode}
+              className={`flex items-center gap-1 border-none py-2 ${
+                isAlbumSelectionMode || selectedAlbumImages.length > 0
+                  ? 'text-[var(--Blue-Scale-blue-500)]'
+                  : 'text-[var(--Grey-Scale-grey-200)]'
+              }`}
+            >
+              {selectedAlbumImages.length > 0
+                ? `${selectedAlbumImages.length}개 선택됨`
+                : '선택하기'}
+              <Check className='h-4 w-4' />
+            </button>
+          </div>
 
           {matchedImages.map((place) => (
             <div key={place.id}>
@@ -208,13 +228,16 @@ const PhotoAlbum = ({
                   <div
                     key={image.id}
                     className='relative aspect-square cursor-pointer'
-                    onClick={() => openModal(image)}
+                    onClick={() => openModal(image, place)}
                   >
                     <img
                       src={image.url}
                       alt={`matched image ${image.id}`}
                       className='h-full w-full rounded-2xl object-cover'
                     />
+                    {selectedAlbumImages.some((img) => img.id === image.id) && (
+                      <div className='absolute inset-0 flex items-center justify-center rounded-2xl bg-[var(--Blue-Scale-blue-500)] opacity-50' />
+                    )}
                   </div>
                 ))}
               </div>
@@ -231,13 +254,16 @@ const PhotoAlbum = ({
                 <div
                   key={image.id}
                   className='relative aspect-square cursor-pointer'
-                  onClick={() => openModal(image)}
+                  onClick={() => openModal(image, null)}
                 >
                   <img
                     src={image.url}
                     alt={`matched image ${image.id}`}
                     className='h-full w-full rounded-2xl object-cover'
                   />
+                  {selectedAlbumImages.some((img) => img.id === image.id) && (
+                    <div className='absolute inset-0 flex items-center justify-center rounded-2xl bg-[var(--Blue-Scale-blue-500)] opacity-50' />
+                  )}
                 </div>
               ))}
             </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
+import JSZip from 'jszip'
 import readTripInfoApi from '@/apis/trip/readTripInfo'
 import DayTabs from './DayTabs'
 import PhotoAlbum from './PhotoAlbum'
@@ -12,7 +13,10 @@ import readMatchedImagesApi from '@/apis/image/readMatchedImagesApi'
 import readUnmatchedImagesApi from '@/apis/image/readUnmatchedImagesApi'
 import deleteTemporaryImagesApi from '@/apis/image/deleteTemporaryImagesApi'
 import matchTemporaryImagesApi from '@/apis/image/matchTemporaryImagesApi'
-import { Link2, Trash2 } from 'lucide-react'
+import deleteSingleImageApi from '@/apis/image/deleteSingleImageApi' // Import deleteSingleImageApi
+import updateFavoriteImageApi from '@/apis/image/updateFavoriteImageApi' // Import updateFavoriteImageApi
+import { Link2, Trash2, Heart, Share2, Download } from 'lucide-react'
+import Spinner from '@/assets/common/Spinner'
 
 const GalleryDashBoard = ({ activeTab }) => {
   const { tripId } = useParams()
@@ -23,11 +27,18 @@ const GalleryDashBoard = ({ activeTab }) => {
   const [temporaryImages, setTemporaryImages] = useState([])
   const [matchedImages, setMatchedImages] = useState([])
   const [unmatchedImages, setUnmatchedImages] = useState([])
-  const [isSelectionMode, setIsSelectionMode] = useState(false)
-  const [selectedImages, setSelectedImages] = useState({
+
+  // Selection states
+  const [isTempSelectionMode, setIsTempSelectionMode] = useState(false)
+  const [selectedTempImages, setSelectedTempImages] = useState({
     imageIds: [],
     urls: [],
   })
+  const [isAlbumSelectionMode, setIsAlbumSelectionMode] = useState(false)
+  const [selectedAlbumImages, setSelectedAlbumImages] = useState([]) // Changed to array of objects
+
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadCount, setUploadCount] = useState(0)
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -39,7 +50,6 @@ const GalleryDashBoard = ({ activeTab }) => {
       }
     }
 
-    /**일자 ID를 위해 전체 일정 불러오기 */
     const fetchPlanningPlaces = async () => {
       try {
         const result = await readPlanningDatePlaceApi(tripId)
@@ -116,49 +126,195 @@ const GalleryDashBoard = ({ activeTab }) => {
     fetchUnmatchedImages()
   }, [fetchTemporaryImages, fetchMatchedImages, fetchUnmatchedImages])
 
-  /**선택 모드 전환 */
-  const toggleSelectionMode = () => {
-    setIsSelectionMode(!isSelectionMode)
-    setSelectedImages({ imageIds: [], urls: [] })
+  /**임시저장 이미지 선택 모드 */
+  const toggleTempSelectionMode = () => {
+    setIsTempSelectionMode(!isTempSelectionMode)
+    setSelectedTempImages({ imageIds: [], urls: [] })
   }
 
-  /**이미지 선택 */
-  const handleImageClick = (image) => {
-    if (!isSelectionMode) {
-      setIsSelectionMode(true)
-      setSelectedImages({ imageIds: [image.id], urls: [image.url] })
-      return
+  const handleTempImageClick = (image) => {
+    if (!isTempSelectionMode) {
+      setIsTempSelectionMode(true)
     }
-
-    setSelectedImages((prevSelected) => {
-      const isAlreadySelected = prevSelected.imageIds.includes(image.id)
-      if (isAlreadySelected) {
+    setSelectedTempImages((prev) => {
+      const isSelected = prev.imageIds.includes(image.id)
+      if (isSelected) {
         return {
-          imageIds: prevSelected.imageIds.filter((id) => id !== image.id),
-          urls: prevSelected.urls.filter((url) => url !== image.url),
+          imageIds: prev.imageIds.filter((id) => id !== image.id),
+          urls: prev.urls.filter((url) => url !== image.url),
         }
       } else {
         return {
-          imageIds: [...prevSelected.imageIds, image.id],
-          urls: [...prevSelected.urls, image.url],
+          imageIds: [...prev.imageIds, image.id],
+          urls: [...prev.urls, image.url],
         }
       }
     })
   }
 
-  /**선택된 임시 이미지 삭제 */
-  const handleDeleteSelectedTemporaryImages = async () => {
+  const handleDeleteSelectedTempImages = async () => {
     try {
       await deleteTemporaryImagesApi(
         tripId,
         planningPlaces[activeDay - 1].id,
-        selectedImages,
+        selectedTempImages,
       )
-      alert(`${selectedImages.imageIds.length}개의 이미지를 삭제했습니다.`)
+      alert(`${selectedTempImages.imageIds.length}개의 이미지를 삭제했습니다.`)
       fetchTemporaryImages()
-      toggleSelectionMode()
+      toggleTempSelectionMode()
     } catch (err) {
       alert(err.message)
+    }
+  }
+
+  /**매칭된 이미지 선택 모드 */
+  const toggleAlbumSelectionMode = () => {
+    setIsAlbumSelectionMode(!isAlbumSelectionMode)
+    setSelectedAlbumImages([])
+  }
+
+  const handleAlbumImageClick = (image) => {
+    if (!isAlbumSelectionMode) {
+      setIsAlbumSelectionMode(true)
+    }
+    setSelectedAlbumImages((prev) => {
+      const isSelected = prev.some((img) => img.id === image.id)
+      if (isSelected) {
+        return prev.filter((img) => img.id !== image.id)
+      } else {
+        return [
+          ...prev,
+          { id: image.id, url: image.url, placeId: image.placeId },
+        ]
+      }
+    })
+  }
+
+  const handleDeleteSelectedAlbumImages = async () => {
+    if (selectedAlbumImages.length === 0) return
+
+    if (
+      !window.confirm(
+        `${selectedAlbumImages.length}개의 이미지를 삭제하시겠습니까?`,
+      )
+    ) {
+      return
+    }
+
+    try {
+      const tripDayPlaceId = planningPlaces[activeDay - 1].id
+      const deletePromises = selectedAlbumImages.map(async (image) => {
+        const body = image.placeId
+          ? {
+              url: image.url,
+              placeId: image.placeId,
+              deleteType: 'PLACE',
+            }
+          : { url: image.url, deleteType: 'UNMATCHED' }
+        await deleteSingleImageApi(tripId, tripDayPlaceId, image.id, body)
+      })
+      await Promise.all(deletePromises)
+      alert(`${selectedAlbumImages.length}개의 이미지를 삭제했습니다.`)
+    } catch (err) {
+      alert(err.message || '이미지 삭제에 실패했습니다.')
+    } finally {
+      setSelectedAlbumImages([])
+      setIsAlbumSelectionMode(false)
+      onImageAction()
+    }
+  }
+
+  const handleFavoriteSelectedAlbumImages = async () => {
+    if (selectedAlbumImages.length === 0) return
+
+    const newFavoriteStatus = true
+
+    if (
+      !window.confirm(
+        `${selectedAlbumImages.length}개의 이미지를 즐겨찾기에 추가하시겠습니까?`,
+      )
+    ) {
+      return
+    }
+
+    try {
+      const tripDayPlaceId = planningPlaces[activeDay - 1].id
+      const favoritePromises = selectedAlbumImages.map(async (image) => {
+        const body = image.placeId
+          ? { placeId: image.placeId, favorite: newFavoriteStatus }
+          : { favorite: newFavoriteStatus }
+        await updateFavoriteImageApi(tripId, tripDayPlaceId, image.id, body)
+      })
+      await Promise.all(favoritePromises)
+      alert(
+        `${selectedAlbumImages.length}개의 이미지를 즐겨찾기에 추가했습니다.`,
+      )
+    } catch (err) {
+      alert(err.message || '즐겨찾기 처리에 실패했습니다.')
+    } finally {
+      setSelectedAlbumImages([])
+      setIsAlbumSelectionMode(false)
+      onImageAction()
+    }
+  }
+
+  const handleShareSelectedAlbumImages = async () => {
+    if (selectedAlbumImages.length === 0) return
+
+    const urls = selectedAlbumImages.map((image) => image.url)
+    const shareText = `[여기가] 여행 이미지 공유\n\n${urls.join('\n')}`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '여기가 여행 이미지 공유',
+          text: shareText,
+        })
+        setSelectedAlbumImages([])
+        setIsAlbumSelectionMode(false)
+      } catch (err) {
+        console.error('Share failed:', err)
+      }
+    } else {
+      alert('사용 중인 브라우저에서는 공유 기능을 지원하지 않습니다.')
+    }
+  }
+
+  const handleDownloadSelectedAlbumImages = async () => {
+    if (selectedAlbumImages.length === 0) return
+    if (
+      !window.confirm(
+        `${selectedAlbumImages.length}개의 이미지를 다운로드하시겠습니까?`,
+      )
+    ) {
+      return
+    }
+
+    const zip = new JSZip()
+    try {
+      await Promise.all(
+        selectedAlbumImages.map(async (image) => {
+          const response = await fetch(image.url)
+          const blob = await response.blob()
+          const filename = image.url.substring(image.url.lastIndexOf('/') + 1)
+          zip.file(filename, blob)
+        }),
+      )
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(zipBlob)
+      link.download = `yeogiga_images_${tripId}.zip`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(link.href)
+
+      setSelectedAlbumImages([])
+      setIsAlbumSelectionMode(false)
+    } catch (err) {
+      console.error('Failed to download images:', err)
+      alert('이미지 다운로드에 실패했습니다.')
     }
   }
 
@@ -172,6 +328,10 @@ const GalleryDashBoard = ({ activeTab }) => {
   const handleFileChange = async (event) => {
     const files = event.target.files
     if (files.length > 0) {
+      const numFiles = files.length
+      setUploadCount(numFiles)
+      setIsUploading(true)
+
       const formData = new FormData()
       Array.from(files).forEach((file) => {
         formData.append('images', file)
@@ -184,6 +344,9 @@ const GalleryDashBoard = ({ activeTab }) => {
         fetchTemporaryImages()
       } catch (err) {
         alert(err.message)
+      } finally {
+        setIsUploading(false)
+        setUploadCount(0)
       }
     }
   }
@@ -228,10 +391,14 @@ const GalleryDashBoard = ({ activeTab }) => {
         temporaryImages={temporaryImages}
         matchedImages={matchedImages}
         unmatchedImages={unmatchedImages}
-        isSelectionMode={isSelectionMode}
-        selectedImages={selectedImages}
-        toggleSelectionMode={toggleSelectionMode}
-        handleImageClick={handleImageClick}
+        isTempSelectionMode={isTempSelectionMode}
+        selectedTempImages={selectedTempImages}
+        toggleTempSelectionMode={toggleTempSelectionMode}
+        handleTempImageClick={handleTempImageClick}
+        isAlbumSelectionMode={isAlbumSelectionMode}
+        selectedAlbumImages={selectedAlbumImages}
+        toggleAlbumSelectionMode={toggleAlbumSelectionMode}
+        handleAlbumImageClick={handleAlbumImageClick}
         onImageAction={onImageAction}
       />
 
@@ -247,14 +414,53 @@ const GalleryDashBoard = ({ activeTab }) => {
       {activeTab === 1 && (
         <FixedActionBar className='flex justify-center'>
           <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
-            {selectedImages.imageIds.length > 0 ? (
+            {isUploading ? (
               <button
-                onClick={handleDeleteSelectedTemporaryImages}
+                disabled
+                className='flex w-full cursor-not-allowed items-center justify-center gap-4 rounded-lg border-none bg-gray-400 p-[20px] text-2xl text-white'
+              >
+                <Spinner size={40} />
+                {`사진 ${uploadCount}장 업로드 중`}
+              </button>
+            ) : selectedTempImages.imageIds.length > 0 ? (
+              <button
+                onClick={handleDeleteSelectedTempImages}
                 className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
               >
                 <Trash2 className='h-[40px] w-[40px]' />
-                {`${selectedImages.imageIds.length}개의 임시 저장 이미지 삭제`}
+                {`${selectedTempImages.imageIds.length}개의 임시 저장 이미지 삭제`}
               </button>
+            ) : selectedAlbumImages.length > 0 ? (
+              <div className='flex w-full items-center justify-around'>
+                <button
+                  onClick={handleDeleteSelectedAlbumImages}
+                  className='flex flex-col items-center gap-1 border-none text-[var(--Grey-Scale-grey-200)]'
+                >
+                  <Trash2 size={40} />
+                  <span>삭제</span>
+                </button>
+                <button
+                  onClick={handleFavoriteSelectedAlbumImages}
+                  className='flex flex-col items-center gap-1 border-none text-[var(--Grey-Scale-grey-200)]'
+                >
+                  <Heart size={40} />
+                  <span>즐겨찾기</span>
+                </button>
+                <button
+                  onClick={handleShareSelectedAlbumImages}
+                  className='flex flex-col items-center gap-1 border-none text-[var(--Grey-Scale-grey-200)]'
+                >
+                  <Share2 size={40} />
+                  <span>공유</span>
+                </button>
+                <button
+                  onClick={handleDownloadSelectedAlbumImages}
+                  className='flex flex-col items-center gap-1 border-none text-[var(--Grey-Scale-grey-200)]'
+                >
+                  <Download size={40} />
+                  <span>다운로드</span>
+                </button>
+              </div>
             ) : activeDay === 0 ? (
               <button
                 disabled
