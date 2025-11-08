@@ -3,7 +3,6 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import HomeButton from '@/components/home/HomeButton'
 import { ChevronRight } from 'lucide-react'
 import ProfileCard from '@/components/mypage/ProfileCard'
-import FavoritePhotos from '@/components/mypage/FavoritePhotos'
 import AccountSettings from '@/components/mypage/AccountSettings'
 import ProfileModal from '@/components/mypage/ProfileModal'
 import readTripByStatusApi from '@/apis/trip/readTripByStatusApi'
@@ -79,8 +78,7 @@ const MyPage = () => {
         </div>
         {/* 프로필카드 */}
         <ProfileCard userInfo={userInfo} onProfileClick={openProfileModal} />
-        {/* 즐겨찾기한 사진 */}
-        <FavoritePhotos />
+
         {/* 모든 여행 전체보기 */}
         <AllTrip allTrips={allTrips || []} loadMore={loadMoreAllTrips} />
         <div className='h-5 bg-[var(--Grey-Scale-grey-100)]' />
