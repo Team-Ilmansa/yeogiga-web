@@ -118,6 +118,7 @@ const Home = () => {
         loadMore={loadMoreSettingTrips}
         totalElements={settingTripsTotalElements}
       />
+      {/** 추천 여행지 및 인기 여행지 숨기기 */}
       {/* <RecommendedPlaces user={user} />
       <TrendingPlaces /> */}
       <PastTrips pastTrips={pastTrips || []} loadMore={loadMorePastTrips} />
