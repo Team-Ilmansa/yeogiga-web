@@ -63,11 +63,14 @@ const SettlementBook = () => {
           <UnsettledTitle
             showMineOnly={showMineOnly}
             onToggleShowMine={toggleShowMineOnly}
+            myUserId={currentUserId}
           />
           {tripInfo?.startedAt && (
             <SettlementTabs
               onChange={setView}
               tripStartDate={tripInfo.startedAt}
+              showMineOnly={showMineOnly}
+              myUserId={currentUserId}
             />
           )}
           <SettlementBox
