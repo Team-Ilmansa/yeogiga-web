@@ -9,35 +9,33 @@ const NaverRedirect = () => {
   const { login } = useAuth()
 
   useEffect(() => {
-    const queryPrams = new URLSearchParams(location.search)
-    const code = queryPrams.get('code')
+    const queryParams = new URLSearchParams(location.search)
+    const code = queryParams.get('code')
 
-    /**네이버 소셜 로그인 호출 */
-    const fetchNaverAccessToken = async (code) => {
+    const fetchNaverAccessToken = async () => {
       try {
         const response = await oauthSignInApi('NAVER', code)
-
-        const accessToken = response.data.token.accessToken
-        const shouldSignup = response.data.shouldSignup === true
-
-        localStorage.setItem('provider', 'NAVER')
+        const accessToken = response?.data?.token?.accessToken
+        const shouldSignup = response?.data?.shouldSignup === true
 
         if (accessToken) {
+          localStorage.setItem('provider', 'NAVER')
+          sessionStorage.removeItem('provider')
+
           login({ token: accessToken })
         }
 
-        /**최초 소셜 회원가입 시 게스트 회원등록 페이지로 이동 */
         if (shouldSignup) {
-          navigate('/signup/guest')
+          navigate('/signup/guest', { replace: true })
         } else {
-          navigate('/')
+          navigate('/', { replace: true })
         }
       } catch (error) {
         const errRes = error.response?.data
-        /**탈퇴 계정 로그인 시 복구 페이지로 이동 */
         if (errRes?.data?.userId && errRes?.data?.deletionExpiration) {
           alert('탈퇴된 계정입니다. 계정 복구 페이지로 이동합니다.')
           navigate('/restore/account', {
+            replace: true,
             state: {
               userId: errRes.data.userId,
               deletionDate: errRes.data.deletionExpiration,
@@ -46,14 +44,15 @@ const NaverRedirect = () => {
         } else {
           alert(`로그인 실패: ${errRes?.message || error.message}`)
           console.error('로그인 에러: ', error)
+          navigate('/login', { replace: true })
         }
       }
     }
 
-    if (code) {
-      fetchNaverAccessToken(code)
-    }
-  }, [location, login, navigate])
+    fetchNaverAccessToken()
+  }, [location.search, login, navigate])
+
+  return null
 }
 
 export default NaverRedirect
