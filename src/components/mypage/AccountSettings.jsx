@@ -7,7 +7,7 @@ import DeleteTripModal from './modal/DeleteTripModal'
 const AccountSettings = () => {
   const { logout } = useAuth()
   const style =
-    'text-lg cursor-pointer w-full py-10 hover:bg-[var(--Grey-Scale-grey-100)] px-10'
+    'text-lg cursor-pointer w-full py-7 hover:bg-[var(--Grey-Scale-grey-100)] px-10 '
 
   /**회원탈퇴 모달창 토글 */
   const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] =
