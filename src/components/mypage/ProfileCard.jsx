@@ -1,38 +1,46 @@
 import { ChevronRight } from 'lucide-react'
 import kakaoLogoImg from '@/assets/mypage/kakaoIcon.png'
 import naverLogoImg from '@/assets/mypage/naverIcon.png'
+import { getLoginType, getProvider } from './utils/Indentity'
 
 const ProfileCard = ({ userInfo, onProfileClick }) => {
-  const provider = localStorage.getItem('provider')
+  const loginType = getLoginType(userInfo)
+  const provider = getProvider(userInfo)
+  const isSocial = loginType === 'SOCIAL'
+
+  const isKakao = isSocial && provider === 'KAKAO'
+  const isNaver = isSocial && provider === 'NAVER'
 
   return (
     <div className='mx-10 flex h-[160px] w-[800px] items-center rounded-[20px] border border-gray-100 bg-white px-5 shadow-sm'>
-      <div className='mr-8 aspect-square w-35 overflow-hidden rounded-full bg-gray-100'>
+      <div className='mr-8 flex aspect-square w-35 items-center justify-center overflow-hidden rounded-full bg-gray-100'>
         <img
-          src={userInfo.imageUrl || '/images/default_profile.png'}
+          src={
+            userInfo && userInfo.imageUrl
+              ? userInfo.imageUrl
+              : '/images/default_profile.png'
+          }
           alt='프로필'
           className='h-full w-full rounded-full object-cover'
         />
       </div>
       <div className='flex w-full flex-col justify-center'>
         <div className='mb-2 flex items-center gap-1'>
-          {/** 소셜 로그인 로고 */}
-          {provider === 'KAKAO' && (
+          {isKakao && (
             <img src={kakaoLogoImg} alt='Kakao' className='h-7 w-auto' />
           )}
-          {provider === 'NAVER' && (
+          {isNaver && (
             <img src={naverLogoImg} alt='Naver' className='h-7 w-auto' />
           )}
 
-          {/** 닉네임 */}
           <span className='text-3xl font-bold text-gray-900'>
-            {userInfo.nickname}
+            {userInfo && userInfo.nickname ? userInfo.nickname : '사용자'}
           </span>
           <span className='text-xl font-bold text-gray-900'>님</span>
         </div>
 
         <div className='flex items-center justify-between'>
-          {userInfo.email && (
+          {userInfo && userInfo.email && (
             <p className='text-lg text-gray-500'>{userInfo.email}</p>
           )}
           <button
