@@ -4,17 +4,32 @@ import readTotalSettlementsApi from '@/apis/settlement/readTotalSettlementsApi'
 
 const getDayNumber = (startDateString, currentDateString) => {
   if (!startDateString || !currentDateString) return 0
-
   const startDate = new Date(startDateString)
   const currentDate = new Date(currentDateString)
-
   const diffTime = currentDate.getTime() - startDate.getTime()
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
-
   return diffDays + 1
 }
 
-const SettlementTabs = ({ onChange, tripStartDate }) => {
+const isUserIncluded = (item, userId) => {
+  if (!userId) return false
+  const payers = Array.isArray(item?.payers) ? item.payers : []
+  const participants = Array.isArray(item?.participants)
+    ? item.participants
+    : []
+  const inPayers = payers.some((p) => (p.userId ?? p.id) === Number(userId))
+  const inParticipants = participants.some(
+    (uid) => Number(uid) === Number(userId),
+  )
+  return inPayers || inParticipants
+}
+
+const SettlementTabs = ({
+  onChange,
+  tripStartDate,
+  showMineOnly = false,
+  myUserId,
+}) => {
   const { tripId } = useParams()
 
   const [active, setActive] = useState('ALL')
@@ -30,18 +45,23 @@ const SettlementTabs = ({ onChange, tripStartDate }) => {
         const result = await readTotalSettlementsApi(tripId)
         const groups = result?.data ?? {}
 
-        /** 날짜 키 정렬 */
+        // 날짜 키 정렬
         const sortedKeys = Object.keys(groups).sort((a, b) =>
           a.localeCompare(b),
         )
         setDates(sortedKeys)
 
-        /** 미정산 건수 계산 */
-        const allItems = Object.values(groups).flat()
-        const unsettled = allItems.filter(
-          (it) => it && it.isCompleted === false,
-        )
-        setUnsettledCount(unsettled.length)
+        const allItems = Object.values(groups).flat().filter(Boolean)
+
+        const count =
+          showMineOnly && myUserId
+            ? allItems.filter(
+                (it) =>
+                  isUserIncluded(it, myUserId) && it?.isCompleted === false,
+              ).length
+            : allItems.filter((it) => it?.isCompleted === false).length
+
+        setUnsettledCount(count)
       } catch (e) {
         console.error(e)
         setDates([])
@@ -51,7 +71,7 @@ const SettlementTabs = ({ onChange, tripStartDate }) => {
       }
     }
     fetchDates()
-  }, [tripId])
+  }, [tripId, showMineOnly, myUserId])
 
   const handleSelect = (nextActive, date = null) => {
     setActive(nextActive)
@@ -72,7 +92,7 @@ const SettlementTabs = ({ onChange, tripStartDate }) => {
   return (
     <div className='w-full'>
       <div className='flex flex-wrap gap-[6px]'>
-        {/* 미정산 내역, 여행 전체 버튼 (생략) */}
+        {/* 미정산 내역 */}
         <button
           type='button'
           onClick={() => handleSelect('UNSETTLED')}
@@ -84,6 +104,7 @@ const SettlementTabs = ({ onChange, tripStartDate }) => {
           {!loading && unsettledCount > 0 ? ` (${unsettledCount})` : ''}
         </button>
 
+        {/* 여행 전체 */}
         <button
           type='button'
           onClick={() => handleSelect('ALL')}
@@ -94,11 +115,10 @@ const SettlementTabs = ({ onChange, tripStartDate }) => {
           여행 전체
         </button>
 
-        {/** DAY 1 ~ N (Props로 받은 실제 여행 시작일 기준) */}
+        {/* DAY 1 ~ N */}
         {dates.map((date) => {
           const dayNumber = getDayNumber(tripStartDate, date)
           if (dayNumber <= 0) return null
-
           const isActive = active === dayNumber
           return (
             <button
