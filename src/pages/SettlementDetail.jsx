@@ -45,7 +45,7 @@ const SettlementDetail = () => {
       navigate(-1)
     } catch (err) {
       console.error(err)
-      alert('정산 내역 삭제에 실패했습니다.')
+      alert(err.message)
     } finally {
       setIsDeleteConfirmOpen(false)
     }
