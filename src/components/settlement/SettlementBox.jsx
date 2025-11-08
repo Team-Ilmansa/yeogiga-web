@@ -12,12 +12,23 @@ import SelLodgingIcon from '@/assets/map/category/SelLodgingIcon'
 import SelEtcIcon from '@/assets/map/category/SelEtcIcon'
 import UserIcon from '@/assets/settlement/UserIcon'
 
-function extractGroups(result) {
-  if (!result) return {}
-  if (result.data && typeof result.data === 'object') return result.data
-  return result
+const isUserIncluded = (item, userId) => {
+  if (!userId) return false
+  const payers = Array.isArray(item?.payers) ? item.payers : []
+  const participants = Array.isArray(item?.participants)
+    ? item.participants
+    : []
+  const inPayers = payers.some((p) => (p.userId ?? p.id) === Number(userId))
+  const inParticipants = participants.some(
+    (uid) => Number(uid) === Number(userId),
+  )
+  return inPayers || inParticipants
 }
-
+const isAllDone = (item) => {
+  const payers = Array.isArray(item?.payers) ? item.payers : []
+  if (!payers.length) return false
+  return payers.every((p) => p?.isCompleted === true)
+}
 const normalizeType = (raw) => {
   const v = String(raw || '')
     .trim()
@@ -29,7 +40,6 @@ const normalizeType = (raw) => {
   if (v === 'ETC') return 'ETC'
   return v || 'ETC'
 }
-
 const typeToIcon = (type) => {
   switch (normalizeType(type)) {
     case 'ATTRACTION':
@@ -45,7 +55,6 @@ const typeToIcon = (type) => {
       return SelEtcIcon
   }
 }
-
 const Avatar = ({ url, name, size = 18 }) => {
   const s = `${size}px`
   if (url) {
@@ -69,7 +78,13 @@ const Avatar = ({ url, name, size = 18 }) => {
     </div>
   )
 }
+function extractGroups(result) {
+  if (!result) return {}
+  if (result?.data && typeof result.data === 'object') return result.data
+  return result
+}
 
+/* ===== 메인 ===== */
 const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
   const { tripId } = useParams()
   const [loading, setLoading] = useState(false)
@@ -85,15 +100,37 @@ const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
         const groups = extractGroups(result)
 
         let dates = Object.keys(groups).sort((a, b) => a.localeCompare(b))
-        if (mode === 'DAY' && date) {
-          dates = dates.filter((d) => d === date)
-        }
+        if (mode === 'DAY' && date) dates = dates.filter((d) => d === date)
 
         const next = dates.map((d) => {
           let items = Array.isArray(groups[d]) ? groups[d] : []
-          if (mode === 'UNSETTLED') {
-            items = items.filter((it) => it && it.isCompleted === false)
+
+          if (mode === 'DAY') {
+            if (filterUserId) {
+              items = items.filter((it) =>
+                isUserIncluded(it, Number(filterUserId)),
+              )
+            }
           }
+
+          if (mode === 'UNSETTLED') {
+            if (filterUserId) {
+              items = items.filter(
+                (it) =>
+                  isUserIncluded(it, Number(filterUserId)) &&
+                  it?.isCompleted === false,
+              )
+            } else {
+              items = items.filter((it) => it?.isCompleted === false)
+            }
+          } else if (mode === 'ALL') {
+            if (filterUserId) {
+              items = items.filter((it) =>
+                isUserIncluded(it, Number(filterUserId)),
+              )
+            }
+          }
+
           return { date: d, items }
         })
 
@@ -104,7 +141,6 @@ const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
           next.forEach(({ date: d }) => {
             if (typeof m[d] === 'undefined') m[d] = true
           })
-
           return m
         })
       } catch (e) {
@@ -115,34 +151,18 @@ const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
       }
     }
     run()
-  }, [tripId, mode, date])
+  }, [tripId, mode, date, filterUserId])
 
   const filteredSections = useMemo(() => {
     let arr = sections
-
-    if (filterUserId) {
-      const keepMine = (item) => {
-        const payers = Array.isArray(item?.payers) ? item.payers : []
-        const participants = Array.isArray(item?.participants)
-          ? item.participants
-          : []
-        const inPayers = payers.some((p) => (p.userId ?? p.id) === filterUserId)
-        const inParticipants = participants.some((uid) => uid === filterUserId)
-        return inPayers || inParticipants
-      }
-      arr = arr.map((sec) => ({ ...sec, items: sec.items.filter(keepMine) }))
-    }
-
     if (mode === 'UNSETTLED' || filterUserId) {
       arr = arr.filter((sec) => sec.items.length > 0)
     }
-
     return arr
-  }, [sections, filterUserId, mode])
+  }, [sections, mode, filterUserId])
 
-  const toggle = (dateKey) => {
+  const toggle = (dateKey) =>
     setOpenMap((prev) => ({ ...prev, [dateKey]: !prev[dateKey] }))
-  }
 
   if (loading) {
     return (
@@ -151,8 +171,7 @@ const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
       </div>
     )
   }
-
-  if (sections.length === 0) {
+  if (filteredSections.length === 0) {
     return (
       <div className='rounded-[20px] bg-white p-4 text-gray-500 shadow-sm'>
         미정산 내역이 없습니다.
@@ -191,7 +210,6 @@ const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
                   const completed = payers.filter((p) => p?.isCompleted).length
                   const total = payers.length
                   const Icon = typeToIcon(item?.type)
-                  const allDone = total > 0 && completed === total
                   const sid = item?.id ?? item?.settlementId
 
                   return (
@@ -235,8 +253,24 @@ const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
                             </div>
                           </div>
 
+                          {/**진행 배지*/}
                           <div className='self-center'>
                             {(() => {
+                              const allDone = isAllDone(item)
+                              const badgeShadow = {
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                              }
+                              if (allDone && item?.isCompleted === true) {
+                                return (
+                                  <span
+                                    className='inline-flex min-w-[45px] items-center justify-center rounded-full bg-gray-300 px-3 py-1 text-center text-xs font-semibold text-white shadow-sm'
+                                    style={badgeShadow}
+                                  >
+                                    완료
+                                  </span>
+                                )
+                              }
+
                               const creatorId =
                                 item?.createdById ??
                                 item?.createdBy?.id ??
@@ -244,7 +278,6 @@ const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
                                 item?.owner?.id ??
                                 item?.writerId ??
                                 item?.writer?.id
-
                               const isMineCreated =
                                 !!myUserId && creatorId === myUserId
                               const myPayer =
@@ -253,25 +286,6 @@ const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
                                   (p) => (p.userId ?? p.id) === myUserId,
                                 )
                               const iAmPayer = !!myPayer
-
-                              const showDone =
-                                (isMineCreated && allDone) ||
-                                (iAmPayer && !!myPayer?.isCompleted)
-
-                              const badgeShadow = {
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
-                              }
-
-                              if (showDone) {
-                                return (
-                                  <span
-                                    className='inline-flex min-w-[45px] items-center justify-center rounded-full bg-gray-300 px-3 py-1 text-center text-xs font-semibold text-white'
-                                    style={badgeShadow}
-                                  >
-                                    완료
-                                  </span>
-                                )
-                              }
 
                               const pendingBgClass = isMineCreated
                                 ? 'bg-[var(--Blue-Scale-blue-500)]'
@@ -287,7 +301,7 @@ const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
 
                               return (
                                 <span
-                                  className={`inline-flex min-w-[45px] items-center justify-center rounded-full ${pendingBgClass} ${textColorClass} px-3 py-1 text-center text-xs font-semibold`}
+                                  className={`inline-flex min-w-[45px] items-center justify-center rounded-full ${pendingBgClass} ${textColorClass} px-3 py-1 text-center text-xs font-semibold shadow-sm`}
                                   style={badgeShadow}
                                 >
                                   {completed}/{total}
@@ -308,4 +322,5 @@ const SettlementBox = ({ mode, date, onItemClick, filterUserId, myUserId }) => {
     </div>
   )
 }
+
 export default SettlementBox
