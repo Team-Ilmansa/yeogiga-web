@@ -43,14 +43,13 @@ const PhotoAlbum = ({
       place.images.map((image) => ({
         ...image,
         placeName: place.name,
-        placeId: place.id,
       })),
     )
     .concat(unmatchedImages.map((image) => ({ ...image, placeName: '기타' })))
 
   const openModal = (image, place) => {
     if (isAlbumSelectionMode) {
-      handleAlbumImageClick({ ...image, placeId: place ? place.id : null })
+      handleAlbumImageClick(image)
       return
     }
     const imageWithPlace = allImagesForModal.find((img) => img.id === image.id)
@@ -118,7 +117,13 @@ const PhotoAlbum = ({
       : { favorite: newIsFavorite }
 
     try {
-      await updateFavoriteImageApi(tripId, tripDayPlaceId, modalImage.id, body)
+      const tripDayPlaceIdForApi = modalImage.tripDayPlaceId || tripDayPlaceId
+      await updateFavoriteImageApi(
+        tripId,
+        tripDayPlaceIdForApi,
+        modalImage.id,
+        body,
+      )
       alert(
         newIsFavorite
           ? '즐겨찾기에 추가되었습니다.'
@@ -143,7 +148,13 @@ const PhotoAlbum = ({
       : { url: modalImage.url, deleteType: 'UNMATCHED' }
 
     try {
-      await deleteSingleImageApi(tripId, tripDayPlaceId, modalImage.id, body)
+      const tripDayPlaceIdForApi = modalImage.tripDayPlaceId || tripDayPlaceId
+      await deleteSingleImageApi(
+        tripId,
+        tripDayPlaceIdForApi,
+        modalImage.id,
+        body,
+      )
       alert('삭제되었습니다')
       showNextImage()
       onImageAction()

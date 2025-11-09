@@ -11,10 +11,11 @@ import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDate
 import readTemporaryImagesApi from '@/apis/image/readTemporaryImagesApi'
 import readMatchedImagesApi from '@/apis/image/readMatchedImagesApi'
 import readUnmatchedImagesApi from '@/apis/image/readUnmatchedImagesApi'
+import readGroupedImagesByPlace from '@/apis/image/readGroupedImagesByPlace'
 import deleteTemporaryImagesApi from '@/apis/image/deleteTemporaryImagesApi'
 import matchTemporaryImagesApi from '@/apis/image/matchTemporaryImagesApi'
-import deleteSingleImageApi from '@/apis/image/deleteSingleImageApi' // Import deleteSingleImageApi
-import updateFavoriteImageApi from '@/apis/image/updateFavoriteImageApi' // Import updateFavoriteImageApi
+import deleteSingleImageApi from '@/apis/image/deleteSingleImageApi'
+import updateFavoriteImageApi from '@/apis/image/updateFavoriteImageApi'
 import { Link2, Trash2, Heart, Share2, Download } from 'lucide-react'
 import Spinner from '@/assets/common/Spinner'
 
@@ -27,15 +28,13 @@ const GalleryDashBoard = ({ activeTab }) => {
   const [temporaryImages, setTemporaryImages] = useState([])
   const [matchedImages, setMatchedImages] = useState([])
   const [unmatchedImages, setUnmatchedImages] = useState([])
-
-  // Selection states
   const [isTempSelectionMode, setIsTempSelectionMode] = useState(false)
   const [selectedTempImages, setSelectedTempImages] = useState({
     imageIds: [],
     urls: [],
   })
   const [isAlbumSelectionMode, setIsAlbumSelectionMode] = useState(false)
-  const [selectedAlbumImages, setSelectedAlbumImages] = useState([]) // Changed to array of objects
+  const [selectedAlbumImages, setSelectedAlbumImages] = useState([])
 
   const [isUploading, setIsUploading] = useState(false)
   const [uploadCount, setUploadCount] = useState(0)
@@ -120,11 +119,68 @@ const GalleryDashBoard = ({ activeTab }) => {
     }
   }, [activeDay, planningPlaces, tripId])
 
+  const fetchAllDaysImages = useCallback(async () => {
+    if (!tripInfo || !planningPlaces.length) return
+
+    try {
+      const tripDuration =
+        (new Date(tripInfo.endedAt) - new Date(tripInfo.startedAt)) /
+          (1000 * 60 * 60 * 24) +
+        1
+      const dayPromises = Array.from({ length: tripDuration }, (_, i) =>
+        readGroupedImagesByPlace(tripId, i + 1),
+      )
+      const results = await Promise.all(dayPromises)
+
+      const allImages = []
+      results.forEach((result, index) => {
+        const tripDayPlaceId = planningPlaces[index]?.id
+        if (result.data) {
+          result.data.byPlace.forEach((place) => {
+            allImages.push(
+              ...place.images.map((image) => ({
+                ...image,
+                placeId: place.placeId,
+                tripDayPlaceId,
+              })),
+            )
+          })
+          if (result.data.unmatched) {
+            allImages.push(
+              ...result.data.unmatched.map((image) => ({
+                ...image,
+                placeId: null,
+                tripDayPlaceId,
+              })),
+            )
+          }
+        }
+      })
+
+      setMatchedImages([{ id: 'all-days', name: '전체', images: allImages }])
+      setUnmatchedImages([])
+    } catch (err) {
+      console.error('Failed to fetch all images:', err)
+      setMatchedImages([])
+      setUnmatchedImages([])
+    }
+  }, [tripId, tripInfo, planningPlaces])
+
   useEffect(() => {
+    if (activeDay === 0) {
+      fetchAllDaysImages()
+    } else {
+      fetchMatchedImages()
+      fetchUnmatchedImages()
+    }
     fetchTemporaryImages()
-    fetchMatchedImages()
-    fetchUnmatchedImages()
-  }, [fetchTemporaryImages, fetchMatchedImages, fetchUnmatchedImages])
+  }, [
+    activeDay,
+    fetchTemporaryImages,
+    fetchMatchedImages,
+    fetchUnmatchedImages,
+    fetchAllDaysImages,
+  ])
 
   /**임시저장 이미지 선택 모드 */
   const toggleTempSelectionMode = () => {
@@ -184,7 +240,12 @@ const GalleryDashBoard = ({ activeTab }) => {
       } else {
         return [
           ...prev,
-          { id: image.id, url: image.url, placeId: image.placeId },
+          {
+            id: image.id,
+            url: image.url,
+            placeId: image.placeId,
+            tripDayPlaceId: image.tripDayPlaceId,
+          },
         ]
       }
     })
@@ -202,8 +263,11 @@ const GalleryDashBoard = ({ activeTab }) => {
     }
 
     try {
-      const tripDayPlaceId = planningPlaces[activeDay - 1].id
       const deletePromises = selectedAlbumImages.map(async (image) => {
+        const tripDayPlaceId =
+          activeDay > 0
+            ? planningPlaces[activeDay - 1].id
+            : image.tripDayPlaceId
         const body = image.placeId
           ? {
               url: image.url,
@@ -238,8 +302,11 @@ const GalleryDashBoard = ({ activeTab }) => {
     }
 
     try {
-      const tripDayPlaceId = planningPlaces[activeDay - 1].id
       const favoritePromises = selectedAlbumImages.map(async (image) => {
+        const tripDayPlaceId =
+          activeDay > 0
+            ? planningPlaces[activeDay - 1].id
+            : image.tripDayPlaceId
         const body = image.placeId
           ? { placeId: image.placeId, favorite: newFavoriteStatus }
           : { favorite: newFavoriteStatus }
@@ -368,8 +435,12 @@ const GalleryDashBoard = ({ activeTab }) => {
 
   /**전체 데이터 새로고침 */
   const onImageAction = () => {
-    fetchMatchedImages()
-    fetchUnmatchedImages()
+    if (activeDay === 0) {
+      fetchAllDaysImages()
+    } else {
+      fetchMatchedImages()
+      fetchUnmatchedImages()
+    }
     fetchTemporaryImages()
   }
 
