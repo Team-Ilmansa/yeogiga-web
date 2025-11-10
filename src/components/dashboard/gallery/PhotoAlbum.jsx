@@ -2,15 +2,27 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import NoUploadImage from '@/assets/dashboard/NoUploadImage'
 import updateFavoriteImageApi from '@/apis/image/updateFavoriteImageApi'
-import {
-  Check,
-  ArrowLeft,
-  ArrowRight,
-  Download,
-  Trash2,
-  Heart,
-} from 'lucide-react'
+import { Check, ArrowLeft, ArrowRight, Heart } from 'lucide-react'
 import deleteSingleImageApi from '@/apis/image/deleteSingleImageApi'
+import KebabIcon from '@/assets/dashboard/KebabIcon'
+import PhotoKebabModal from '../modal/PhotoKebabModal'
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  let hours = date.getHours()
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const ampm = hours >= 12 ? '오후' : '오전' // AM/PM in Korean
+  hours = hours % 12
+  hours = hours ? hours : 12 // the hour '0' should be '12'
+  hours = String(hours).padStart(2, '0') // Pad with leading zero for single-digit hours
+
+  return `${year}.${month}.${day} ${ampm} ${hours}:${minutes}`
+}
 
 const PhotoAlbum = ({
   tripId,
@@ -29,6 +41,7 @@ const PhotoAlbum = ({
   onImageAction,
 }) => {
   const [modalImage, setModalImage] = useState(null)
+  const [showKebabMenu, setShowKebabMenu] = useState(false)
   const hasTemporaryImages = temporaryImages && temporaryImages.length > 0
   const hasMatchedImages = matchedImages && matchedImages.length > 0
   const hasUnmatchedImages = unmatchedImages && unmatchedImages.length > 0
@@ -42,12 +55,12 @@ const PhotoAlbum = ({
     .flatMap((place) =>
       place.images.map((image) => ({
         ...image,
-        placeName: place.name,
+        placeName: image.placeName || place.name,
       })),
     )
     .concat(unmatchedImages.map((image) => ({ ...image, placeName: '기타' })))
 
-  const openModal = (image, place) => {
+  const openModal = (image) => {
     if (isAlbumSelectionMode) {
       handleAlbumImageClick(image)
       return
@@ -58,6 +71,7 @@ const PhotoAlbum = ({
 
   const closeModal = () => {
     setModalImage(null)
+    setShowKebabMenu(false)
   }
 
   const showNextImage = (e) => {
@@ -105,6 +119,7 @@ const PhotoAlbum = ({
       console.error('다운로드 실패: ', err)
       alert('이미지 다운로드에 실패했습니다.')
     }
+    setShowKebabMenu(false)
   }
 
   const handleFavoriteClick = async (e) => {
@@ -124,15 +139,13 @@ const PhotoAlbum = ({
         modalImage.id,
         body,
       )
-      alert(
-        newIsFavorite
-          ? '즐겨찾기에 추가되었습니다.'
-          : '즐겨찾기에서 해제되었습니다.',
-      )
+
       setModalImage({ ...modalImage, isFavorite: newIsFavorite })
+      onImageAction()
     } catch (err) {
       alert(err.message || '즐겨찾기 처리에 실패했습니다.')
     }
+    setShowKebabMenu(false)
   }
 
   const handleSingleDelete = async (e) => {
@@ -140,7 +153,7 @@ const PhotoAlbum = ({
     if (!modalImage) return
 
     const body = modalImage.placeId
-      ? {
+      ? { 
           url: modalImage.url,
           placeId: modalImage.placeId,
           deleteType: 'PLACE',
@@ -156,11 +169,33 @@ const PhotoAlbum = ({
         body,
       )
       alert('삭제되었습니다')
+      setShowKebabMenu(false)
       showNextImage()
       onImageAction()
     } catch (err) {
       alert(err.message || '사진 삭제에 실패했습니다.')
     }
+  }
+
+  const handleShare = async (e) => {
+    e.stopPropagation()
+    if (!modalImage) return
+
+    const shareText = `[여기가] 여행 이미지 공유\n\n${modalImage.url}`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '여기가 여행 이미지 공유',
+          text: shareText,
+        })
+      } catch (err) {
+        console.error('Share failed:', err)
+      }
+    } else {
+      alert('사용 중인 브라우저에서는 공유 기능을 지원하지 않습니다.')
+    }
+    setShowKebabMenu(false)
   }
 
   return (
@@ -294,10 +329,35 @@ const PhotoAlbum = ({
       {modalImage &&
         createPortal(
           <div
-            className='bg-opacity-50 fixed inset-0 z-100 flex flex-col gap-5 bg-black/90 p-10'
+            className='fixed inset-0 z-100 flex flex-col bg-black/90 p-10'
             onClick={closeModal}
           >
-            <div className='flex h-9/10 w-full items-center justify-between'>
+            <div className='absolute left-1/2 top-5 -translate-x-1/2 text-center text-white'>
+              <h2 className='text-lg font-bold'>{modalImage.placeName}</h2>
+              <p className='text-sm'>{formatDate(modalImage.date)}</p>
+            </div>
+            <div className='absolute right-5 top-5 z-[120] flex gap-2'>
+              <button
+                className='border-none text-white'
+                onClick={handleFavoriteClick}
+              >
+                <Heart
+                  className='h-6 w-6'
+                  fill={modalImage.isFavorite ? 'var(--Blue-Scale-blue-500)' : 'none'}
+                  color={modalImage.isFavorite ? 'var(--Blue-Scale-blue-500)' : 'white'}
+                />
+              </button>
+              <button
+                className='border-none text-white'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowKebabMenu(!showKebabMenu)
+                }}
+              >
+                <KebabIcon color='white' />
+              </button>
+            </div>
+            <div className='flex h-full w-full items-center justify-between'>
               <button
                 className='border-none text-white'
                 onClick={showPrevImage}
@@ -305,7 +365,6 @@ const PhotoAlbum = ({
                 <ArrowLeft size={48} />
               </button>
               <div className='flex h-full flex-col items-center justify-center p-10'>
-                <div className='p-2 text-white'>{modalImage.placeName}</div>
                 <img
                   src={modalImage.url}
                   alt='enlarged'
@@ -320,35 +379,14 @@ const PhotoAlbum = ({
                 <ArrowRight size={48} />
               </button>
             </div>
-            <div className='flex items-center justify-center text-white'>
-              <button
-                className='flex w-70 flex-col items-center justify-center gap-2 border-none'
-                onClick={handleSingleDelete}
-              >
-                <Trash2 size={48} />
-                <span>삭제</span>
-              </button>
-              <div className='h-10 border-2 border-l border-white' />
-              <button
-                className='flex w-70 flex-col items-center justify-center gap-2 border-none'
-                onClick={handleFavoriteClick}
-              >
-                <Heart
-                  size={48}
-                  fill={modalImage.favorite ? 'red' : 'none'}
-                  color={modalImage.favorite ? 'red' : 'white'}
-                />
-                <span>즐겨찾기</span>
-              </button>
-              <div className='h-10 border-2 border-l border-white' />
-              <button
-                className='flex w-70 flex-col items-center justify-center gap-2 border-none'
-                onClick={handleDownload}
-              >
-                <Download size={48} />
-                <span>내 PC에 다운로드</span>
-              </button>
-            </div>
+            {showKebabMenu && (
+              <PhotoKebabModal
+                onClose={() => setShowKebabMenu(false)}
+                onDelete={handleSingleDelete}
+                onDownload={handleDownload}
+                onShare={handleShare}
+              />
+            )}
           </div>,
           document.getElementById('root'),
         )}
