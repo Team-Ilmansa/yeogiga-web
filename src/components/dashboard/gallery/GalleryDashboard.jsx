@@ -122,6 +122,13 @@ const GalleryDashBoard = ({ activeTab }) => {
   const fetchAllDaysImages = useCallback(async () => {
     if (!tripInfo || !planningPlaces.length) return
 
+    const placeNameMap = new Map()
+    planningPlaces.forEach((day) => {
+      day.places.forEach((place) => {
+        placeNameMap.set(place.id, place.name)
+      })
+    })
+
     try {
       const tripDuration =
         (new Date(tripInfo.endedAt) - new Date(tripInfo.startedAt)) /
@@ -137,11 +144,13 @@ const GalleryDashBoard = ({ activeTab }) => {
         const tripDayPlaceId = planningPlaces[index]?.id
         if (result.data) {
           result.data.byPlace.forEach((place) => {
+            const placeName = placeNameMap.get(place.placeId) || '알 수 없는 장소'
             allImages.push(
               ...place.images.map((image) => ({
                 ...image,
                 placeId: place.placeId,
                 tripDayPlaceId,
+                placeName: placeName,
               })),
             )
           })
@@ -151,6 +160,7 @@ const GalleryDashBoard = ({ activeTab }) => {
                 ...image,
                 placeId: null,
                 tripDayPlaceId,
+                placeName: '기타',
               })),
             )
           }
