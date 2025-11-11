@@ -19,7 +19,7 @@ import updateFavoriteImageApi from '@/apis/image/updateFavoriteImageApi'
 import { Link2, Trash2, Heart, Share2, Download } from 'lucide-react'
 import Spinner from '@/assets/common/Spinner'
 
-const GalleryDashBoard = ({ activeTab }) => {
+const GalleryDashBoard = ({ activeTab, showFavorites = false }) => {
   const { tripId } = useParams()
   const [tripInfo, setTripInfo] = useState(null)
   const fileInputRef = useRef(null)
@@ -35,6 +35,7 @@ const GalleryDashBoard = ({ activeTab }) => {
   })
   const [isAlbumSelectionMode, setIsAlbumSelectionMode] = useState(false)
   const [selectedAlbumImages, setSelectedAlbumImages] = useState([])
+  const [refreshKey, setRefreshKey] = useState(0) // Add refreshKey state
 
   const [isUploading, setIsUploading] = useState(false)
   const [uploadCount, setUploadCount] = useState(0)
@@ -85,12 +86,20 @@ const GalleryDashBoard = ({ activeTab }) => {
         const dayData = planningPlaces[activeDay - 1]
         const tripDayPlaceId = dayData.id
         if (dayData.places && dayData.places.length > 0) {
-          const imagePromises = dayData.places.map((place) =>
-            readMatchedImagesApi(tripId, tripDayPlaceId, place.id),
+          const placesWithImages = await Promise.all(
+            dayData.places.map(async (place) => {
+              const result = await readMatchedImagesApi(
+                tripId,
+                tripDayPlaceId,
+                place.id,
+              )
+              return {
+                ...place,
+                images: (result.data && result.data.images) || [],
+              }
+            }),
           )
-          const results = await Promise.all(imagePromises)
-          const allImages = results.flatMap((result) => result.data || [])
-          setMatchedImages(allImages)
+          setMatchedImages(placesWithImages)
         } else {
           setMatchedImages([])
         }
@@ -144,7 +153,8 @@ const GalleryDashBoard = ({ activeTab }) => {
         const tripDayPlaceId = planningPlaces[index]?.id
         if (result.data) {
           result.data.byPlace.forEach((place) => {
-            const placeName = placeNameMap.get(place.placeId) || '알 수 없는 장소'
+            const placeName =
+              placeNameMap.get(place.placeId) || '알 수 없는 장소'
             allImages.push(
               ...place.images.map((image) => ({
                 ...image,
@@ -176,21 +186,95 @@ const GalleryDashBoard = ({ activeTab }) => {
     }
   }, [tripId, tripInfo, planningPlaces])
 
-  useEffect(() => {
-    if (activeDay === 0) {
-      fetchAllDaysImages()
-    } else {
-      fetchMatchedImages()
-      fetchUnmatchedImages()
+  const fetchAllFavoriteImages = useCallback(async () => {
+    if (!tripInfo || !planningPlaces.length) return
+
+    const placeNameMap = new Map()
+    planningPlaces.forEach((day) => {
+      day.places.forEach((place) => {
+        placeNameMap.set(place.id, place.name)
+      })
+    })
+
+    try {
+      const tripDuration =
+        (new Date(tripInfo.endedAt) - new Date(tripInfo.startedAt)) /
+          (1000 * 60 * 60 * 24) +
+        1
+      const dayPromises = Array.from({ length: tripDuration }, (_, i) =>
+        readGroupedImagesByPlace(tripId, i + 1),
+      )
+      const results = await Promise.all(dayPromises)
+
+      let allImages = []
+      results.forEach((result, index) => {
+        const tripDayPlaceId = planningPlaces[index]?.id
+        if (result.data) {
+          result.data.byPlace.forEach((place) => {
+            const placeName =
+              placeNameMap.get(place.placeId) || '알 수 없는 장소'
+            allImages.push(
+              ...place.images.map((image) => ({
+                ...image,
+                placeId: place.placeId,
+                tripDayPlaceId,
+                placeName: placeName,
+              })),
+            )
+          })
+          if (result.data.unmatched) {
+            allImages.push(
+              ...result.data.unmatched.map((image) => ({
+                ...image,
+                placeId: null,
+                tripDayPlaceId,
+                placeName: '기타',
+              })),
+            )
+          }
+        }
+      })
+
+      const favoriteImages = allImages.filter((image) => image.favorite)
+
+      setMatchedImages([
+        { id: 'favorites', name: '즐겨찾는 사진', images: favoriteImages },
+      ])
+      setUnmatchedImages([])
+      setTemporaryImages([]) // No temporary images in favorites view
+    } catch (err) {
+      console.error('Failed to fetch favorite images:', err)
+      setMatchedImages([])
+      setUnmatchedImages([])
     }
-    fetchTemporaryImages()
+  }, [tripId, tripInfo, planningPlaces])
+
+  const onImageAction = useCallback(() => {
+    if (showFavorites) {
+      fetchAllFavoriteImages()
+    } else {
+      if (activeDay === 0) {
+        fetchAllDaysImages()
+      } else {
+        fetchMatchedImages()
+        fetchUnmatchedImages()
+      }
+      fetchTemporaryImages()
+    }
+    setRefreshKey((prevKey) => prevKey + 1)
   }, [
     activeDay,
+    showFavorites,
     fetchTemporaryImages,
     fetchMatchedImages,
     fetchUnmatchedImages,
     fetchAllDaysImages,
+    fetchAllFavoriteImages,
   ])
+
+  useEffect(() => {
+    onImageAction()
+  }, [onImageAction])
 
   /**임시저장 이미지 선택 모드 */
   const toggleTempSelectionMode = () => {
@@ -443,26 +527,18 @@ const GalleryDashBoard = ({ activeTab }) => {
     }
   }
 
-  /**전체 데이터 새로고침 */
-  const onImageAction = () => {
-    if (activeDay === 0) {
-      fetchAllDaysImages()
-    } else {
-      fetchMatchedImages()
-      fetchUnmatchedImages()
-    }
-    fetchTemporaryImages()
-  }
-
   return (
     <div className='pb-[150px]'>
-      <DayTabs
-        startedAt={tripInfo.startedAt}
-        endedAt={tripInfo.endedAt}
-        activeDay={activeDay}
-        onDayChange={setActiveDay}
-      />
+      {!showFavorites && (
+        <DayTabs
+          startedAt={tripInfo.startedAt}
+          endedAt={tripInfo.endedAt}
+          activeDay={activeDay}
+          onDayChange={setActiveDay}
+        />
+      )}
       <PhotoAlbum
+        key={refreshKey} // Add key prop
         tripId={tripId}
         tripDayPlaceId={
           activeDay > 0 && planningPlaces.length >= activeDay
@@ -481,6 +557,7 @@ const GalleryDashBoard = ({ activeTab }) => {
         toggleAlbumSelectionMode={toggleAlbumSelectionMode}
         handleAlbumImageClick={handleAlbumImageClick}
         onImageAction={onImageAction}
+        showFavorites={showFavorites}
       />
 
       <input
@@ -492,7 +569,7 @@ const GalleryDashBoard = ({ activeTab }) => {
         multiple
       />
 
-      {activeTab === 1 && (
+      {activeTab === 1 && !showFavorites && (
         <FixedActionBar className='flex justify-center'>
           <div className='flex w-4xl items-center justify-center rounded-t-[20px] bg-white p-[20px] shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
             {isUploading ? (
