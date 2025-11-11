@@ -53,10 +53,15 @@ const PhotoAlbum = ({
 
   const allImagesForModal = matchedImages
     .flatMap((place) =>
-      place.images.map((image) => ({
-        ...image,
-        placeName: image.placeName || place.name,
-      })),
+      (place.images || []).map((image) => {
+        const isSpecialView =
+          place.id === 'all-days' || place.id === 'favorites'
+        return {
+          ...image,
+          placeId: isSpecialView ? image.placeId : place.id,
+          placeName: image.placeName || place.name,
+        }
+      }),
     )
     .concat(unmatchedImages.map((image) => ({ ...image, placeName: '기타' })))
 
@@ -72,6 +77,7 @@ const PhotoAlbum = ({
   const closeModal = () => {
     setModalImage(null)
     setShowKebabMenu(false)
+    onImageAction() // Always refresh the main album view when modal closes
   }
 
   const showNextImage = (e) => {
@@ -126,7 +132,7 @@ const PhotoAlbum = ({
     e.stopPropagation()
     if (!modalImage) return
 
-    const newIsFavorite = !modalImage.isFavorite
+    const newIsFavorite = !modalImage.favorite
     const body = modalImage.placeId
       ? { placeId: modalImage.placeId, favorite: newIsFavorite }
       : { favorite: newIsFavorite }
@@ -140,7 +146,7 @@ const PhotoAlbum = ({
         body,
       )
 
-      setModalImage({ ...modalImage, isFavorite: newIsFavorite })
+      setModalImage({ ...modalImage, favorite: newIsFavorite })
       onImageAction()
     } catch (err) {
       alert(err.message || '즐겨찾기 처리에 실패했습니다.')
@@ -153,7 +159,7 @@ const PhotoAlbum = ({
     if (!modalImage) return
 
     const body = modalImage.placeId
-      ? { 
+      ? {
           url: modalImage.url,
           placeId: modalImage.placeId,
           deleteType: 'PLACE',
@@ -161,7 +167,8 @@ const PhotoAlbum = ({
       : { url: modalImage.url, deleteType: 'UNMATCHED' }
 
     try {
-      const tripDayPlaceIdForApi = modalImage.tripDayPlaceId || tripDayPlaceId
+      const tripDayPlaceIdForApi =
+        modalImage.tripDayPlaceId || modalImage.tripDayPlaceId
       await deleteSingleImageApi(
         tripId,
         tripDayPlaceIdForApi,
@@ -274,13 +281,22 @@ const PhotoAlbum = ({
                   <div
                     key={image.id}
                     className='relative aspect-square cursor-pointer'
-                    onClick={() => openModal(image, place)}
+                    onClick={() => openModal(image)}
                   >
                     <img
                       src={image.url}
                       alt={`matched image ${image.id}`}
                       className='h-full w-full rounded-2xl object-cover'
                     />
+                    {image.favorite && (
+                      <div className='absolute top-2 right-2'>
+                        <Heart
+                          size={24}
+                          fill='var(--Blue-Scale-blue-500)'
+                          color='var(--Blue-Scale-blue-500)'
+                        />
+                      </div>
+                    )}
                     {selectedAlbumImages.some((img) => img.id === image.id) && (
                       <div className='absolute inset-0 flex items-center justify-center rounded-2xl bg-[var(--Blue-Scale-blue-500)] opacity-50' />
                     )}
@@ -307,6 +323,15 @@ const PhotoAlbum = ({
                     alt={`matched image ${image.id}`}
                     className='h-full w-full rounded-2xl object-cover'
                   />
+                  {image.favorite && (
+                    <div className='absolute top-2 right-2'>
+                      <Heart
+                        size={24}
+                        fill='var(--Blue-Scale-blue-500)'
+                        color='var(--Blue-Scale-blue-500)'
+                      />
+                    </div>
+                  )}
                   {selectedAlbumImages.some((img) => img.id === image.id) && (
                     <div className='absolute inset-0 flex items-center justify-center rounded-2xl bg-[var(--Blue-Scale-blue-500)] opacity-50' />
                   )}
@@ -332,19 +357,23 @@ const PhotoAlbum = ({
             className='fixed inset-0 z-100 flex flex-col bg-black/90 p-10'
             onClick={closeModal}
           >
-            <div className='absolute left-1/2 top-5 -translate-x-1/2 text-center text-white'>
+            <div className='absolute top-5 left-1/2 -translate-x-1/2 text-center text-white'>
               <h2 className='text-lg font-bold'>{modalImage.placeName}</h2>
               <p className='text-sm'>{formatDate(modalImage.date)}</p>
             </div>
-            <div className='absolute right-5 top-5 z-[120] flex gap-2'>
+            <div className='absolute top-5 right-5 z-[120] flex gap-2'>
               <button
                 className='border-none text-white'
                 onClick={handleFavoriteClick}
               >
                 <Heart
                   className='h-6 w-6'
-                  fill={modalImage.isFavorite ? 'var(--Blue-Scale-blue-500)' : 'none'}
-                  color={modalImage.isFavorite ? 'var(--Blue-Scale-blue-500)' : 'white'}
+                  fill={
+                    modalImage.favorite ? 'var(--Blue-Scale-blue-500)' : 'none'
+                  }
+                  color={
+                    modalImage.favorite ? 'var(--Blue-Scale-blue-500)' : 'white'
+                  }
                 />
               </button>
               <button

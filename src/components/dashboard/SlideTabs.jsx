@@ -98,7 +98,9 @@ const SlideTabs = ({ isScheduleConfirmed }) => {
         </SwiperSlide>
 
         <SwiperSlide className='h-full !w-full'>
-          <div className='w-full'>⭐ 즐겨찾는 사진 내용</div>
+          <div className='mt-5 h-full w-full'>
+            <GalleryDashBoard activeTab={activeTab} showFavorites={true} />
+          </div>
         </SwiperSlide>
       </Swiper>
     </div>
