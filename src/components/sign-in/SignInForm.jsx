@@ -78,7 +78,8 @@ const SignInForm = () => {
 
           {/* 각종 버튼 */}
           <div className='mx-auto my-[50px] text-lg text-[var(--Grey-Scale-grey-300)]'>
-            <Link>아이디 찾기</Link>&nbsp;|&nbsp;<Link>비밀번호 찾기</Link>
+            <Link to={'/user/help/id'}>아이디 찾기</Link>&nbsp;|&nbsp;
+            <Link>비밀번호 찾기</Link>
             &nbsp;|&nbsp;<Link to={'/signup'}>회원가입하기</Link>
           </div>
         </div>
