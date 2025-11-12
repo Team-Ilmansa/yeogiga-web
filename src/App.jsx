@@ -23,6 +23,8 @@ import SettlementDetail from './pages/SettlementDetail'
 import RallyMap from './pages/RallyMap'
 import RallyPointViewer from './pages/RallyPointViewer'
 import SettlementEdit from './pages/SettlementEdit'
+import FindId from './pages/FindId'
+import FindIdResult from './pages/FindIdResult'
 
 const App = () => {
   return (
@@ -38,7 +40,8 @@ const App = () => {
             <Route path='signup/guest' element={<GuestSignUp />} />
             {/* TODO: 추후 페이지 변경 예정 */}
             <Route path='restore/account' element={<RestoreAccount />} />
-
+            <Route path='user/help/id' element={<FindId />} />
+            <Route path='user/help/id/result' element={<FindIdResult />} />
             {/* 보호된 비공개 라우트 */}
             <Route element={<ProtectedRoute />}>
               <Route path='/' element={<Home />} />
