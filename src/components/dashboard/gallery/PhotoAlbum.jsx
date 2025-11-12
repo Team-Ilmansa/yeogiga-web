@@ -2,10 +2,35 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import NoUploadImage from '@/assets/dashboard/NoUploadImage'
 import updateFavoriteImageApi from '@/apis/image/updateFavoriteImageApi'
+import {
+  moveMatchedToMatched,
+  moveUnmatchedToMatched,
+} from '@/apis/image/moveImageApi'
 import { Check, ArrowLeft, ArrowRight, Heart } from 'lucide-react'
 import deleteSingleImageApi from '@/apis/image/deleteSingleImageApi'
 import KebabIcon from '@/assets/dashboard/KebabIcon'
 import PhotoKebabModal from '../modal/PhotoKebabModal'
+import TouristIcon from '@/assets/map/category/TouristIcon'
+import LodgingIcon from '@/assets/map/category/LodgingIcon'
+import MealIcon from '@/assets/map/category/MealIcon'
+import TransportIcon from '@/assets/map/category/TransportIcon'
+import EtcIcon from '@/assets/map/category/EtcIcon'
+
+const categoryIcons = {
+  관광지: TouristIcon,
+  숙소: LodgingIcon,
+  식당: MealIcon,
+  이동수단: TransportIcon,
+  기타: EtcIcon,
+}
+
+const categoryColors = {
+  관광지: '#F87C7C',
+  숙소: '#66CD7A',
+  식당: '#8CB6E8',
+  이동수단: '#F19B55',
+  기타: '#C161EE',
+}
 
 const formatDate = (dateString) => {
   if (!dateString) return ''
@@ -39,9 +64,13 @@ const PhotoAlbum = ({
   toggleAlbumSelectionMode,
   handleAlbumImageClick,
   onImageAction,
+  planningPlaces,
 }) => {
   const [modalImage, setModalImage] = useState(null)
   const [showKebabMenu, setShowKebabMenu] = useState(false)
+  const [showMoveLocationModal, setShowMoveLocationModal] = useState(false)
+  const [selectedDayForMove, setSelectedDayForMove] = useState(1)
+  const [selectedPlaceForMove, setSelectedPlaceForMove] = useState(null)
   const hasTemporaryImages = temporaryImages && temporaryImages.length > 0
   const hasMatchedImages = matchedImages && matchedImages.length > 0
   const hasUnmatchedImages = unmatchedImages && unmatchedImages.length > 0
@@ -203,6 +232,94 @@ const PhotoAlbum = ({
       alert('사용 중인 브라우저에서는 공유 기능을 지원하지 않습니다.')
     }
     setShowKebabMenu(false)
+  }
+
+  const handleMoveLocation = (e) => {
+    e.stopPropagation()
+    setShowKebabMenu(false)
+    setShowMoveLocationModal(true)
+  }
+
+  const handleConfirmMove = async () => {
+    if (!selectedPlaceForMove) return
+
+    try {
+      if (modalImage.placeId) {
+        // Matched to Matched
+        let fromTripDayPlaceId = null
+        let toTripDayPlaceId = null
+
+        for (const day of planningPlaces) {
+          if (!fromTripDayPlaceId) {
+            const foundPlace = day.places.find(
+              (p) => p.id === modalImage.placeId,
+            )
+            if (foundPlace) {
+              fromTripDayPlaceId = day.id // Corrected: was foundPlace.id
+            }
+          }
+          if (!toTripDayPlaceId) {
+            const foundPlace = day.places.find(
+              (p) => p.id === selectedPlaceForMove.id,
+            )
+            if (foundPlace) {
+              toTripDayPlaceId = day.id // Corrected: was selectedPlaceForMove.tripDayPlaceId
+            }
+          }
+          if (fromTripDayPlaceId && toTripDayPlaceId) {
+            break
+          }
+        }
+
+        if (!fromTripDayPlaceId) {
+          alert('사진의 원래 위치 정보를 찾을 수 없습니다.')
+          return
+        }
+        if (!toTripDayPlaceId) {
+          alert('사진을 옮길 위치 정보를 찾을 수 없습니다.')
+          return
+        }
+
+        const data = {
+          fromTripDayPlaceId: fromTripDayPlaceId,
+          fromPlaceId: modalImage.placeId,
+          toTripDayPlaceId: toTripDayPlaceId,
+          toPlaceId: selectedPlaceForMove.id,
+          imageId: modalImage.id,
+        }
+        await moveMatchedToMatched(tripId, data)
+      } else {
+        // Unmatched to Matched
+        let toTripDayPlaceId = null
+        for (const day of planningPlaces) {
+          const foundPlace = day.places.find(
+            (p) => p.id === selectedPlaceForMove.id,
+          )
+          if (foundPlace) {
+            toTripDayPlaceId = day.id
+            break
+          }
+        }
+
+        if (!toTripDayPlaceId) {
+          alert('사진을 옮길 위치 정보를 찾을 수 없습니다.')
+          return
+        }
+
+        const data = {
+          placeId: selectedPlaceForMove.id,
+          imageId: modalImage.id,
+        }
+        await moveUnmatchedToMatched(tripId, toTripDayPlaceId, data)
+      }
+      alert('사진 위치가 변경되었습니다.')
+      setShowMoveLocationModal(false)
+      setSelectedPlaceForMove(null)
+      onImageAction()
+      closeModal()
+    } catch (err) {
+      alert(err.message || '사진 위치 변경에 실패했습니다.')
+    }
   }
 
   return (
@@ -414,7 +531,82 @@ const PhotoAlbum = ({
                 onDelete={handleSingleDelete}
                 onDownload={handleDownload}
                 onShare={handleShare}
+                onMoveLocation={handleMoveLocation}
               />
+            )}
+            {showMoveLocationModal && (
+              <div
+                className='absolute inset-0 z-[130] flex items-center justify-center'
+                style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowMoveLocationModal(false)
+                }}
+              >
+                <div
+                  className='flex h-5/6 max-h-[90vh] w-11/12 max-w-2xl flex-col overflow-y-auto rounded-lg bg-white p-8'
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h2 className='mb-4 text-center text-lg font-bold'>
+                    사진 위치 옮기기
+                  </h2>
+                  <div className='mb-4 flex flex-wrap gap-[6px]'>
+                    {planningPlaces.map((day, index) => (
+                      <button
+                        key={day.id}
+                        onClick={() => setSelectedDayForMove(index + 1)}
+                        className={`cursor-pointer rounded-full px-4 py-1 text-base ${
+                          selectedDayForMove === index + 1
+                            ? 'bg-[var(--Blue-Scale-blue-500)] text-white'
+                            : 'border border-gray-300 bg-white text-gray-500'
+                        }`}
+                      >
+                        DAY {index + 1}
+                      </button>
+                    ))}
+                  </div>
+                  <div className='flex flex-grow flex-col gap-2'>
+                    {planningPlaces[selectedDayForMove - 1]?.places.map(
+                      (place) => {
+                        const Icon = categoryIcons[place.placeType] || EtcIcon
+                        const color =
+                          categoryColors[place.placeType] || '#C161EE'
+                        return (
+                          <button
+                            key={place.id}
+                            onClick={() => setSelectedPlaceForMove(place)}
+                            className='flex items-center justify-start gap-5 border-none'
+                          >
+                            <div className='flex h-10 w-10 items-center justify-center rounded-full'>
+                              <Icon size={40} color={color} />
+                            </div>
+                            <div
+                              className={`flex w-full justify-between rounded-2xl p-5 text-base ${
+                                selectedPlaceForMove?.id === place.id
+                                  ? 'border border-[var(--Blue-Scale-blue-500)] bg-[var(--Blue-Scale-blue-100)] text-[var(--Blue-Scale-blue-500)]'
+                                  : 'bg-[var(--Grey-Scale-grey-100)] text-[var(--Grey-Scale-grey-300)]'
+                              }`}
+                            >
+                              <span>{place.name}</span>
+                            </div>
+                          </button>
+                        )
+                      },
+                    )}
+                  </div>
+                  <button
+                    onClick={handleConfirmMove}
+                    disabled={!selectedPlaceForMove}
+                    className={`mt-4 w-full rounded-lg py-3 text-white ${
+                      selectedPlaceForMove
+                        ? 'bg-[var(--Blue-Scale-blue-500)]'
+                        : 'cursor-not-allowed bg-gray-300'
+                    }`}
+                  >
+                    사진 옮기기
+                  </button>
+                </div>
+              </div>
             )}
           </div>,
           document.getElementById('root'),

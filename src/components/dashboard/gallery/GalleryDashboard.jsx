@@ -558,6 +558,7 @@ const GalleryDashBoard = ({ activeTab, showFavorites = false }) => {
         handleAlbumImageClick={handleAlbumImageClick}
         onImageAction={onImageAction}
         showFavorites={showFavorites}
+        planningPlaces={planningPlaces}
       />
 
       <input

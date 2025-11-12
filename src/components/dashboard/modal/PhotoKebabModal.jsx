@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react'
 import { Download, Trash2, Share2 } from 'lucide-react'
+import MapPin from '@/assets/map/MapPin'
 
 const PhotoKebabModal = ({
   onClose,
   onDelete,
   onDownload,
   onShare,
+  onMoveLocation,
 }) => {
   useEffect(() => {
     const scrollBarWidth =
@@ -46,9 +48,12 @@ const PhotoKebabModal = ({
             <Share2 className='h-5 w-5' />
             공유하기
           </button>
+          <button onClick={onMoveLocation} className={buttonStyle}>
+            <MapPin color='black' size='20' />
+            위치 옮기기
+          </button>
           <button onClick={onDownload} className={buttonStyle}>
-            <Download className='h-5 w-5' />
-            내 PC에 다운로드
+            <Download className='h-5 w-5' />내 PC에 다운로드
           </button>
         </div>
       </div>
