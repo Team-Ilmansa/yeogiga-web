@@ -5,6 +5,7 @@ import updateFavoriteImageApi from '@/apis/image/updateFavoriteImageApi'
 import {
   moveMatchedToMatched,
   moveUnmatchedToMatched,
+  moveMatchedToUnmatched, // 추가
 } from '@/apis/image/moveImageApi'
 import { Check, ArrowLeft, ArrowRight, Heart } from 'lucide-react'
 import deleteSingleImageApi from '@/apis/image/deleteSingleImageApi'
@@ -244,7 +245,38 @@ const PhotoAlbum = ({
     if (!selectedPlaceForMove) return
 
     try {
-      if (modalImage.placeId) {
+      // Matched to Unmatched (기타로 이동)
+      if (modalImage.placeId && selectedPlaceForMove.id === 'unmatched-etc') {
+        let fromTripDayPlaceId = null
+        for (const day of planningPlaces) {
+          const foundPlace = day.places.find((p) => p.id === modalImage.placeId)
+          if (foundPlace) {
+            fromTripDayPlaceId = day.id
+            break
+          }
+        }
+
+        if (!fromTripDayPlaceId) {
+          alert('사진의 원래 위치 정보를 찾을 수 없습니다.')
+          return
+        }
+
+        const data = {
+          placeId: modalImage.placeId,
+          imageId: modalImage.id,
+        }
+        await moveMatchedToUnmatched(tripId, fromTripDayPlaceId, data)
+        alert('사진 위치가 변경되었습니다.')
+      }
+      // Unmatched to Unmatched (기타에서 기타로 이동)
+      else if (
+        !modalImage.placeId &&
+        selectedPlaceForMove.id === 'unmatched-etc'
+      ) {
+        alert('이미 기타에 있는 사진입니다.')
+      }
+      // 기존 로직 (Matched to Matched 또는 Unmatched to Matched)
+      else if (modalImage.placeId) {
         // Matched to Matched
         let fromTripDayPlaceId = null
         let toTripDayPlaceId = null
@@ -255,7 +287,7 @@ const PhotoAlbum = ({
               (p) => p.id === modalImage.placeId,
             )
             if (foundPlace) {
-              fromTripDayPlaceId = day.id // Corrected: was foundPlace.id
+              fromTripDayPlaceId = day.id
             }
           }
           if (!toTripDayPlaceId) {
@@ -263,7 +295,7 @@ const PhotoAlbum = ({
               (p) => p.id === selectedPlaceForMove.id,
             )
             if (foundPlace) {
-              toTripDayPlaceId = day.id // Corrected: was selectedPlaceForMove.tripDayPlaceId
+              toTripDayPlaceId = day.id
             }
           }
           if (fromTripDayPlaceId && toTripDayPlaceId) {
@@ -288,6 +320,7 @@ const PhotoAlbum = ({
           imageId: modalImage.id,
         }
         await moveMatchedToMatched(tripId, data)
+        alert('사진 위치가 변경되었습니다.')
       } else {
         // Unmatched to Matched
         let toTripDayPlaceId = null
@@ -311,8 +344,9 @@ const PhotoAlbum = ({
           imageId: modalImage.id,
         }
         await moveUnmatchedToMatched(tripId, toTripDayPlaceId, data)
+        alert('사진 위치가 변경되었습니다.')
       }
-      alert('사진 위치가 변경되었습니다.')
+
       setShowMoveLocationModal(false)
       setSelectedPlaceForMove(null)
       onImageAction()
@@ -566,8 +600,27 @@ const PhotoAlbum = ({
                     ))}
                   </div>
                   <div className='flex flex-grow flex-col gap-2'>
-                    {planningPlaces[selectedDayForMove - 1]?.places.map(
-                      (place) => {
+                    {(() => {
+                      const currentDayPlaces =
+                        planningPlaces[selectedDayForMove - 1]?.places || []
+                      let places = []
+                      if (
+                        planningPlaces[selectedDayForMove - 1].id ==
+                        modalImage.tripDayPlaceId
+                      ) {
+                        places = [
+                          ...currentDayPlaces,
+                          {
+                            id: 'unmatched-etc',
+                            name: '기타',
+                            placeType: '기타',
+                          },
+                        ]
+                      } else {
+                        places = currentDayPlaces
+                      }
+
+                      return places.map((place) => {
                         const Icon = categoryIcons[place.placeType] || EtcIcon
                         const color =
                           categoryColors[place.placeType] || '#C161EE'
@@ -591,8 +644,8 @@ const PhotoAlbum = ({
                             </div>
                           </button>
                         )
-                      },
-                    )}
+                      })
+                    })()}
                   </div>
                   <button
                     onClick={handleConfirmMove}
