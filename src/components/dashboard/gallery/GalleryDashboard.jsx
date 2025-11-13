@@ -16,8 +16,16 @@ import deleteTemporaryImagesApi from '@/apis/image/deleteTemporaryImagesApi'
 import matchTemporaryImagesApi from '@/apis/image/matchTemporaryImagesApi'
 import deleteSingleImageApi from '@/apis/image/deleteSingleImageApi'
 import updateFavoriteImageApi from '@/apis/image/updateFavoriteImageApi'
-import { Link2, Trash2, Heart, Share2, Download } from 'lucide-react'
+import {
+  Link2,
+  Trash2,
+  Heart,
+  Share2,
+  Download,
+  RefreshCcw,
+} from 'lucide-react'
 import Spinner from '@/assets/common/Spinner'
+import reassignImagesApi from '@/apis/image/reassignImagesApi'
 
 const GalleryDashBoard = ({ activeTab, showFavorites = false }) => {
   const { tripId } = useParams()
@@ -527,6 +535,21 @@ const GalleryDashBoard = ({ activeTab, showFavorites = false }) => {
     }
   }
 
+  /**이미지 재정렬 함수 */
+  const handleReMatchImages = async () => {
+    if (activeDay > 0 && planningPlaces.length > 0) {
+      try {
+        const tripDayPlaceId = planningPlaces[activeDay - 1].id
+        await reassignImagesApi(tripId, tripDayPlaceId)
+        alert('이미지 재정렬이 완료되었습니다.')
+        fetchTemporaryImages()
+        onImageAction()
+      } catch (err) {
+        alert(err.message || '이미지 재정렬을 실패했습니다.')
+      }
+    }
+  }
+
   return (
     <div className='pb-[150px]'>
       {!showFavorites && (
@@ -645,13 +668,22 @@ const GalleryDashBoard = ({ activeTab, showFavorites = false }) => {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={handleUploadClick}
-                className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
-              >
-                <ImageUploadIcon />
-                사진 업로드하기
-              </button>
+              <div className='flex w-full gap-4'>
+                <button
+                  onClick={handleUploadClick}
+                  className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                >
+                  <ImageUploadIcon />
+                  사진 업로드하기
+                </button>
+                <button
+                  onClick={handleReMatchImages}
+                  className='flex w-full items-center justify-center gap-2 rounded-lg border-none bg-[var(--Blue-Scale-blue-500)] p-[20px] text-2xl text-white'
+                >
+                  <RefreshCcw className='h-[40px] w-[40px]' />
+                  이미지 재정렬하기
+                </button>
+              </div>
             )}
           </div>
         </FixedActionBar>
