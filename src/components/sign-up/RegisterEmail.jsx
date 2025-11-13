@@ -8,106 +8,83 @@ import { useForm } from 'react-hook-form'
 const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
   /**최초 전송 여부 */
   const [hasRequested, setHasRequested] = useState(false)
-  /**이메일 에러 메시지 */
+  /**이메일 에러/안내 메시지 */
   const [emailError, setEmailError] = useState('')
   const [emailMessage, setEmailMessage] = useState('')
   const [checkingEmail, setCheckingEmail] = useState(false)
 
-  /**useForm */
-  const { register, handleSubmit, watch } = useForm()
+  const { register, watch, getValues } = useForm()
+
+  const email = watch('email') || ''
+  const code = watch('code') || ''
 
   /**이메일 형식 검사 */
-  const email = watch('email') || ''
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  const isCodeComplete = code.length === 6
 
-  /** 이메일 변경될 때마다 중복 체크 */
   useEffect(() => {
-    if (!email) {
-      setEmailError('')
-      setEmailMessage('')
-      setHasRequested(false)
-      return
-    }
-    if (!isValidEmail) {
-      setEmailError('')
-      setEmailMessage('')
-      return
-    }
+    setEmailError('')
+    setEmailMessage('')
+    setCheckingEmail(false)
+    setHasRequested(false)
+  }, [email])
+
+  const handleRequestCode = async () => {
+    const { email } = getValues()
+    if (!email || !isValidEmail) return
+
+    const body = { email }
 
     setCheckingEmail(true)
     setEmailError('')
     setEmailMessage('이메일 확인 중...')
 
-    const timer = setTimeout(async () => {
-      try {
-        await emailRequestApi({ email })
-        setEmailMessage('가입 가능한 이메일이에요')
-      } catch (err) {
-        // 이미 가입된 이메일
-        if (err.code === 'A013') {
-          setEmailError('이미 가입된 이메일이에요')
-          setEmailMessage('')
-        } else {
-          setEmailError('이메일 확인 중 오류가 발생했어요')
-          setEmailMessage('')
-        }
-      }
-    }, 400)
-
-    return () => clearTimeout(timer)
-  }, [email, isValidEmail])
-
-  /**코드 길이 검사 */
-  const code = watch('code')
-  const isCodeComplete = code?.length === 6
-
-  /**이메일 인증 번호 발송 요청 */
-  const handleRequestCode = async (data) => {
-    const body = { email: data.email }
-
     try {
       await emailRequestApi(body)
       setHasRequested(true)
+      setEmailMessage('가입 가능한 이메일이에요')
     } catch (err) {
       if (err.code === 'A013') {
         setEmailError('이미 가입된 이메일이에요')
+        setEmailMessage('')
         return
       }
 
-      if (err.code === 'A014' || err.message?.includes('시도 횟수를 초과')) {
+      if (err.code === 'A016' || err.message?.includes('시도 횟수를 초과')) {
         setEmailError(
           '이메일 인증 시도 횟수를 초과하였습니다. 잠시 후 시도해주세요.',
         )
+        setEmailMessage('')
         return
       }
 
       setEmailError('이메일 인증 중 오류가 발생했어요')
+      setEmailMessage('')
+    } finally {
+      setCheckingEmail(false)
     }
   }
 
-  /**이메일 인증 번호 검증 */
-  const handleVerifyCode = async (data) => {
-    const body = {
-      email: data.email,
-      code: data.code,
-    }
+  /**이메일 인증 번호 검증 - 확인 버튼 클릭 시 */
+  const handleVerifyCode = async () => {
+    const { email, code } = getValues()
+    const body = { email, code }
+
     try {
       await verifyCodeApi(body)
       setIsEmailVerified(true)
-      setEmail(data.email)
+      setEmail(email)
     } catch (err) {
       alert(err.message)
     }
   }
 
-  /**버튼 클릭 시 실행할 함수 */
-  const onSubmit = (data) => {
-    /**확인 버튼을 눌렀을 경우 */
-    if (data.code?.length === 6) {
-      handleVerifyCode(data)
+  /** 버튼 클릭 시 실행할 함수 */
+  const handleButtonClick = () => {
+    if (isCodeComplete) {
+      handleVerifyCode()
     } else {
-      /**전송 or 재전송 버튼을 눌렀을 경우 */
-      handleRequestCode(data)
+      handleRequestCode()
     }
   }
 
@@ -125,9 +102,8 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
         </div>
       </div>
 
-      {/* 이메일 인증 Form */}
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(e) => e.preventDefault()}
         className='flex h-full w-full flex-col items-center px-10'
       >
         {/* 이메일 Input */}
@@ -167,7 +143,8 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
               className='border-none bg-gray-100 p-[20px] text-xl'
             />
             <button
-              type='submit'
+              type='button'
+              onClick={handleButtonClick}
               disabled={!isValidEmail || !!emailError}
               className={`absolute top-1/2 right-5 -translate-y-1/2 rounded-[18px] border-none px-[11px] py-[4px] text-lg text-[var(--Grey-Scale-grey-00)] shadow-[0px_0px_4px_0px_rgba(0,0,0,0.10)] transition-colors ${
                 !isValidEmail || !!emailError
