@@ -1,5 +1,6 @@
 import emailRequestApi from '@/apis/authentication/emailRequestApi'
 import verifyCodeApi from '@/apis/authentication/verifyCodeApi'
+
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -9,44 +10,83 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
   const [hasRequested, setHasRequested] = useState(false)
   /**이메일 에러 메시지 */
   const [emailError, setEmailError] = useState('')
+  const [emailMessage, setEmailMessage] = useState('')
+  const [checkingEmail, setCheckingEmail] = useState(false)
 
   /**useForm */
   const { register, handleSubmit, watch } = useForm()
 
   /**이메일 형식 검사 */
-  const email = watch('email')
+  const email = watch('email') || ''
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+  /** 이메일 변경될 때마다 중복 체크 */
+  useEffect(() => {
+    if (!email) {
+      setEmailError('')
+      setEmailMessage('')
+      setHasRequested(false)
+      return
+    }
+    if (!isValidEmail) {
+      setEmailError('')
+      setEmailMessage('')
+      return
+    }
+
+    setCheckingEmail(true)
+    setEmailError('')
+    setEmailMessage('이메일 확인 중...')
+
+    const timer = setTimeout(async () => {
+      try {
+        await emailRequestApi({ email })
+        setEmailMessage('가입 가능한 이메일이에요')
+      } catch (err) {
+        // 이미 가입된 이메일
+        if (err.code === 'A013') {
+          setEmailError('이미 가입된 이메일이에요')
+          setEmailMessage('')
+        } else {
+          setEmailError('이메일 확인 중 오류가 발생했어요')
+          setEmailMessage('')
+        }
+      }
+    }, 400)
+
+    return () => clearTimeout(timer)
+  }, [email, isValidEmail])
 
   /**코드 길이 검사 */
   const code = watch('code')
   const isCodeComplete = code?.length === 6
 
-  /**이메일 값 변경 시 에러 초기화 */
-  useEffect(() => {
-    if (emailError) {
-      setEmailError('')
-    }
-  }, [emailError])
-
   /**이메일 인증 번호 발송 요청 */
   const handleRequestCode = async (data) => {
-    /**API body 양식에 맞게 변경 */
-    const body = {
-      email: data.email,
-    }
+    const body = { email: data.email }
+
     try {
       await emailRequestApi(body)
       setHasRequested(true)
     } catch (err) {
-      /**이미 가입된 이메일인 경우 처리 */
-      if (err.code === 'A013') setEmailError(err.message)
-      else alert(err.message)
+      if (err.code === 'A013') {
+        setEmailError('이미 가입된 이메일이에요')
+        return
+      }
+
+      if (err.code === 'A014' || err.message?.includes('시도 횟수를 초과')) {
+        setEmailError(
+          '이메일 인증 시도 횟수를 초과하였습니다. 잠시 후 시도해주세요.',
+        )
+        return
+      }
+
+      setEmailError('이메일 인증 중 오류가 발생했어요')
     }
   }
 
   /**이메일 인증 번호 검증 */
   const handleVerifyCode = async (data) => {
-    /**API body 양식에 맞게 변경 */
     const body = {
       email: data.email,
       code: data.code,
@@ -102,16 +142,16 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
           {/* 안내 메세지 */}
           <div className='h-[20px]'>
             {emailError ? (
-              <p className='text-right text-sm text-red-500'>
-                이미 가입된 이메일이에요
+              <p className='text-right text-sm text-red-500'>{emailError}</p>
+            ) : checkingEmail ? (
+              <p className='text-right text-sm text-[var(--Grey-Scale-grey-300)]'>
+                이메일 확인 중이에요...
               </p>
-            ) : (
-              isValidEmail && (
-                <p className='text-right text-sm text-[var(--Blue-Scale-blue-500)]'>
-                  가입 가능한 이메일이에요
-                </p>
-              )
-            )}
+            ) : emailMessage ? (
+              <p className='text-right text-sm text-[var(--Blue-Scale-blue-500)]'>
+                {emailMessage}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -128,11 +168,11 @@ const RegisterEmail = ({ isEmailVerified, setIsEmailVerified, setEmail }) => {
             />
             <button
               type='submit'
-              disabled={!isValidEmail}
+              disabled={!isValidEmail || !!emailError}
               className={`absolute top-1/2 right-5 -translate-y-1/2 rounded-[18px] border-none px-[11px] py-[4px] text-lg text-[var(--Grey-Scale-grey-00)] shadow-[0px_0px_4px_0px_rgba(0,0,0,0.10)] transition-colors ${
-                isValidEmail
-                  ? 'cursor-pointer bg-[var(--Blue-Scale-blue-500)]'
-                  : 'cursor-not-allowed bg-[var(--Grey-Scale-grey-200)]'
+                !isValidEmail || !!emailError
+                  ? 'cursor-not-allowed bg-[var(--Grey-Scale-grey-200)]'
+                  : 'cursor-pointer bg-[var(--Blue-Scale-blue-500)]'
               }`}
             >
               {isCodeComplete ? '확인' : hasRequested ? '재전송' : '전송'}
