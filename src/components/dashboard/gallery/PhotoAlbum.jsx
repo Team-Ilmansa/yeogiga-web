@@ -603,15 +603,24 @@ const PhotoAlbum = ({
                     {(() => {
                       const currentDayPlaces =
                         planningPlaces[selectedDayForMove - 1]?.places || []
-                      const placesWithEtc = [
-                        ...currentDayPlaces,
-                        {
-                          id: 'unmatched-etc',
-                          name: '기타',
-                          placeType: '기타',
-                        },
-                      ]
-                      return placesWithEtc.map((place) => {
+                      let places = []
+                      if (
+                        planningPlaces[selectedDayForMove - 1].id ==
+                        modalImage.tripDayPlaceId
+                      ) {
+                        places = [
+                          ...currentDayPlaces,
+                          {
+                            id: 'unmatched-etc',
+                            name: '기타',
+                            placeType: '기타',
+                          },
+                        ]
+                      } else {
+                        places = currentDayPlaces
+                      }
+
+                      return places.map((place) => {
                         const Icon = categoryIcons[place.placeType] || EtcIcon
                         const color =
                           categoryColors[place.placeType] || '#C161EE'
