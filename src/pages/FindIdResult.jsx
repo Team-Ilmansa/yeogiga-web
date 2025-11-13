@@ -1,6 +1,7 @@
 import GoBack from '@/assets/sign-up/GoBack'
 import { Check } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { maskUsername } from '@/components/sign-in/utils/MaskUserName'
 
 /** 아이디 찾기 결과 페이지 */
 const FindIdResult = () => {
@@ -28,7 +29,7 @@ const FindIdResult = () => {
             가입하신 아이디는
             <br />
             <span className='font-medium text-[var(--Blue-Scale-blue-500)]'>
-              {username}
+              {maskUsername(username)}
             </span>{' '}
             입니다.
           </h2>
