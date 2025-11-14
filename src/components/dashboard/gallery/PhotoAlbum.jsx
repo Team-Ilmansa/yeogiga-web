@@ -177,7 +177,6 @@ const PhotoAlbum = ({
       )
 
       setModalImage({ ...modalImage, favorite: newIsFavorite })
-      onImageAction()
     } catch (err) {
       alert(err.message || '즐겨찾기 처리에 실패했습니다.')
     }
@@ -208,7 +207,7 @@ const PhotoAlbum = ({
       alert('삭제되었습니다')
       setShowKebabMenu(false)
       showNextImage()
-      onImageAction()
+      closeModal()
     } catch (err) {
       alert(err.message || '사진 삭제에 실패했습니다.')
     }
@@ -349,7 +348,6 @@ const PhotoAlbum = ({
 
       setShowMoveLocationModal(false)
       setSelectedPlaceForMove(null)
-      onImageAction()
       closeModal()
     } catch (err) {
       alert(err.message || '사진 위치 변경에 실패했습니다.')
