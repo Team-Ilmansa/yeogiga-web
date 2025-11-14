@@ -72,7 +72,12 @@ ImageOverlay.prototype.getPosition = function () {
 }
 
 /** 저장된 목적지들을 보여주는 지도 화면 */
-const TripPlaceMap = () => {
+const TripPlaceMap = ({
+  showBackButton = true,
+  focusOnSelected = true,
+  showFixedActionBar = true,
+  initialZoom = 16,
+}) => {
   const navigate = useNavigate()
   const { tripInfo } = useTripInfo()
   const tripId = tripInfo?.tripId
@@ -161,7 +166,7 @@ const TripPlaceMap = () => {
     const initMap = (lat, lng) => {
       const mapOptions = {
         center: new window.naver.maps.LatLng(lat, lng),
-        zoom: 16,
+        zoom: initialZoom,
         minZoom: 7,
         zoomControl: true,
         zoomControlOptions: {
@@ -202,7 +207,7 @@ const TripPlaceMap = () => {
     } else if (window.naver && window.naver.maps) {
       startMapInit()
     }
-  }, [places, isLoading])
+  }, [places, isLoading, initialZoom])
 
   const filteredPlaces = useMemo(
     () => places.filter((p) => dayFilter === 'all' || p.day === dayFilter),
@@ -222,7 +227,6 @@ const TripPlaceMap = () => {
   useEffect(() => {
     if (!map) return
 
-    // 이전 마커들 제거
     markersRef.current.forEach((marker) => marker.setMap(null))
     markersRef.current = []
 
@@ -253,7 +257,18 @@ const TripPlaceMap = () => {
     })
 
     markersRef.current = newMarkers
-  }, [map, filteredPlaces])
+
+    // 선택된 장소에 포커싱하지 않을 때(임베디드 지도) : 모든 마커가 보이도록 지도 범위 조정
+    if (!focusOnSelected && filteredPlaces.length > 0) {
+      const bounds = new window.naver.maps.LatLngBounds()
+      filteredPlaces.forEach((place) => {
+        bounds.extend(
+          new window.naver.maps.LatLng(place.latitude, place.longitude),
+        )
+      })
+      map.fitBounds(bounds)
+    }
+  }, [map, filteredPlaces, focusOnSelected])
 
   // 이미지 오버레이 관리
   useEffect(() => {
@@ -305,19 +320,17 @@ const TripPlaceMap = () => {
     }
   }, [map, selectedPlace])
 
-  // 지도 뷰 조정
+  //  선택된 장소로 지도 포커스
   useEffect(() => {
-    if (map && selectedPlace) {
-      map.panTo(
-        new window.naver.maps.LatLng(
-          selectedPlace.latitude,
-          selectedPlace.longitude,
-        ),
-      )
-      map.setZoom(16, true)
-    }
-  }, [map, selectedPlace])
-
+    if (!map || !selectedPlace || !focusOnSelected) return
+    map.panTo(
+      new window.naver.maps.LatLng(
+        selectedPlace.latitude,
+        selectedPlace.longitude,
+      ),
+    )
+    map.setZoom(16, true)
+  }, [map, selectedPlace, focusOnSelected])
   const goToPreviousPlace = () => {
     if (filteredPlaces.length > 0) {
       const newIndex =
@@ -351,14 +364,16 @@ const TripPlaceMap = () => {
 
   return (
     <div className='relative h-full w-full'>
-      <div className='absolute top-4 left-4 z-10 flex items-center'>
-        <button
-          className='text-bold my-5 border-none px-8'
-          onClick={() => navigate(-1)}
-        >
-          <GoBack />
-        </button>
-      </div>
+      {showBackButton && (
+        <div className='absolute top-4 left-4 z-10 flex items-center'>
+          <button
+            className='text-bold my-5 border-none px-8'
+            onClick={() => navigate(-1)}
+          >
+            <GoBack />
+          </button>
+        </div>
+      )}
 
       <div
         id='map'
@@ -370,7 +385,7 @@ const TripPlaceMap = () => {
         </div>
       )}
 
-      {!isLoading && places.length > 0 && (
+      {!isLoading && places.length > 0 && showFixedActionBar && (
         <FixedActionBar className='flex justify-center'>
           <div className='w-4xl rounded-t-[20px] bg-white p-2 shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
             <div className='flex flex-wrap gap-[6px] p-3'>
