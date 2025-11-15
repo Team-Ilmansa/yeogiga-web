@@ -11,6 +11,7 @@ import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDate
 import NoticeCreateModal from '../modal/NoticeCreateModal'
 import createNoticeApi from '@/apis/notice/createNoticeApi'
 import PointPinIcon from '@/assets/dashboard/PointPinIcon'
+import TripPlaceMap from '@/pages/TripPlaceMap'
 
 const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
   const [activeDayTab, setActiveDayTab] = useState(0)
@@ -132,6 +133,21 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
             </div>
           ))}
         </div>
+        {/* 목적지 확정 후 지도 영역 */}
+        {tripInfo.status !== 'SETTING' && (
+          <>
+            <div className='mt-5 mb-4 h-[260px] overflow-hidden rounded-2xl'>
+              <TripPlaceMap
+                showBackButton={false}
+                focusOnSelected={false}
+                showFixedActionBar={false}
+                initialZoom={10}
+                dayFilter={activeDayTab === 0 ? 'all' : activeDayTab}
+                onMapClick={() => navigate(`/trip/${tripId}/map`)}
+              />
+            </div>
+          </>
+        )}
 
         <div className='mt-4 flex flex-col gap-3 pb-[120px]'>
           {tripInfo.status === 'SETTING'

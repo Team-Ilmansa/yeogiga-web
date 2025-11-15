@@ -72,7 +72,14 @@ ImageOverlay.prototype.getPosition = function () {
 }
 
 /** 저장된 목적지들을 보여주는 지도 화면 */
-const TripPlaceMap = () => {
+const TripPlaceMap = ({
+  showBackButton = true,
+  focusOnSelected = true,
+  showFixedActionBar = true,
+  initialZoom = 16,
+  dayFilter: externalDayFilter,
+  onMapClick,
+}) => {
   const navigate = useNavigate()
   const { tripInfo } = useTripInfo()
   const tripId = tripInfo?.tripId
@@ -85,6 +92,9 @@ const TripPlaceMap = () => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [dayFilter, setDayFilter] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
+
+  const effectiveDayFilter =
+    externalDayFilter === undefined ? dayFilter : externalDayFilter
 
   // 여행 정보 및 장소들 가져오기
   useEffect(() => {
@@ -161,7 +171,7 @@ const TripPlaceMap = () => {
     const initMap = (lat, lng) => {
       const mapOptions = {
         center: new window.naver.maps.LatLng(lat, lng),
-        zoom: 16,
+        zoom: initialZoom,
         minZoom: 7,
         zoomControl: true,
         zoomControlOptions: {
@@ -169,6 +179,13 @@ const TripPlaceMap = () => {
         },
       }
       const mapInstance = new window.naver.maps.Map('map', mapOptions)
+
+      if (onMapClick) {
+        window.naver.maps.Event.addListener(mapInstance, 'click', () => {
+          onMapClick()
+        })
+      }
+
       setMap(mapInstance)
     }
 
@@ -178,7 +195,6 @@ const TripPlaceMap = () => {
           const firstPlace = places[0]
           initMap(firstPlace.latitude, firstPlace.longitude)
         } else {
-          // Fallback if no places
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               (position) =>
@@ -202,11 +218,14 @@ const TripPlaceMap = () => {
     } else if (window.naver && window.naver.maps) {
       startMapInit()
     }
-  }, [places, isLoading])
+  }, [places, isLoading, initialZoom, onMapClick])
 
   const filteredPlaces = useMemo(
-    () => places.filter((p) => dayFilter === 'all' || p.day === dayFilter),
-    [places, dayFilter],
+    () =>
+      places.filter(
+        (p) => effectiveDayFilter === 'all' || p.day === effectiveDayFilter,
+      ),
+    [places, effectiveDayFilter],
   )
 
   useEffect(() => {
@@ -216,13 +235,12 @@ const TripPlaceMap = () => {
     } else {
       setSelectedPlace(null)
     }
-  }, [dayFilter, places, filteredPlaces])
+  }, [effectiveDayFilter, filteredPlaces])
 
   // 지도에 장소 마커 표시
   useEffect(() => {
     if (!map) return
 
-    // 이전 마커들 제거
     markersRef.current.forEach((marker) => marker.setMap(null))
     markersRef.current = []
 
@@ -253,7 +271,18 @@ const TripPlaceMap = () => {
     })
 
     markersRef.current = newMarkers
-  }, [map, filteredPlaces])
+
+    // 선택된 장소에 포커싱하지 않을 때(임베디드 지도) : 모든 마커가 보이도록 지도 범위 조정
+    if (!focusOnSelected && filteredPlaces.length > 0) {
+      const bounds = new window.naver.maps.LatLngBounds()
+      filteredPlaces.forEach((place) => {
+        bounds.extend(
+          new window.naver.maps.LatLng(place.latitude, place.longitude),
+        )
+      })
+      map.fitBounds(bounds)
+    }
+  }, [map, filteredPlaces, focusOnSelected])
 
   // 이미지 오버레이 관리
   useEffect(() => {
@@ -267,7 +296,7 @@ const TripPlaceMap = () => {
       selectedPlace.images &&
       selectedPlace.images.length > 0
     ) {
-      const radius = 100 // 핀으로부터의 거리
+      const radius = 100
       const imagesToShow = selectedPlace.images.slice(0, 5)
       const numImages = imagesToShow.length
 
@@ -275,7 +304,7 @@ const TripPlaceMap = () => {
       container.style.position = 'relative'
 
       imagesToShow.forEach((image, i) => {
-        const angle = (i * (360 / numImages) - 90) * (Math.PI / 180) // 위쪽부터 시작
+        const angle = (i * (360 / numImages) - 90) * (Math.PI / 180)
         const x = radius * Math.cos(angle)
         const y = radius * Math.sin(angle)
 
@@ -290,7 +319,7 @@ const TripPlaceMap = () => {
         img.style.border = '2px solid white'
         img.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)'
         img.style.transform = 'translate(-50%, -50%)'
-        img.style.boxSizing = 'content-box' // 너비 문제 해결
+        img.style.boxSizing = 'content-box'
         container.appendChild(img)
       })
 
@@ -305,18 +334,17 @@ const TripPlaceMap = () => {
     }
   }, [map, selectedPlace])
 
-  // 지도 뷰 조정
+  // 선택된 장소로 지도 포커스
   useEffect(() => {
-    if (map && selectedPlace) {
-      map.panTo(
-        new window.naver.maps.LatLng(
-          selectedPlace.latitude,
-          selectedPlace.longitude,
-        ),
-      )
-      map.setZoom(16, true)
-    }
-  }, [map, selectedPlace])
+    if (!map || !selectedPlace || !focusOnSelected) return
+    map.panTo(
+      new window.naver.maps.LatLng(
+        selectedPlace.latitude,
+        selectedPlace.longitude,
+      ),
+    )
+    map.setZoom(16, true)
+  }, [map, selectedPlace, focusOnSelected])
 
   const goToPreviousPlace = () => {
     if (filteredPlaces.length > 0) {
@@ -351,32 +379,35 @@ const TripPlaceMap = () => {
 
   return (
     <div className='relative h-full w-full'>
-      <div className='absolute top-4 left-4 z-10 flex items-center'>
-        <button
-          className='text-bold my-5 border-none px-8'
-          onClick={() => navigate(-1)}
-        >
-          <GoBack />
-        </button>
-      </div>
+      {showBackButton && (
+        <div className='absolute top-4 left-4 z-10 flex items-center'>
+          <button
+            className='text-bold my-5 border-none px-8'
+            onClick={() => navigate(-1)}
+          >
+            <GoBack />
+          </button>
+        </div>
+      )}
 
       <div
         id='map'
         className={`h-full w-full ${isLoading ? 'invisible' : ''}`}
       ></div>
+
       {isLoading && (
         <div className='bg-opacity-50 absolute inset-0 flex items-center justify-center bg-white'>
           <p>Loading map...</p>
         </div>
       )}
 
-      {!isLoading && places.length > 0 && (
+      {!isLoading && places.length > 0 && showFixedActionBar && (
         <FixedActionBar className='flex justify-center'>
           <div className='w-4xl rounded-t-[20px] bg-white p-2 shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
             <div className='flex flex-wrap gap-[6px] p-3'>
               {tabs.map((tab, index) => {
                 const day = index === 0 ? 'all' : index
-                const isActive = dayFilter === day
+                const isActive = effectiveDayFilter === day
                 return (
                   <div
                     key={tab}
