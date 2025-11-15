@@ -142,6 +142,8 @@ const DayTabs = ({ tripInfo, activeTab, onContentUpdate }) => {
                 focusOnSelected={false}
                 showFixedActionBar={false}
                 initialZoom={10}
+                dayFilter={activeDayTab === 0 ? 'all' : activeDayTab}
+                onMapClick={() => navigate(`/trip/${tripId}/map`)}
               />
             </div>
           </>
