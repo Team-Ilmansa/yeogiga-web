@@ -16,11 +16,9 @@ const RegisterNickname = ({ setIsNicknameVerified, setNickname }) => {
 
   /**닉네임 값 변경 시 메세지 초기화 */
   useEffect(() => {
-    if (nicknameMessage || nicknameError) {
-      setNicknameMessage('')
-      setNicknameError('')
-    }
-  }, [nicknameMessage, nicknameError])
+    setNicknameMessage('')
+    setNicknameError('')
+  }, [nickname])
 
   /**닉네임 중복 검사통과 시 버튼 활성화 */
   useEffect(() => {

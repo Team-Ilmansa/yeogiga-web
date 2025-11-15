@@ -21,11 +21,9 @@ const RegisterPassword = ({
 
   /**아이디 값 변경 시 메세지 초기화 */
   useEffect(() => {
-    if (usernameMessage || usernameError) {
-      setUsernameMessage('')
-      setUsernameError('')
-    }
-  }, [usernameError, usernameMessage])
+    setUsernameMessage('')
+    setUsernameError('')
+  }, [username])
 
   /**아이디 중복 확인 API 호출 */
   const handleDupCheckUsername = async () => {
