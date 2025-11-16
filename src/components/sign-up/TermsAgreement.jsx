@@ -416,7 +416,7 @@ const TermsAgreement = ({ isAgreed, onChangeAgree }) => {
               type='checkbox'
               checked={checked}
               onChange={handleChange}
-              className='h-5 w-5 cursor-pointer'
+              className='h-5 w-5 cursor-pointer accent-[#8287FF]'
             />
           </div>
         </div>
