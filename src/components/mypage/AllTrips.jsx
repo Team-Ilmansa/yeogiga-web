@@ -32,10 +32,6 @@ const AllTrips = ({ allTrips = [], loadMore }) => {
       >
         {allTrips.map((trip) => {
           const mappedImage = getCityImage(trip.city)
-          const isEmptyCity =
-            !Array.isArray(trip.city) || trip.city.length === 0
-
-          console.log('AllTrips city:', trip.city, '->', mappedImage)
 
           return (
             <SwiperSlide key={trip.tripId}>
@@ -48,9 +44,7 @@ const AllTrips = ({ allTrips = [], loadMore }) => {
                     backgroundPosition: 'center',
                   }}
                 >
-                  {!isEmptyCity && (
-                    <div className='absolute inset-0 bg-black/40' />
-                  )}
+                  <div className='absolute inset-0 bg-black/40' />
 
                   <div className='relative z-10 text-white'>
                     <h3 className='mb-4 truncate text-3xl font-bold'>
