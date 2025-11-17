@@ -8,6 +8,8 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   X,
   ArrowLeft,
   ArrowRight,
@@ -81,6 +83,7 @@ const TripPlaceMap = ({
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
   const [modalImages, setModalImages] = useState([])
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const openModal = (image, images) => {
     const imagesWithPlaceName = images.map((img) => ({
@@ -449,7 +452,19 @@ const TripPlaceMap = ({
 
       {!isLoading && places.length > 0 && showFixedActionBar && (
         <FixedActionBar className='flex justify-center'>
-          <div className='w-4xl rounded-t-[20px] bg-white p-2 shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
+          <div
+            className={`w-4xl rounded-t-[20px] bg-white p-2 shadow-[0_0_4px_rgba(0,0,0,0.10)] transition-all duration-300 ${
+              isExpanded ? 'h-45' : 'h-auto'
+            }`}
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <div className='flex w-full justify-center'>
+              {!isExpanded ? (
+                <ChevronDown className='text-gray-400' />
+              ) : (
+                <ChevronUp className='text-gray-400' />
+              )}
+            </div>
             <div className='mb-2 flex flex-wrap gap-[6px] p-2'>
               {tabs.map((tab, index) => {
                 const day = index === 0 ? 'all' : index
@@ -457,7 +472,10 @@ const TripPlaceMap = ({
                 return (
                   <div
                     key={tab}
-                    onClick={() => setDayFilter(day)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setDayFilter(day)
+                    }}
                     className={`cursor-pointer rounded-full px-4 py-1 text-base ${
                       isActive
                         ? 'bg-[var(--Blue-Scale-blue-500)] text-white'
@@ -474,7 +492,10 @@ const TripPlaceMap = ({
               <div>
                 <div className='flex items-center justify-between pb-5'>
                   <button
-                    onClick={goToPreviousPlace}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      goToPreviousPlace()
+                    }}
                     className='rounded-full border-none p-2 hover:bg-gray-100'
                   >
                     <ChevronLeft />
@@ -491,13 +512,17 @@ const TripPlaceMap = ({
                         href={selectedPlace.link}
                         target='_blank'
                         rel='noopener noreferrer'
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <ExternalLink className='h-6 w-6 text-[var(--Grey-Scale-grey-400)]' />
                       </a>
                     )}
                   </div>
                   <button
-                    onClick={goToNextPlace}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      goToNextPlace()
+                    }}
                     className='rounded-full border-none p-2 hover:bg-gray-100'
                   >
                     <ChevronRight />
