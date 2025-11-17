@@ -44,7 +44,7 @@ const PastTrips = ({ pastTrips = [], loadMore }) => {
                     backgroundPosition: 'center',
                   }}
                 >
-                  <div className='absolute inset-0 bg-black/40' />
+                  <div className='pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-b from-transparent via-black/20 to-black/70' />
 
                   <div className='relative z-10 text-white'>
                     <h3 className='mb-4 truncate text-3xl font-bold'>
