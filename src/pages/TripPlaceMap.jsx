@@ -319,7 +319,13 @@ const TripPlaceMap = ({
     } else if (window.naver && window.naver.maps) {
       handleMapLoad()
     }
-  }, [initialZoom, clearImageMarkers, showPlaceMarkers, onMapClick])
+  }, [
+    initialZoom,
+    clearImageMarkers,
+    showPlaceMarkers,
+    showPolylines,
+    onMapClick,
+  ])
 
   // Effect for initial centering
   useEffect(() => {
@@ -561,7 +567,7 @@ const TripPlaceMap = ({
         <FixedActionBar className='flex justify-center'>
           <div
             className={`w-4xl rounded-t-[20px] bg-white p-2 shadow-[0_0_4px_rgba(0,0,0,0.10)] transition-all duration-300 ease-in-out ${
-              isExpanded ? 'max-h-[320px]' : 'max-h-[200px]'
+              isExpanded ? '' : 'max-h-[200px]'
             } overflow-hidden`}
             onClick={() => setIsExpanded(!isExpanded)}
           >
@@ -638,10 +644,10 @@ const TripPlaceMap = ({
                 {selectedPlace.images && selectedPlace.images.length > 0 && (
                   <div
                     className={`transition-all duration-300 ease-in-out ${
-                      isExpanded ? 'max-h-[200px]' : 'max-h-0'
+                      isExpanded ? '' : 'max-h-0'
                     } overflow-hidden`}
                   >
-                    <div className='overflow-x-auto pt-2 pb-20 whitespace-nowrap'>
+                    <div className='overflow-x-auto pt-2 pb-5 whitespace-nowrap'>
                       <div className='px-5 pb-2 text-3xl font-bold text-[var(--Blue-Scale-blue-500)]'>
                         {selectedPlace.images.length}장
                       </div>
