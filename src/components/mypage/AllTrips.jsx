@@ -3,6 +3,7 @@ import UserIcon from '@/assets/home/UserIcon'
 import { Link } from 'react-router-dom'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import 'swiper/css'
+import getCityImage from '@/assets/common/CityImageMap'
 
 /**모든 여행 보기 */
 const AllTrips = ({ allTrips = [], loadMore }) => {
@@ -29,56 +30,74 @@ const AllTrips = ({ allTrips = [], loadMore }) => {
           }
         }}
       >
-        {allTrips.map((trip) => (
-          <SwiperSlide key={trip.tripId}>
-            <Link to={`/trip/${trip.tripId}`}>
-              <div className='relative flex h-100 w-full flex-shrink-0 flex-col justify-end rounded-xl p-6'>
-                <img
-                  src={`https://picsum.photos/seed/${trip.tripId}/400/400`}
-                  alt={trip.title}
-                  className='absolute inset-0 h-full w-full rounded-xl object-cover'
-                />
-                <div className='bg-opacity-40 absolute inset-0 rounded-xl bg-black'></div>
-                <div className='relative z-10 text-white'>
-                  <h3 className='mb-4 truncate text-3xl font-bold'>
-                    {trip.title}
-                  </h3>
-                  <div className='flex items-center gap-2 text-lg'>
-                    <MapPin className='h-5 w-5' />
-                    <span>
-                      {trip.city.length > 0
-                        ? trip.city.join(', ')
-                        : '아직 정해지지 않았어요'}
-                    </span>
-                  </div>
-                  <div className='mb-1 flex items-center gap-2 text-lg'>
-                    <Calendar className='h-5 w-5' />
-                    <span>
-                      {trip.startedAt && trip.endedAt
-                        ? `${formatDate(trip.startedAt)} - ${formatDate(
-                            trip.endedAt,
-                          )}`
-                        : '아직 정해지지 않았어요'}
-                    </span>
-                  </div>
-                  <div className='flex items-center gap-2'>
-                    <UserIcon color={'white'} size={20} />
-                    <div className='flex items-center'>
-                      {trip.members.map((member) => (
-                        <img
-                          key={member.userId}
-                          src={member.imageUrl || '/images/default_profile.png'}
-                          alt={member.nickname}
-                          className='h-6 w-6 rounded-full border-2 border-white first:ml-0'
-                        />
-                      ))}
+        {allTrips.map((trip) => {
+          const mappedImage = getCityImage(trip.city)
+          const isEmptyCity =
+            !Array.isArray(trip.city) || trip.city.length === 0
+
+          console.log('AllTrips city:', trip.city, '->', mappedImage)
+
+          return (
+            <SwiperSlide key={trip.tripId}>
+              <Link to={`/trip/${trip.tripId}`}>
+                <div
+                  className='relative flex h-100 w-full flex-shrink-0 flex-col justify-end overflow-hidden rounded-xl p-6'
+                  style={{
+                    backgroundImage: `url(${mappedImage})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                >
+                  {!isEmptyCity && (
+                    <div className='absolute inset-0 bg-black/40' />
+                  )}
+
+                  <div className='relative z-10 text-white'>
+                    <h3 className='mb-4 truncate text-3xl font-bold'>
+                      {trip.title}
+                    </h3>
+
+                    <div className='flex items-center gap-2 text-lg'>
+                      <MapPin className='h-5 w-5' />
+                      <span>
+                        {Array.isArray(trip.city) && trip.city.length > 0
+                          ? trip.city.join(', ')
+                          : '아직 정해지지 않았어요'}
+                      </span>
+                    </div>
+
+                    <div className='mb-1 flex items-center gap-2 text-lg'>
+                      <Calendar className='h-5 w-5' />
+                      <span>
+                        {trip.startedAt && trip.endedAt
+                          ? `${formatDate(trip.startedAt)} - ${formatDate(
+                              trip.startedAt,
+                            )}`
+                          : '아직 정해지지 않았어요'}
+                      </span>
+                    </div>
+
+                    <div className='flex items-center gap-2'>
+                      <UserIcon color={'white'} size={20} />
+                      <div className='flex items-center'>
+                        {trip.members.map((member) => (
+                          <img
+                            key={member.userId}
+                            src={
+                              member.imageUrl || '/images/default_profile.png'
+                            }
+                            alt={member.nickname}
+                            className='h-6 w-6 rounded-full border-2 border-white first:ml-0'
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          </SwiperSlide>
-        ))}
+              </Link>
+            </SwiperSlide>
+          )
+        })}
       </Swiper>
     </div>
   )
