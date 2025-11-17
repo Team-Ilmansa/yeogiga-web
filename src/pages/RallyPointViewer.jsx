@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import readPinApi from '@/apis/pin/readPinApi'
-import PointPin from '@/assets/map/PointPin'
+import RallyPointPin from '@/assets/map/RallyPointPin'
 import ReactDOMServer from 'react-dom/server'
 import GoBack from '@/assets/sign-up/GoBack'
 
@@ -52,7 +52,7 @@ const RallyPointViewer = () => {
 
   useEffect(() => {
     if (map && rallyPin) {
-      const pinHTML = ReactDOMServer.renderToString(<PointPin />)
+      const pinHTML = ReactDOMServer.renderToString(<RallyPointPin />)
 
       new window.naver.maps.Marker({
         position: new window.naver.maps.LatLng(
