@@ -89,6 +89,7 @@ const TripPlaceMap = ({
   const [places, setPlaces] = useState([])
   const markersRef = useRef([])
   const imageOverlayRef = useRef(null)
+  const polylinesRef = useRef([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [dayFilter, setDayFilter] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
@@ -211,7 +212,9 @@ const TripPlaceMap = ({
     if (!mapScript) {
       mapScript = document.createElement('script')
       mapScript.id = scriptId
-      mapScript.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${import.meta.env.VITE_NAVER_MAP_KEY}`
+      mapScript.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${
+        import.meta.env.VITE_NAVER_MAP_KEY
+      }`
       mapScript.async = true
       mapScript.onload = startMapInit
       document.head.appendChild(mapScript)
@@ -272,7 +275,6 @@ const TripPlaceMap = ({
 
     markersRef.current = newMarkers
 
-    // 선택된 장소에 포커싱하지 않을 때(임베디드 지도) : 모든 마커가 보이도록 지도 범위 조정
     if (!focusOnSelected && filteredPlaces.length > 0) {
       const bounds = new window.naver.maps.LatLngBounds()
       filteredPlaces.forEach((place) => {
@@ -283,6 +285,77 @@ const TripPlaceMap = ({
       map.fitBounds(bounds)
     }
   }, [map, filteredPlaces, focusOnSelected])
+
+  useEffect(() => {
+    if (!map) return
+
+    polylinesRef.current.forEach((polyline) => polyline.setMap(null))
+    polylinesRef.current = []
+
+    if (filteredPlaces.length < 2) return
+
+    const dayColors = [
+      '#4497fd',
+      '#ff8724',
+      '#44ed66',
+      '#b13ce7',
+      '#3239c8',
+      '#ff5387',
+      '#45acdc',
+    ]
+
+    if (effectiveDayFilter === 'all') {
+      const byDay = filteredPlaces.reduce((acc, place) => {
+        const day = place.day ?? 0
+        if (!acc[day]) acc[day] = []
+        acc[day].push(place)
+        return acc
+      }, {})
+
+      const dayKeys = Object.keys(byDay)
+        .map((k) => Number(k))
+        .sort((a, b) => a - b)
+
+      let prevLastCoord = null
+
+      dayKeys.forEach((dayKey, index) => {
+        const placesOfDay = byDay[dayKey]
+        if (!placesOfDay || placesOfDay.length === 0) return
+
+        const coords = placesOfDay.map(
+          (p) => new window.naver.maps.LatLng(p.latitude, p.longitude),
+        )
+
+        const path = prevLastCoord != null ? [prevLastCoord, ...coords] : coords
+
+        const polyline = new window.naver.maps.Polyline({
+          map,
+          path,
+          strokeColor: dayColors[index % dayColors.length],
+          strokeOpacity: 0.9,
+          strokeWeight: 4,
+        })
+
+        polylinesRef.current.push(polyline)
+
+        prevLastCoord = coords[coords.length - 1]
+      })
+    } else {
+      const path = filteredPlaces.map(
+        (p) => new window.naver.maps.LatLng(p.latitude, p.longitude),
+      )
+
+      const polyline = new window.naver.maps.Polyline({
+        map,
+        path,
+        strokeColor: '#8287FF',
+        strokeOpacity: 0.9,
+        strokeWeight: 4,
+      })
+
+      polylinesRef.current.push(polyline)
+    }
+  }, [map, filteredPlaces, effectiveDayFilter])
 
   // 이미지 오버레이 관리
   useEffect(() => {
@@ -404,7 +477,7 @@ const TripPlaceMap = ({
       {!isLoading && places.length > 0 && showFixedActionBar && (
         <FixedActionBar className='flex justify-center'>
           <div className='w-4xl rounded-t-[20px] bg-white p-2 shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
-            <div className='flex flex-wrap gap-[6px] p-3'>
+            <div className='flex flex-wrap gap-[6px]'>
               {tabs.map((tab, index) => {
                 const day = index === 0 ? 'all' : index
                 const isActive = effectiveDayFilter === day
@@ -423,6 +496,7 @@ const TripPlaceMap = ({
                 )
               })}
             </div>
+
             {selectedPlace && (
               <div className='flex items-center justify-between pb-5'>
                 <button

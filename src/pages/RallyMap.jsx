@@ -1,6 +1,6 @@
 import GoBack from '@/assets/sign-up/GoBack'
 import { useEffect, useState, useRef } from 'react'
-import Search from '../assets/map/Search'
+import Search from '@/assets/map/Search'
 import searchPlaceApi from '@/apis/map/searchPlaceApi'
 import { ExternalLink, MapPin } from 'lucide-react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
