@@ -1,9 +1,17 @@
 import GoBack from '@/assets/sign-up/GoBack'
 import { useEffect, useState, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
 import readPlaceInfoApi from '@/apis/map/readPlaceInfoApi'
-import { ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  ArrowLeft,
+  ArrowRight,
+} from 'lucide-react'
 import FixedActionBar from '@/components/common/FixedActionBar'
 import { useTripInfo } from '@/hooks/useTripInfo'
 import readDatePlaceApi from '@/apis/dashboard/readDatePlaceApi'
@@ -32,43 +40,21 @@ const categoryColors = {
   기타: '#C161EE',
 }
 
-// Custom Overlay Class Definition
-function ImageOverlay(options) {
-  this._position = options.position
-  this._element = options.element
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
 
-  this.setMap(options.map || null)
-}
+  let hours = date.getHours()
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const ampm = hours >= 12 ? '오후' : '오전'
+  hours = hours % 12
+  hours = hours ? hours : 12
+  hours = String(hours).padStart(2, '0')
 
-ImageOverlay.prototype = new window.naver.maps.OverlayView()
-ImageOverlay.prototype.constructor = ImageOverlay
-
-ImageOverlay.prototype.onAdd = function () {
-  this.getPanes().overlayLayer.appendChild(this._element)
-}
-
-ImageOverlay.prototype.draw = function () {
-  if (!this.getMap()) {
-    return
-  }
-
-  const projection = this.getProjection()
-  const position = this.getPosition()
-  const pixelPosition = projection.fromCoordToOffset(position)
-
-  this._element.style.position = 'absolute'
-  this._element.style.left = `${pixelPosition.x}px`
-  this._element.style.top = `${pixelPosition.y}px`
-}
-
-ImageOverlay.prototype.onRemove = function () {
-  if (this._element.parentElement) {
-    this._element.parentElement.removeChild(this._element)
-  }
-}
-
-ImageOverlay.prototype.getPosition = function () {
-  return this._position
+  return `${year}.${month}.${day} ${ampm} ${hours}:${minutes}`
 }
 
 /** 저장된 목적지들을 보여주는 지도 화면 */
@@ -88,11 +74,48 @@ const TripPlaceMap = ({
   const [selectedPlace, setSelectedPlace] = useState(null)
   const [places, setPlaces] = useState([])
   const markersRef = useRef([])
-  const imageOverlayRef = useRef(null)
   const polylinesRef = useRef([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [dayFilter, setDayFilter] = useState('all')
   const [isLoading, setIsLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [modalImages, setModalImages] = useState([])
+
+  const openModal = (image, images) => {
+    const imagesWithPlaceName = images.map((img) => ({
+      ...img,
+      placeName: selectedPlace.name,
+    }))
+    setModalImages(imagesWithPlaceName)
+    setSelectedImage(imagesWithPlaceName.find((img) => img.id === image.id))
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setSelectedImage(null)
+    setModalImages([])
+  }
+
+  const showNextImage = (e) => {
+    if (e) e.stopPropagation()
+    const currentIndex = modalImages.findIndex(
+      (img) => img.id === selectedImage.id,
+    )
+    const nextIndex = (currentIndex + 1) % modalImages.length
+    setSelectedImage(modalImages[nextIndex])
+  }
+
+  const showPrevImage = (e) => {
+    if (e) e.stopPropagation()
+    const currentIndex = modalImages.findIndex(
+      (img) => img.id === selectedImage.id,
+    )
+    const prevIndex =
+      (currentIndex - 1 + modalImages.length) % modalImages.length
+    setSelectedImage(modalImages[prevIndex])
+  }
 
   const effectiveDayFilter =
     externalDayFilter === undefined ? dayFilter : externalDayFilter
@@ -357,56 +380,6 @@ const TripPlaceMap = ({
     }
   }, [map, filteredPlaces, effectiveDayFilter])
 
-  // 이미지 오버레이 관리
-  useEffect(() => {
-    if (imageOverlayRef.current) {
-      imageOverlayRef.current.setMap(null)
-    }
-
-    if (
-      map &&
-      selectedPlace &&
-      selectedPlace.images &&
-      selectedPlace.images.length > 0
-    ) {
-      const radius = 100
-      const imagesToShow = selectedPlace.images.slice(0, 5)
-      const numImages = imagesToShow.length
-
-      const container = document.createElement('div')
-      container.style.position = 'relative'
-
-      imagesToShow.forEach((image, i) => {
-        const angle = (i * (360 / numImages) - 90) * (Math.PI / 180)
-        const x = radius * Math.cos(angle)
-        const y = radius * Math.sin(angle)
-
-        const img = document.createElement('img')
-        img.src = image.url
-        img.style.position = 'absolute'
-        img.style.left = `${x}px`
-        img.style.top = `${y}px`
-        img.style.minWidth = '80px'
-        img.style.height = '80px'
-        img.style.borderRadius = '50%'
-        img.style.border = '2px solid white'
-        img.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)'
-        img.style.transform = 'translate(-50%, -50%)'
-        img.style.boxSizing = 'content-box'
-        container.appendChild(img)
-      })
-
-      imageOverlayRef.current = new ImageOverlay({
-        map: map,
-        position: new window.naver.maps.LatLng(
-          selectedPlace.latitude,
-          selectedPlace.longitude,
-        ),
-        element: container,
-      })
-    }
-  }, [map, selectedPlace])
-
   // 선택된 장소로 지도 포커스
   useEffect(() => {
     if (!map || !selectedPlace || !focusOnSelected) return
@@ -477,7 +450,7 @@ const TripPlaceMap = ({
       {!isLoading && places.length > 0 && showFixedActionBar && (
         <FixedActionBar className='flex justify-center'>
           <div className='w-4xl rounded-t-[20px] bg-white p-2 shadow-[0_0_4px_rgba(0,0,0,0.10)]'>
-            <div className='flex flex-wrap gap-[6px]'>
+            <div className='mb-2 flex flex-wrap gap-[6px] p-2'>
               {tabs.map((tab, index) => {
                 const day = index === 0 ? 'all' : index
                 const isActive = effectiveDayFilter === day
@@ -498,41 +471,104 @@ const TripPlaceMap = ({
             </div>
 
             {selectedPlace && (
-              <div className='flex items-center justify-between pb-5'>
-                <button
-                  onClick={goToPreviousPlace}
-                  className='rounded-full border-none p-2 hover:bg-gray-100'
-                >
-                  <ChevronLeft />
-                </button>
-                <div className='mx-4 flex flex-1 items-center gap-5'>
-                  <div className='flex h-10 w-10 cursor-grab items-center justify-center rounded-full'>
-                    <SelectedIcon size={40} color={selectedColor} />
+              <div>
+                <div className='flex items-center justify-between pb-5'>
+                  <button
+                    onClick={goToPreviousPlace}
+                    className='rounded-full border-none p-2 hover:bg-gray-100'
+                  >
+                    <ChevronLeft />
+                  </button>
+                  <div className='mx-4 flex flex-1 items-center gap-5'>
+                    <div className='flex h-10 w-10 cursor-grab items-center justify-center rounded-full'>
+                      <SelectedIcon size={40} color={selectedColor} />
+                    </div>
+                    <div className='flex w-full justify-between rounded-2xl bg-[var(--Grey-Scale-grey-100)] p-5 text-base text-[var(--Grey-Scale-grey-300)]'>
+                      <span>{selectedPlace.name}</span>
+                    </div>
+                    {selectedPlace.link && (
+                      <a
+                        href={selectedPlace.link}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        <ExternalLink className='h-6 w-6 text-[var(--Grey-Scale-grey-400)]' />
+                      </a>
+                    )}
                   </div>
-                  <div className='flex w-full justify-between rounded-2xl bg-[var(--Grey-Scale-grey-100)] p-5 text-base text-[var(--Grey-Scale-grey-300)]'>
-                    <span>{selectedPlace.name}</span>
-                  </div>
-                  {selectedPlace.link && (
-                    <a
-                      href={selectedPlace.link}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                    >
-                      <ExternalLink className='h-6 w-6 text-[var(--Grey-Scale-grey-400)]' />
-                    </a>
-                  )}
+                  <button
+                    onClick={goToNextPlace}
+                    className='rounded-full border-none p-2 hover:bg-gray-100'
+                  >
+                    <ChevronRight />
+                  </button>
                 </div>
-                <button
-                  onClick={goToNextPlace}
-                  className='rounded-full border-none p-2 hover:bg-gray-100'
-                >
-                  <ChevronRight />
-                </button>
+                {selectedPlace.images && selectedPlace.images.length > 0 && (
+                  <div className='overflow-x-auto pt-2 pb-20 whitespace-nowrap'>
+                    <div className='px-5 pb-2 text-3xl font-bold text-[var(--Blue-Scale-blue-500)]'>
+                      {selectedPlace.images.length}장
+                    </div>
+                    <div className='grid grid-cols-5 gap-1 pr-15 pl-5'>
+                      {selectedPlace.images.map((image) => (
+                        <img
+                          key={image.id}
+                          src={image.url}
+                          alt={`place image ${image.id}`}
+                          className='aspect-square h-full w-full cursor-pointer rounded-2xl object-cover'
+                          onClick={() => openModal(image, selectedPlace.images)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </FixedActionBar>
       )}
+
+      {isModalOpen &&
+        selectedImage &&
+        createPortal(
+          <div
+            className='fixed inset-0 z-100 flex flex-col bg-black/90 p-10'
+            onClick={closeModal}
+          >
+            <div className='absolute top-5 left-1/2 -translate-x-1/2 text-center text-white'>
+              <h2 className='text-lg font-bold'>{selectedImage.placeName}</h2>
+              <p className='text-sm'>{formatDate(selectedImage.date)}</p>
+            </div>
+            <button
+              onClick={closeModal}
+              className='absolute top-5 right-5 z-[120] border-none text-white'
+            >
+              <X size={32} />
+            </button>
+            <div className='flex h-full w-full items-center justify-between'>
+              <button
+                className='border-none text-white'
+                onClick={showPrevImage}
+              >
+                <ArrowLeft size={48} />
+              </button>
+              <div className='flex h-full flex-col items-center justify-center p-10'>
+                <img
+                  src={selectedImage.url}
+                  alt='enlarged'
+                  className='max-h-full max-w-full object-contain'
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              <button
+                className='border-none text-white'
+                onClick={showNextImage}
+              >
+                <ArrowRight size={48} />
+              </button>
+            </div>
+          </div>,
+          document.getElementById('root'),
+        )}
     </div>
   )
 }
