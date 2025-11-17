@@ -26,6 +26,7 @@ import SettlementEdit from './pages/SettlementEdit'
 import FindId from './pages/FindId'
 import FindIdResult from './pages/FindIdResult'
 import LandingPage from './pages/LandingPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 
 const App = () => {
   return (
@@ -44,6 +45,7 @@ const App = () => {
             <Route path='restore/account' element={<RestoreAccount />} />
             <Route path='user/help/id' element={<FindId />} />
             <Route path='user/help/id/result' element={<FindIdResult />} />
+            <Route path='user/help/pw' element={<ForgotPasswordPage />} />
             {/* 보호된 비공개 라우트 */}
             <Route element={<ProtectedRoute />}>
               <Route path='/' element={<Home />} />
