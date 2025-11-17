@@ -25,6 +25,7 @@ import RallyPointViewer from './pages/RallyPointViewer'
 import SettlementEdit from './pages/SettlementEdit'
 import FindId from './pages/FindId'
 import FindIdResult from './pages/FindIdResult'
+import LandingPage from './pages/LandingPage'
 
 const App = () => {
   return (
@@ -38,6 +39,7 @@ const App = () => {
             <Route path='oauth/kakao/callback' element={<KakaoRedirect />} />
             <Route path='oauth/naver/callback' element={<NaverRedirect />} />
             <Route path='signup/guest' element={<GuestSignUp />} />
+            <Route path='invite/:tripId' element={<LandingPage />} />
             {/* TODO: 추후 페이지 변경 예정 */}
             <Route path='restore/account' element={<RestoreAccount />} />
             <Route path='user/help/id' element={<FindId />} />
