@@ -1,5 +1,5 @@
 import GoBack from '@/assets/sign-up/GoBack'
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import readPlanningDatePlaceApi from '@/apis/planning-dashboard/readPlanningDatePlaceApi'
@@ -73,9 +73,17 @@ const TripPlaceMap = ({
   const tripId = tripInfo?.tripId
 
   const [map, setMap] = useState(null)
+  const mapRef = useRef(null)
+  const mapInitializedRef = useRef(false)
+
+  useEffect(() => {
+    mapRef.current = map
+  }, [map])
+
   const [selectedPlace, setSelectedPlace] = useState(null)
   const [places, setPlaces] = useState([])
   const markersRef = useRef([])
+  const imageMarkersRef = useRef([])
   const polylinesRef = useRef([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [dayFilter, setDayFilter] = useState('all')
@@ -85,15 +93,15 @@ const TripPlaceMap = ({
   const [modalImages, setModalImages] = useState([])
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const openModal = (image, images) => {
+  const openModal = useCallback((image, images, placeName) => {
     const imagesWithPlaceName = images.map((img) => ({
       ...img,
-      placeName: selectedPlace.name,
+      placeName: placeName,
     }))
     setModalImages(imagesWithPlaceName)
     setSelectedImage(imagesWithPlaceName.find((img) => img.id === image.id))
     setIsModalOpen(true)
-  }
+  }, [])
 
   const closeModal = () => {
     setIsModalOpen(false)
@@ -190,12 +198,83 @@ const TripPlaceMap = ({
     fetchTripPlaces()
   }, [tripId, tripInfo])
 
-  // 지도 초기화
+  const hidePlaceMarkers = useCallback(() => {
+    markersRef.current.forEach((marker) => marker.setMap(null))
+  }, [])
+
+  const showPlaceMarkers = useCallback(() => {
+    markersRef.current.forEach((marker) => marker.setMap(mapRef.current))
+  }, [])
+
+  const clearImageMarkers = useCallback(() => {
+    imageMarkersRef.current.forEach((marker) => marker.setMap(null))
+    imageMarkersRef.current = []
+  }, [])
+
+  const hidePolylines = useCallback(() => {
+    polylinesRef.current.forEach((polyline) => polyline.setMap(null))
+  }, [])
+
+  const showPolylines = useCallback(() => {
+    polylinesRef.current.forEach((polyline) => polyline.setMap(mapRef.current))
+  }, [])
+
+  const renderImageMarkers = useCallback(
+    (place) => {
+      if (!map || !place || !place.images || place.images.length === 0) return
+
+      hidePlaceMarkers()
+      clearImageMarkers()
+      hidePolylines()
+
+      const newImageMarkers = place.images.map((image) => {
+        const position =
+          image.latitude && image.longitude
+            ? new window.naver.maps.LatLng(image.latitude, image.longitude)
+            : new window.naver.maps.LatLng(
+                place.latitude + (Math.random() - 0.5) * 0.001,
+                place.longitude + (Math.random() - 0.5) * 0.001,
+              )
+
+        const imageMarker = new window.naver.maps.Marker({
+          position: position,
+          map: map,
+          icon: {
+            content: `<div style="width: 50px; height: 50px; border: 2px solid white; border-radius: 50%; overflow: hidden;"><img src="${image.url}" style="width: 100%; height: 100%; object-fit: cover;" /></div>`,
+            anchor: new window.naver.maps.Point(25, 25),
+          },
+        })
+
+        window.naver.maps.Event.addListener(imageMarker, 'click', () => {
+          openModal(image, place.images, place.name)
+        })
+
+        return imageMarker
+      })
+      imageMarkersRef.current = newImageMarkers
+
+      if (newImageMarkers.length > 1) {
+        const bounds = new window.naver.maps.LatLngBounds()
+        newImageMarkers.forEach((marker) => {
+          bounds.extend(marker.getPosition())
+        })
+        map.fitBounds(bounds)
+      } else if (newImageMarkers.length === 1) {
+        map.panTo(newImageMarkers[0].getPosition())
+        map.setZoom(16, true)
+      }
+    },
+    [map, hidePlaceMarkers, clearImageMarkers, hidePolylines, openModal],
+  )
+
+  // Effect for map script loading and initial map creation
   useEffect(() => {
+    if (mapInitializedRef.current) return // Map already initialized
+
     const scriptId = 'naver-maps-script'
     let mapScript = document.getElementById(scriptId)
 
-    const initMap = (lat, lng) => {
+    const createMap = (lat, lng) => {
       const mapOptions = {
         center: new window.naver.maps.LatLng(lat, lng),
         zoom: initialZoom,
@@ -206,32 +285,25 @@ const TripPlaceMap = ({
         },
       }
       const mapInstance = new window.naver.maps.Map('map', mapOptions)
-
-      if (onMapClick) {
-        window.naver.maps.Event.addListener(mapInstance, 'click', () => {
-          onMapClick()
-        })
-      }
-
       setMap(mapInstance)
+      mapInitializedRef.current = true // Mark as initialized
+
+      // Setup map click listener here, as mapInstance is available
+      window.naver.maps.Event.addListener(mapInstance, 'click', () => {
+        clearImageMarkers() // These are stable useCallback functions now
+        showPlaceMarkers() // These are stable useCallback functions now
+        showPolylines()
+        if (onMapClick) {
+          onMapClick()
+        }
+      })
     }
 
-    const startMapInit = () => {
-      if (!isLoading) {
-        if (places.length > 0) {
-          const firstPlace = places[0]
-          initMap(firstPlace.latitude, firstPlace.longitude)
-        } else {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (position) =>
-                initMap(position.coords.latitude, position.coords.longitude),
-              () => initMap(37.5665, 126.978), // Seoul
-            )
-          } else {
-            initMap(37.5665, 126.978) // Seoul
-          }
-        }
+    const handleMapLoad = () => {
+      // Initial centering will be handled by another useEffect
+      // For now, just create a map at a default location if no places yet
+      if (!mapInitializedRef.current) {
+        createMap(37.5665, 126.978) // Default to Seoul
       }
     }
 
@@ -242,12 +314,37 @@ const TripPlaceMap = ({
         import.meta.env.VITE_NAVER_MAP_KEY
       }`
       mapScript.async = true
-      mapScript.onload = startMapInit
+      mapScript.onload = handleMapLoad
       document.head.appendChild(mapScript)
     } else if (window.naver && window.naver.maps) {
-      startMapInit()
+      handleMapLoad()
     }
-  }, [places, isLoading, initialZoom, onMapClick])
+  }, [initialZoom, clearImageMarkers, showPlaceMarkers, onMapClick])
+
+  // Effect for initial centering
+  useEffect(() => {
+    if (!map || isLoading) return
+
+    if (places.length > 0) {
+      const firstPlace = places[0]
+      map.setCenter(
+        new window.naver.maps.LatLng(firstPlace.latitude, firstPlace.longitude),
+      )
+    } else if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) =>
+          map.setCenter(
+            new window.naver.maps.LatLng(
+              position.coords.latitude,
+              position.coords.longitude,
+            ),
+          ),
+        () => map.setCenter(new window.naver.maps.LatLng(37.5665, 126.978)), // Seoul
+      )
+    } else {
+      map.setCenter(new window.naver.maps.LatLng(37.5665, 126.978)) // Seoul
+    }
+  }, [map, places, isLoading])
 
   const filteredPlaces = useMemo(
     () =>
@@ -264,7 +361,9 @@ const TripPlaceMap = ({
     } else {
       setSelectedPlace(null)
     }
-  }, [effectiveDayFilter, filteredPlaces])
+    clearImageMarkers()
+    showPlaceMarkers()
+  }, [effectiveDayFilter, filteredPlaces, clearImageMarkers, showPlaceMarkers])
 
   // 지도에 장소 마커 표시
   useEffect(() => {
@@ -294,6 +393,7 @@ const TripPlaceMap = ({
         if (placeIndex !== -1) {
           setCurrentIndex(placeIndex)
         }
+        renderImageMarkers(place)
       })
 
       return marker
@@ -310,7 +410,7 @@ const TripPlaceMap = ({
       })
       map.fitBounds(bounds)
     }
-  }, [map, filteredPlaces, focusOnSelected])
+  }, [map, filteredPlaces, focusOnSelected, renderImageMarkers])
 
   useEffect(() => {
     if (!map) return
@@ -385,14 +485,17 @@ const TripPlaceMap = ({
 
   // 선택된 장소로 지도 포커스
   useEffect(() => {
-    if (!map || !selectedPlace || !focusOnSelected) return
-    map.panTo(
-      new window.naver.maps.LatLng(
-        selectedPlace.latitude,
-        selectedPlace.longitude,
-      ),
-    )
-    map.setZoom(16, true)
+    if (!map || !selectedPlace) return
+
+    if (focusOnSelected) {
+      map.panTo(
+        new window.naver.maps.LatLng(
+          selectedPlace.latitude,
+          selectedPlace.longitude,
+        ),
+      )
+      map.setZoom(16, true)
+    }
   }, [map, selectedPlace, focusOnSelected])
 
   const goToPreviousPlace = () => {
@@ -401,6 +504,8 @@ const TripPlaceMap = ({
         currentIndex === 0 ? filteredPlaces.length - 1 : currentIndex - 1
       setCurrentIndex(newIndex)
       setSelectedPlace(filteredPlaces[newIndex])
+      clearImageMarkers()
+      showPlaceMarkers()
     }
   }
 
@@ -410,6 +515,8 @@ const TripPlaceMap = ({
         currentIndex === filteredPlaces.length - 1 ? 0 : currentIndex + 1
       setCurrentIndex(newIndex)
       setSelectedPlace(filteredPlaces[newIndex])
+      clearImageMarkers()
+      showPlaceMarkers()
     }
   }
 
@@ -453,13 +560,13 @@ const TripPlaceMap = ({
       {!isLoading && places.length > 0 && showFixedActionBar && (
         <FixedActionBar className='flex justify-center'>
           <div
-            className={`w-4xl rounded-t-[20px] bg-white p-2 shadow-[0_0_4px_rgba(0,0,0,0.10)] transition-all duration-300 ${
-              isExpanded ? 'h-45' : 'h-auto'
-            }`}
+            className={`w-4xl rounded-t-[20px] bg-white p-2 shadow-[0_0_4px_rgba(0,0,0,0.10)] transition-all duration-300 ease-in-out ${
+              isExpanded ? 'max-h-[320px]' : 'max-h-[200px]'
+            } overflow-hidden`}
             onClick={() => setIsExpanded(!isExpanded)}
           >
             <div className='flex w-full justify-center'>
-              {!isExpanded ? (
+              {isExpanded ? (
                 <ChevronDown className='text-gray-400' />
               ) : (
                 <ChevronUp className='text-gray-400' />
@@ -529,20 +636,29 @@ const TripPlaceMap = ({
                   </button>
                 </div>
                 {selectedPlace.images && selectedPlace.images.length > 0 && (
-                  <div className='overflow-x-auto pt-2 pb-20 whitespace-nowrap'>
-                    <div className='px-5 pb-2 text-3xl font-bold text-[var(--Blue-Scale-blue-500)]'>
-                      {selectedPlace.images.length}장
-                    </div>
-                    <div className='grid grid-cols-5 gap-1 pr-15 pl-5'>
-                      {selectedPlace.images.map((image) => (
-                        <img
-                          key={image.id}
-                          src={image.url}
-                          alt={`place image ${image.id}`}
-                          className='aspect-square h-full w-full cursor-pointer rounded-2xl object-cover'
-                          onClick={() => openModal(image, selectedPlace.images)}
-                        />
-                      ))}
+                  <div
+                    className={`transition-all duration-300 ease-in-out ${
+                      isExpanded ? 'max-h-[200px]' : 'max-h-0'
+                    } overflow-hidden`}
+                  >
+                    <div className='overflow-x-auto pt-2 pb-20 whitespace-nowrap'>
+                      <div className='px-5 pb-2 text-3xl font-bold text-[var(--Blue-Scale-blue-500)]'>
+                        {selectedPlace.images.length}장
+                      </div>
+                      <div className='grid grid-cols-5 gap-1 pr-15 pl-5'>
+                        {selectedPlace.images.map((image) => (
+                          <img
+                            key={image.id}
+                            src={image.url}
+                            alt={`place image ${image.id}`}
+                            className='aspect-square h-full w-full cursor-pointer rounded-2xl object-cover'
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openModal(image, selectedPlace.images)
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
