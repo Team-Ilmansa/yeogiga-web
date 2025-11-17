@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import ResetPasswordApi from '@/apis/authentication/ResetPassWordAPi'
+import ResetPasswordApi from '@/apis/authentication/ResetPasswordApi'
 import { useNavigate } from 'react-router-dom'
 import GoBack from '@/assets/sign-up/GoBack'
 
