@@ -11,6 +11,7 @@ const NaverRedirect = () => {
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search)
     const code = queryParams.get('code')
+    const state = queryParams.get('state')
 
     const fetchNaverAccessToken = async () => {
       try {
@@ -28,7 +29,7 @@ const NaverRedirect = () => {
         if (shouldSignup) {
           navigate('/signup/guest', { replace: true })
         } else {
-          navigate('/', { replace: true })
+          navigate(state || '/', { replace: true })
         }
       } catch (error) {
         const errRes = error.response?.data
