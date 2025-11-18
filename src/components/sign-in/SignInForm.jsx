@@ -2,12 +2,14 @@ import regularSignInApi from '@/apis/authentication/regularSignInApi'
 import { useForm } from 'react-hook-form'
 import SignInButton from './SignInButton'
 import useAuth from '@/hooks/useAuth'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import logo from '@/assets/sign-in/logo.png'
 
 const SignInForm = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirectUrl = searchParams.get('redirect')
 
   /** 입력 관리를 위한 useForm 적용 */
   const { register, handleSubmit } = useForm()
@@ -24,7 +26,7 @@ const SignInForm = () => {
     try {
       const result = await regularSignInApi(body)
       login({ token: result.data.accessToken })
-      navigate('/')
+      navigate(redirectUrl || '/')
     } catch (err) {
       const errRes = err.response?.data
       /**탈퇴 계정 로그인 시 복구 페이지로 이동 */
@@ -89,8 +91,8 @@ const SignInForm = () => {
           <div className='mb-[20px] flex flex-col gap-2 text-lg text-[var(--Grey-Scale-grey-300)]'>
             SNS계정으로 간편로그인하기
             <div className='flex items-center justify-center gap-5'>
-              <SignInButton.KakaoLogin />
-              <SignInButton.NaverLogin />
+              <SignInButton.KakaoLogin redirectUrl={redirectUrl} />
+              <SignInButton.NaverLogin redirectUrl={redirectUrl} />
             </div>
           </div>
 
